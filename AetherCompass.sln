@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31729.503
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AetherCompass", "AetherCompass.csproj", "{E999447C-5E05-4992-84C2-E906A22C070D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+		TestRelease|x64 = TestRelease|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E999447C-5E05-4992-84C2-E906A22C070D}.Debug|x64.ActiveCfg = Debug|x64
+		{E999447C-5E05-4992-84C2-E906A22C070D}.Debug|x64.Build.0 = Debug|x64
+		{E999447C-5E05-4992-84C2-E906A22C070D}.Release|x64.ActiveCfg = Release|x64
+		{E999447C-5E05-4992-84C2-E906A22C070D}.Release|x64.Build.0 = Release|x64
+		{E999447C-5E05-4992-84C2-E906A22C070D}.TestRelease|x64.ActiveCfg = TestRelease|x64
+		{E999447C-5E05-4992-84C2-E906A22C070D}.TestRelease|x64.Build.0 = TestRelease|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2E11D229-ECAD-40B3-912D-D6EE7EB3FABF}
+	EndGlobalSection
+EndGlobal

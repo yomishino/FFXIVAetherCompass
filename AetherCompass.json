@@ -1,0 +1,16 @@
+﻿{
+  "Name": "Aether Compass",
+  "Author": "yomishino",
+  "Punchline": "",
+  "Description": "An aether compass that automatically tells you where the nearby aether currents are.",
+  "RepoUrl": "https://github.com/yomishino/AetherCompass",
+  "Tags": [
+    "UI",
+    "map",
+    "aether-compass",
+    "aether-currents"
+  ],
+  "ImageUrls": "",
+  "IconUrl": "",
+  "Changelog": ""
+}
