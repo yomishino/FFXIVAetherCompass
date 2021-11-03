@@ -8,6 +8,7 @@ namespace AetherCompass
 
         public static void AddCommands(Plugin host)
         {
+            // TODO: commands
             Plugin.CommandManager.AddHandler(
                 MainCommand, new CommandInfo((cmd, args) => ProcessMainCommand(host, cmd, args))
                 {

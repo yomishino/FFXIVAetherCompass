@@ -1,4 +1,7 @@
-﻿using Dalamud.IoC;
+﻿using AetherCompass.Compasses;
+using Dalamud.Game;
+using Dalamud.IoC;
+using Dalamud.Logging;
 using Dalamud.Plugin;
 using System;
 
@@ -15,10 +18,13 @@ namespace AetherCompass
         internal static Dalamud.Game.Command.CommandManager CommandManager { get; private set; } = null!;
         [PluginService]
         [RequiredVersion("1.0")]
-        internal static Dalamud.Game.ClientState.ClientState ClientState { get; private set; } = null!;
+        internal static Dalamud.Data.DataManager DataManager { get; private set; } = null!;
         [PluginService]
         [RequiredVersion("1.0")]
-        internal static Dalamud.Game.ClientState.Objects.ObjectTable ObjectTable { get; private set; } = null!;
+        internal static Framework Framework { get; private set; } = null!;
+        [PluginService]
+        [RequiredVersion("1.0")]
+        internal static Dalamud.Game.ClientState.ClientState ClientState { get; private set; } = null!;
         [PluginService]
         [RequiredVersion("1.0")]
         internal static Dalamud.Game.Gui.GameGui GameGui { get; private set; } = null!;
@@ -40,32 +46,61 @@ namespace AetherCompass
 #endif
 
         private readonly Configuration config;
+        private readonly IconManager iconManager;
+        private readonly CompassManager compassMgr;
 
-        private bool enabled = false;
+        public bool Enabled 
+        {
+            get => config.Enabled;
+            private set => config.Enabled = value;
+        }
         private bool inConfig = false;
 
         public Plugin()
         {
-            this.config = PluginInterface.GetPluginConfig() as Configuration ?? new();
+            config = PluginInterface.GetPluginConfig() as Configuration ?? new();
+            iconManager = new(config);
+            compassMgr = new();
 
             PluginCommands.AddCommands(this);
 
+            Framework.Update += OnFrameworkUpdate;
+
             PluginInterface.UiBuilder.Draw += OnDrawUi;
             PluginInterface.UiBuilder.OpenConfigUi += OnOpenConfigUi;
+
+#if DEBUG
+            compassMgr.AddCompass(new DebugCompass(config, iconManager));
+#endif
         }
 
+        public static void LogDebug(string msg) => PluginLog.Debug(msg);
+
+        public static void LogError(string msg) => PluginLog.Error(msg);
+
+        public static void ShowError(string chatMsg, string logMsg)
+        {
+            ChatGui.PrintError(chatMsg);
+            LogError(logMsg);
+        }
 
         private void OnDrawUi()
         {
-            if (enabled)
+            if (Enabled && ClientState.LocalContentId != 0)
             {
-                // draw main ui
+                compassMgr.OnTick();
+                
             }
 
             if (inConfig)
             {
-                // draw config ui
+                // TODO: draw config ui
             }
+        }
+
+        private void OnFrameworkUpdate(Framework framework)
+        {
+            
         }
 
         private void OnOpenConfigUi()
@@ -79,14 +114,16 @@ namespace AetherCompass
         {
             if (!disposing) return;
 
+            // TEMP:
             //PluginInterface.SavePluginConfig(this.config);
 
-            // remove drawing handlers 
+            PluginCommands.RemoveCommands();
+            iconManager.Dispose();
+            
             PluginInterface.UiBuilder.Draw -= OnDrawUi;
             PluginInterface.UiBuilder.OpenConfigUi -= OnOpenConfigUi;
 
-            // remove command handlers
-            PluginCommands.RemoveCommands();
+            Framework.Update -= OnFrameworkUpdate;
         }
 
         public void Dispose()
