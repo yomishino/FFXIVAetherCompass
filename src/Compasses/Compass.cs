@@ -18,6 +18,7 @@ namespace AetherCompass.Compasses
         internal bool HasFlagToProcess = false;
         internal Vector2 FlaggedMapCoord;
 
+        public abstract string Description { get; }
         public abstract bool CompassEnabled { get; internal set; }
         public abstract bool DrawDetailsEnabled { get; private protected set; }
         public abstract bool MarkScreenEnabled { get; private protected set; }
@@ -49,7 +50,7 @@ namespace AetherCompass.Compasses
 
         private protected void DrawFlagButton(string id, Vector3 mapCoordToFlag)
         {
-            if (ImGui.Button($"Flag##{id}"))
+            if (ImGui.Button($"Set flag on map##{GetType().Name}_{id}"))
             {
                 HasFlagToProcess = true;
                 FlaggedMapCoord = new Vector2(mapCoordToFlag.X, mapCoordToFlag.Y);
@@ -87,7 +88,7 @@ namespace AetherCompass.Compasses
             var icon = iconManager.DirectionScreenIndicatorIcon;
             if (icon == null) return false;
             var iconSize = IconManager.DirectionScreenIndicatorIconSize;
-            nextDrawScreenPos = CompassUtil.GetConstrainedScreenPos(screenPosRaw, iconSize / 4);
+            nextDrawScreenPos = CompassUtil.GetConstrainedScreenPos(screenPosRaw, config.ScreenMarkConstraint, iconSize / 4);
             nextDrawScreenPos -= iconSize / 2;
             var rotation = CompassUtil.GetAngleOnScreen(nextDrawScreenPos);
             (var p1, var p2, var p3, var p4) = CompassUtil.GetRotatedPointsOnScreen(nextDrawScreenPos, iconSize, rotation);

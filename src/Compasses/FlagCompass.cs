@@ -7,6 +7,7 @@ namespace AetherCompass.Compasses
     // TODO: flag compass
     public sealed class FlagCompass : Compass
     {
+        public override string Description => "Showing the map flag on screen";
         public override bool CompassEnabled { get => config.FlagEnabled; internal set => config.FlagEnabled = value; }
         public override bool DrawDetailsEnabled { get; private protected set; } = true;
         public override bool MarkScreenEnabled { get => config.FlagScreen; private protected set => config.FlagScreen = value; }

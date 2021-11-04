@@ -10,7 +10,6 @@ namespace AetherCompass.Common
     {
         private readonly Dictionary<Compass, Queue<Action>> drawActions = new();
 
-        public bool Visible { get; internal set; }
 
         public bool RegisterCompass(Compass c)
             => drawActions.TryAdd(c, new());
@@ -20,7 +19,6 @@ namespace AetherCompass.Common
 
         public bool RegisterDrawAction(Compass c, Action a)
         {
-            if (!Visible) return false;
             if (!drawActions.TryGetValue(c, out var queue))
                 return false;
             queue.Enqueue(a);
@@ -29,7 +27,6 @@ namespace AetherCompass.Common
 
         public void Draw()
         {
-            if (!Visible) return;
             var map = CompassUtil.GetCurrentMap();
             if (map == null)
             {
@@ -38,9 +35,17 @@ namespace AetherCompass.Common
                 return;
             }
             ImGui.Begin("AetherCompass: Compasses");
-            ImGui.Text($"Current Map: {CompassUtil.GetPlaceNameToString(map.PlaceNameRegion.Row, "-")}" +
-                $" > {CompassUtil.GetPlaceNameToString(map.PlaceName.Row, "-")}" +
-                $" > {CompassUtil.GetPlaceNameToString(map.PlaceNameSub.Row, "-")} ");
+            var regionName = CompassUtil.GetPlaceNameToString(map.PlaceNameRegion.Row);
+            var placeName = CompassUtil.GetPlaceNameToString(map.PlaceName.Row);
+            var subName = CompassUtil.GetPlaceNameToString(map.PlaceNameSub.Row);
+            var mapName = regionName;
+            if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(placeName))
+                mapName += " > " + placeName;
+            else if (!string.IsNullOrEmpty(placeName))
+                mapName = placeName;
+            if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(subName))
+                mapName += " > " + subName;
+            ImGui.TextWrapped($"Current Map:  {mapName}");
 #if DEBUG
             ImGui.Text($"Map data: SizeFactor={map.SizeFactor}, OffsetX={map.OffsetX}, OffsetY={map.OffsetY}");
             ImGui.Text($"Main Viewport: pos={Dalamud.Interface.ImGuiHelpers.MainViewport.Pos}, " +

@@ -26,7 +26,11 @@ namespace AetherCompass
         internal static readonly Vector2 AetherCurrentMarkerIconSize = new(35, 35);
         internal static readonly Vector2 AetherCurrentMarkerIconSizeSmall = new(25, 25);
 
-        // Armorer Job icon, just randomly picked a asymmetrical one for debug
+        public const uint AetheryteMarkerIconId = 60453;
+        internal TextureWrap? AetheryteMarkerIcon { get; private set; }
+        internal static readonly Vector2 AetheryteMarkerIconSize = new(30, 30);
+
+        // Armorer job icon, just randomly picked a asymmetrical one for debug
         public const uint DebugMarkerIconId = 62110;
         internal TextureWrap? DebugMarkerIcon { get; private set; }
         internal static readonly Vector2 DebugMarkerIconSize = new(30, 30);
@@ -48,9 +52,15 @@ namespace AetherCompass
             AltitudeLowerIcon = GetIconAsImGuiTexture(AltitudeLowerIconId);
             DirectionScreenIndicatorIcon = GetIconAsImGuiTexture(DirectionScreenIndicatorIconId);
 
-            if (config.AetherEnabled) AetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
+            if (config.AetherEnabled)
+            {
+                AetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
+                AetheryteMarkerIcon = GetIconAsImGuiTexture(AetheryteMarkerIconId);
+            }
+
             if (DirectionScreenIndicatorIcon == null) ShowLoadIconError(DirectionScreenIndicatorIconId);
             if (AetherCurrentMarkerIcon == null) ShowLoadIconError(AetherCurrentMarkerIconId);
+            if (AetheryteMarkerIcon == null) ShowLoadIconError(AetheryteMarkerIconId);
 
 #if DEBUG
             if (config.DebugEnabled) DebugMarkerIcon = GetIconAsImGuiTexture(DebugMarkerIconId);
@@ -71,6 +81,7 @@ namespace AetherCompass
                 AltitudeLowerIconId => nameof(AltitudeLowerIcon),
                 DirectionScreenIndicatorIconId => nameof(DirectionScreenIndicatorIcon),
                 AetherCurrentMarkerIconId => nameof(AetherCurrentMarkerIcon),
+                AetheryteMarkerIconId => nameof(AetheryteMarkerIcon),
                 DebugMarkerIconId => nameof(DebugMarkerIcon),
                 _ => "(UnknownIcon)"
             };
@@ -80,43 +91,20 @@ namespace AetherCompass
 
         private void DisposeIcons()
         {
+            if (AltitudeHigherIcon != null) AltitudeHigherIcon.Dispose();
+            if (AltitudeLowerIcon != null) AltitudeLowerIcon.Dispose();
+            if (DirectionScreenIndicatorIcon != null) DirectionScreenIndicatorIcon.Dispose();
+            
             if (AetherCurrentMarkerIcon != null) AetherCurrentMarkerIcon.Dispose();
+            if (AetheryteMarkerIcon != null) AetheryteMarkerIcon.Dispose();
+
+            if (DebugMarkerIcon != null) DebugMarkerIcon.Dispose();
         }
 
         public void Dispose()
         {
             DisposeIcons();
         }
-    }
-
-
-    public sealed class IconData : IDisposable
-    {
-        public readonly uint IconId;
-        public readonly string IconName;
-        public TextureWrap? Icon { get; private set; }
-        public Vector2 IconSize { get; set; }
-        public bool IconLoaded { get; private set; }
-
-        public IconData(uint iconId, string iconName, Vector2 iconSize)
-        {
-            IconId = iconId;
-            IconName = iconName;
-            IconSize = iconSize;
-        }
-
-        public void LoadIcon(bool hqIcon)
-        {
-            Icon = hqIcon? Plugin.DataManager.GetImGuiTextureHqIcon(IconId) : Plugin.DataManager.GetImGuiTextureIcon(IconId);
-            IconLoaded = Icon != null;
-            if (!IconLoaded)
-                Plugin.ShowError($"AetherCompass encountered an error: Failed to load icon",
-                    $"Failed to load icon: {IconName}, IconId = {IconId}");
-        }
-
-        public void Dispose()
-        {
-            if (Icon != null) Icon.Dispose();
-        }
+    
     }
 }

@@ -95,7 +95,8 @@ namespace AetherCompass.Common
 
         // NOTE: TerritoryIntendedUse == 1 seems include iff maps with Z coord, but not sure 
         public static bool HasZCoord(uint terrId)
-            => GetTerritoryType(terrId)?.TerritoryIntendedUse == 1;
+            //=> GetTerritoryType(terrId)?.TerritoryIntendedUse == 1;
+            => false;   // TEMP: because we can't find offset of each map and so can't get a reasonably accurate Z-coord
 
         public static bool CurrentHasZCoord()
             => HasZCoord(Plugin.ClientState.TerritoryType);
@@ -116,16 +117,14 @@ namespace AetherCompass.Common
             => Plugin.DataManager.GetExcelSheet<Map>()?.GetRow(GetCurrentTerritoryType()?.Map.Row ?? 0);
 
         public static string GetPlaceNameToString(uint placeNameRowId, string emptyPlaceName = "")
-            => Plugin.DataManager.GetExcelSheet<PlaceName>()?.GetRow(placeNameRowId)?.Name.ToString() 
-            ?? emptyPlaceName;
-
+        {
+            var name = Plugin.DataManager.GetExcelSheet<PlaceName>()?.GetRow(placeNameRowId)?.Name.ToString();
+            if (string.IsNullOrEmpty(name)) return emptyPlaceName;
+            return name;
+        }
 
         public static Vector2 GetScreenCentre()
             => ImGuiHelpers.MainViewport.GetCenter();
-
-        // TODO: seems to be problems with those farther than 50 or something that will not be drawn on screen even if facing camera;
-        //  those things' pos may not be updated correctly; maybe use w2s pos for those too far, since the difference between w2s pos and model centre pos should be small when faraway
-        private static byte MaxWorldDistanceToDraw => 102; 
 
         // NOTE: for some objs, ObjectProjectedScreenSpace is not stable, can fly around when kept at certain distance? (NamePlatePos is fine)
         public static Vector2 GetProjectedScreenPos(Vector3 projection)
@@ -148,15 +147,12 @@ namespace AetherCompass.Common
         public static bool WorldToScreenPos(Vector3 worldPos, out Vector2 screenPos)
             => Plugin.GameGui.WorldToScreen(worldPos, out screenPos);
 
-        public static float CalculateAlphaFromDistance(float world3DDistance)
-            => MathF.Max(MaxWorldDistanceToDraw - world3DDistance, 0) / MaxWorldDistanceToDraw;
-
-        public static Vector2 GetConstrainedScreenPos(Vector2 screenPosUL, Vector2 extraConstraint)
+        public static Vector2 GetConstrainedScreenPos(Vector2 screenPosUL, Vector4 screenConstraint, Vector2 extraConstraint)
         {
             var constraintUL = ImGuiHelpers.MainViewport.Pos + extraConstraint;
             var constraintBR = ImGuiHelpers.MainViewport.Pos + ImGuiHelpers.MainViewport.Size - extraConstraint;
-            var x = MathF.Max(constraintUL.X, MathF.Min(constraintBR.X, screenPosUL.X));
-            var y = MathF.Max(constraintUL.Y, MathF.Min(constraintBR.Y, screenPosUL.Y));
+            var x = MathF.Max(constraintUL.X + screenConstraint.X, MathF.Min(constraintBR.X - screenConstraint.Z, screenPosUL.X));
+            var y = MathF.Max(constraintUL.Y + screenConstraint.Z, MathF.Min(constraintBR.Y - screenConstraint.Y, screenPosUL.Y));
             return new Vector2(x, y);
         }
 
@@ -169,10 +165,10 @@ namespace AetherCompass.Common
         public static (Vector2 P1, Vector2 P2, Vector2 P3, Vector2 P4) 
             GetRotatedPointsOnScreen(Vector2 screenPosUL, Vector2 size, float rotation)
         {
-            // TODO: seems p1~p4 is UL, DL, DR, DU of the image
+            // Seems p1~p4 is UL, DL, DR, DU of the image
             // but because our coord system has y going downwards
             // while image itself is upwards,
-            // we need to swap the points here to make p1~p4 be DR, DU, UL, DL
+            // we need to swap the points here to make p1~p4 be DR, UR, UL, DL
             Vector2 p3 = screenPosUL;
             Vector2 p4 = new(screenPosUL.X + size.X, screenPosUL.Y);
             Vector2 p1 = screenPosUL + size;

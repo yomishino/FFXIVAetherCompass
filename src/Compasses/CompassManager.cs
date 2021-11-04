@@ -13,17 +13,22 @@ namespace AetherCompass.Compasses
         private readonly HashSet<Compass> compasses = new();
         private readonly CompassOverlay overlay = new();
         private readonly CompassDetailsWindow detailsWindow = new();
-
+        private readonly Configuration config = null!;
 
         private unsafe static UI3DModule* UI3DModule = ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
-        //public unsafe static ObjectInfo* ObjectInfoArray => UI3DModule != null ? (ObjectInfo*)UI3DModule->ObjectInfoArray : null;
-        //public const int ObjectInfoArraySize = 424;
+
+#if DEBUG
+        public unsafe static ObjectInfo* ObjectInfoArray => UI3DModule != null ? (ObjectInfo*)UI3DModule->ObjectInfoArray : null;
+        public const int ObjectInfoArraySize = 424;
+#endif
 
         // Gives only the ones that would be on screen, so ruling out non-interactable ones
         private unsafe static ObjectInfo** SortedObjectInfoPointerArray 
             => UI3DModule != null ? (ObjectInfo**)UI3DModule->SortedObjectInfoPointerArray : null;
         private unsafe static int SortedObjectInfoCount => UI3DModule != null ? UI3DModule->SortedObjectInfoCount : 0;
 
+
+        public CompassManager(Configuration config) => this.config = config;
 
         public bool AddCompass(Compass c)
         {
@@ -41,21 +46,31 @@ namespace AetherCompass.Compasses
 
         public void OnTick()
         {
-            var array = SortedObjectInfoPointerArray;
-            if (array == null) return;
-
             var map = CompassUtil.GetCurrentMap();
             if (map == null) return;
 
-            for (int i = 0; i < SortedObjectInfoCount; i++)
+            void* array;
+            int count;
+#if DEBUG
+            array = config.DebugUseFullArray ? ObjectInfoArray : SortedObjectInfoPointerArray;
+            count = config.DebugUseFullArray ? ObjectInfoArraySize : SortedObjectInfoCount;
+#else
+            array = SortedObjectInfoPointerArray;
+            count = SortedObjectInfoCount;
+#endif
+            for(int i = 0; i < count; i++)
             {
-                var info = array[i];
+                var info =
+#if DEBUG
+                    config.DebugUseFullArray ? &((ObjectInfo*)array)[i] :
+#endif
+                    ((ObjectInfo**)array)[i];
                 if (info == null) continue;
                 foreach (var compass in compasses)
                 {
                     if (!compass.CompassEnabled) continue;
                     if (!compass.IsObjective(info->GameObject)) continue;
-                    if (detailsWindow.Visible && compass.DrawDetailsEnabled)
+                    if (config.ShowDetailWindow && compass.DrawDetailsEnabled)
                     {
                         var action = compass.CreateDrawDetailsAction(info);
                         if (action != null)
@@ -76,13 +91,13 @@ namespace AetherCompass.Compasses
                         Plugin.LogDebug($"Create MapLinkPayload from {compass.FlaggedMapCoord}: {payload}");
 #endif
                         Plugin.GameGui.OpenMapWithMapLink(payload);
+                        // TODO: print chat msg
                         compass.HasFlagToProcess = false;
                     }
                 }
             }
-
             overlay.Draw();
-            detailsWindow.Draw();
+            if (config.ShowDetailWindow) detailsWindow.Draw();
         }
     }
 }

@@ -60,7 +60,7 @@ namespace AetherCompass
         {
             config = PluginInterface.GetPluginConfig() as Configuration ?? new();
             iconManager = new(config);
-            compassMgr = new();
+            compassMgr = new(config);
 
             PluginCommands.AddCommands(this);
 
@@ -69,6 +69,7 @@ namespace AetherCompass
             PluginInterface.UiBuilder.Draw += OnDrawUi;
             PluginInterface.UiBuilder.OpenConfigUi += OnOpenConfigUi;
 
+            compassMgr.AddCompass(new AetherCurrentCompass(config, iconManager));
 #if DEBUG
             compassMgr.AddCompass(new DebugCompass(config, iconManager));
 #endif
@@ -86,7 +87,7 @@ namespace AetherCompass
 
         private void OnDrawUi()
         {
-            if (Enabled && ClientState.LocalContentId != 0)
+            if (Enabled && ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
             {
                 compassMgr.OnTick();
                 

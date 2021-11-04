@@ -11,6 +11,7 @@ namespace AetherCompass.Compasses
 {
     public class DebugCompass : Compass
     {
+        public override string Description => "For Debug";
         public override bool CompassEnabled
         {
             get => config.DebugEnabled;
@@ -34,12 +35,12 @@ namespace AetherCompass.Compasses
         public override unsafe bool IsObjective(GameObject* o)
             => o != null && (o->ObjectID == Plugin.ClientState.LocalPlayer?.ObjectId
             || o->ObjectKind == (byte)ObjectKind.EventObj 
-            || o->ObjectKind == (byte)ObjectKind.EventNpc
+            //|| o->ObjectKind == (byte)ObjectKind.EventNpc
             || o->ObjectKind == (byte)ObjectKind.GatheringPoint
             || o->ObjectKind == (byte)ObjectKind.Aetheryte
             || o->ObjectKind == (byte)ObjectKind.AreaObject);
 
-       
+
         public override unsafe Action? CreateDrawDetailsAction(ObjectInfo* info)
         {
             if (info == null || info->GameObject == null) return null;
@@ -49,7 +50,7 @@ namespace AetherCompass.Compasses
                 ImGui.Text($"Object: {CompassUtil.GetName(obj)}");
                 ImGui.BulletText($"ObjectId: {obj->GetObjectID().ObjectID}, type {obj->GetObjectID().Type}");
                 ImGui.BulletText($"ObjectKind: {(ObjectKind)obj->ObjectKind}");
-                ImGui.BulletText($"DataId: {obj->DataID}");
+                ImGui.BulletText($"NpcId: {obj->GetNpcID()} DataId: {obj->DataID}");
                 ImGui.BulletText($"2D-Distance: {CompassUtil.Get2DDistanceFromPlayer(obj):0.0}");
                 ImGui.BulletText($"Height diff: {CompassUtil.GetYDistanceFromPlayer(obj):0.0}");
                 ImGui.BulletText($"3D-Distance: {CompassUtil.Get3DDistanceFromPlayer(obj):0.0}");
