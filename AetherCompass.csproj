@@ -71,7 +71,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="src\Helpers\" />
+    <Folder Include="src\UI\" />
   </ItemGroup>
 
 </Project>

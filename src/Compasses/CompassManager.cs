@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using System;
@@ -84,15 +85,20 @@ namespace AetherCompass.Compasses
                     }
                     if (compass.HasFlagToProcess)
                     {
-
-                        var payload = new MapLinkPayload(CompassUtil.GetCurrentTerritoryType()!.RowId,
-                            map.RowId, compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, fudgeFactor: 0.01f);
+                        var terrId = CompassUtil.GetCurrentTerritoryType()!.RowId;
+                        var maplink = new MapLinkPayload(terrId, map.RowId, 
+                            compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, fudgeFactor: 0.01f);
 #if DEBUG
-                        Plugin.LogDebug($"Create MapLinkPayload from {compass.FlaggedMapCoord}: {payload}");
+                        Plugin.LogDebug($"Create MapLinkPayload from {compass.FlaggedMapCoord}: {maplink}");
 #endif
-                        Plugin.GameGui.OpenMapWithMapLink(payload);
-                        // TODO: print chat msg
-                        compass.HasFlagToProcess = false;
+                        if (Plugin.GameGui.OpenMapWithMapLink(maplink))
+                        {
+                            var msg = new SeString(new TextPayload("[AetherCompass] Flag set @"));
+                            var linkMsg = SeString.CreateMapLink(terrId, map.RowId, maplink.XCoord, maplink.YCoord, .01f);
+                            msg.Append(linkMsg.Payloads);
+                            Plugin.PrintChat(msg);
+                            compass.HasFlagToProcess = false;
+                        }
                     }
                 }
             }

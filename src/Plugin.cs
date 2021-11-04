@@ -83,6 +83,21 @@ namespace AetherCompass
         {
             ChatGui.PrintError(chatMsg);
             LogError(logMsg);
+        
+        }
+
+        public static void PrintChat(string msg)
+        {
+            ChatGui.Print(msg);
+        }
+
+        public static void PrintChat(Dalamud.Game.Text.SeStringHandling.SeString msg)
+        {
+            ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry()
+            {
+                Message = msg,
+                Type = Dalamud.Game.Text.XivChatType.Echo
+            });
         }
 
         private void OnDrawUi()
