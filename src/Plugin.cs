@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Compasses;
+using AetherCompass.UI;
 using Dalamud.Game;
 using Dalamud.IoC;
 using Dalamud.Logging;
@@ -13,6 +14,9 @@ namespace AetherCompass
         [PluginService]
         [RequiredVersion("1.0")]
         internal static DalamudPluginInterface PluginInterface { get; private set; } = null!;
+        [PluginService]
+        [RequiredVersion("1.0")]
+        internal static SigScanner SigScanner { get; private set; } = null!;
         [PluginService]
         [RequiredVersion("1.0")]
         internal static Dalamud.Game.Command.CommandManager CommandManager { get; private set; } = null!;

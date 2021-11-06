@@ -68,10 +68,10 @@
       <HintPath Condition="Exists('$(DalamudLibPath)')">$(DalamudLibPath)\Reloaded.Hooks.Definitions.dll</HintPath>
       <Private>false</Private>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="src\UI\" />
+    <Reference Include="Reloaded.Hooks.Definitions">
+      <HintPath Condition="Exists('$(DalamudLibPath)')">$(DalamudLibPath)\SharpDX.Mathematics.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

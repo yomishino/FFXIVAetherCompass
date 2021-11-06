@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using System;
@@ -57,90 +58,116 @@ namespace AetherCompass.Compasses
             }
         }
 
-        private protected virtual unsafe bool DrawScreenMarkAllDefault(GameObject* obj,
-            ImGuiScene.TextureWrap icon, Vector2 iconSize, float iconAlpha, out Vector2 lastDrawEndPos)
+        private protected virtual unsafe bool DrawScreenMarkerDefault(GameObject* obj,
+            ImGuiScene.TextureWrap icon, Vector2 iconSize, float iconAlpha, string info,
+            Vector4 infoTextColour, out Vector2 lastDrawEndPos)
         {
             lastDrawEndPos = new(0, 0);
             if (obj == null) return false;
-            // Use hitbox pos instead of the two pos from ObjectInfo because they are often inconsistent/out-of-date esp. when obj not on screen
-            bool inFrontOfCamera = CompassUtil.WorldToScreenPos(obj->Position, out var hitboxScrPos);
-            bool insideViewport = CompassUtil.IsScreenPosInsideMainViewport(hitboxScrPos, iconSize);
+
+            bool inFrontOfCamera = Projection.WorldToScreen(obj->Position, out var hitboxScrPos);
 
             lastDrawEndPos = hitboxScrPos;
             lastDrawEndPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos
 
+            lastDrawEndPos = PushToSideOnXIfNeeded(lastDrawEndPos, inFrontOfCamera);
+
             var altidueDiff = CompassUtil.GetAltitudeDiffFromPlayer(obj);
 
-            lastDrawEndPos = FixDrawPos(lastDrawEndPos, inFrontOfCamera, insideViewport);
-
             // Draw direction indicator
-            bool dirDrawn = DrawDirectionIcon(lastDrawEndPos, IconManager.DebugMarkerIconColour, out lastDrawEndPos);
+            DrawDirectionIcon(lastDrawEndPos, IconManager.DebugMarkerIconColour, out float rotationFromUpward, out lastDrawEndPos);
             // Marker
-            bool markerDrawn = DrawScreenMarkerIcon(icon.ImGuiHandle, lastDrawEndPos, iconSize, !dirDrawn, iconAlpha, out lastDrawEndPos);
-            // Altitude
-            DrawAltitudeDiffIcon(altidueDiff, lastDrawEndPos, true, iconAlpha, out lastDrawEndPos);
+            bool markerDrawn = DrawScreenMarkerIcon(icon.ImGuiHandle, lastDrawEndPos, iconSize, true, iconAlpha, out lastDrawEndPos);
+            if (markerDrawn)
+            {
+                // Altitude
+                DrawAltitudeDiffIcon(altidueDiff, lastDrawEndPos, true, iconAlpha, out _);
+                // Info
+                DrawExtraInfoByMarker(info, infoTextColour, config.ScreenMarkFontSize, lastDrawEndPos,
+                    iconSize, rotationFromUpward, out _);
+            }
             return markerDrawn;
         }
 
-        private protected bool DrawDirectionIcon(Vector2 screenPosRaw, uint colour, out Vector2 nextDrawScreenPos)
+        private protected bool DrawDirectionIcon(Vector2 screenPosRaw, uint colour, out float rotationFromUpward, out Vector2 drawEndPos)
         {
-            nextDrawScreenPos = screenPosRaw;
+            drawEndPos = screenPosRaw;
+            rotationFromUpward = 0;
             var icon = iconManager.DirectionScreenIndicatorIcon;
             if (icon == null) return false;
             var iconSize = IconManager.DirectionScreenIndicatorIconSize;
-            nextDrawScreenPos = CompassUtil.GetConstrainedScreenPos(screenPosRaw, config.ScreenMarkConstraint, iconSize / 4);
-            nextDrawScreenPos -= iconSize / 2;
-            var rotation = CompassUtil.GetAngleOnScreen(nextDrawScreenPos);
-            (var p1, var p2, var p3, var p4) = CompassUtil.GetRotatedPointsOnScreen(nextDrawScreenPos, iconSize, rotation);
+            rotationFromUpward = CompassUi.GetAngleOnScreen(drawEndPos);
+            // Flip the direction indicator along X when not inside viewport;
+            if (!CompassUi.IsScreenPosInsideMainViewport(drawEndPos))
+                rotationFromUpward = -rotationFromUpward;
+            drawEndPos = CompassUi.GetConstrainedScreenPos(screenPosRaw, config.ScreenMarkConstraint, iconSize / 4);
+            drawEndPos -= iconSize / 2;
+            (var p1, var p2, var p3, var p4) = CompassUi.GetRotatedPointsOnScreen(drawEndPos, iconSize, rotationFromUpward);
             ImGui.GetWindowDrawList().AddImageQuad(icon.ImGuiHandle, p1, p2, p3, p4, new(0, 0), new(1, 0), new(1, 1), new(0, 1), colour);
-            var scrCentre = CompassUtil.GetScreenCentre();
-            nextDrawScreenPos -= new Vector2(MathF.CopySign(2 * iconSize.X / 3, nextDrawScreenPos.X - scrCentre.X),
-                MathF.CopySign(2 * iconSize.Y / 3, nextDrawScreenPos.Y - scrCentre.Y));
+            var iconCentre = (p1 + p3) / 2;
+            drawEndPos = new Vector2(iconCentre.X + iconSize.Y / 2 * MathF.Sin(rotationFromUpward), 
+                iconCentre.Y + iconSize.X / 2 * MathF.Cos(rotationFromUpward));
             return true;
         }
 
-        private protected bool DrawScreenMarkerIcon(IntPtr iconTexHandle, Vector2 drawScreenPos, 
-            Vector2 iconSize, bool posIsRaw, float alpha, out Vector2 nextDrawPos)
+        private protected static bool DrawScreenMarkerIcon(IntPtr iconTexHandle, Vector2 drawScreenPos, 
+            Vector2 iconSize, bool posIsRaw, float alpha, out Vector2 drawEndPos)
         {
-            nextDrawPos = drawScreenPos;
+            drawEndPos = drawScreenPos;
             if (iconTexHandle == IntPtr.Zero) return false;
             if (posIsRaw)
-                nextDrawPos -= iconSize / 2;
-            ImGui.GetWindowDrawList().AddImage(iconTexHandle, nextDrawPos, nextDrawPos + iconSize, 
+                drawEndPos -= iconSize / 2;
+            ImGui.GetWindowDrawList().AddImage(iconTexHandle, drawEndPos, drawEndPos + iconSize, 
                 new(0,0), new(1,1), ImGui.ColorConvertFloat4ToU32(new(1,1,1,alpha)));
             return true;
         }
 
-        private protected bool DrawAltitudeDiffIcon(float altDiff, Vector2 screenPos, bool posIsRaw, float alpha, out Vector2 nextDrawPos)
+        private protected bool DrawAltitudeDiffIcon(float altDiff, Vector2 screenPos, bool posIsRaw, float alpha, out Vector2 drawEndPos)
         {
-            nextDrawPos = screenPos;
+            drawEndPos = screenPos;
             ImGuiScene.TextureWrap? icon = null;
             if (altDiff > 10) icon = iconManager.AltitudeHigherIcon;
             if (altDiff < -10) icon = iconManager.AltitudeLowerIcon;
             if (icon == null) return false;
             if (posIsRaw)
-                nextDrawPos -= IconManager.AltitudeIconSize / 2;
-            ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle, nextDrawPos, nextDrawPos + IconManager.AltitudeIconSize,
+                drawEndPos -= IconManager.AltitudeIconSize / 2;
+            ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle, drawEndPos, drawEndPos + IconManager.AltitudeIconSize,
                 new(0,0), new(1,1), ImGui.ColorConvertFloat4ToU32(new(1,1,1,alpha)));
-            nextDrawPos += IconManager.AltitudeIconSize / 2;
+            drawEndPos += IconManager.AltitudeIconSize / 2;
             return true;
         }
 
-        private protected static Vector2 FixDrawPos(Vector2 drawPos, bool posInFrontOfCamera, bool posInsideViewport)
+        private protected static bool DrawExtraInfoByMarker(string info, Vector4 colour, float fontSize,
+            Vector2 markerScreenPos, Vector2 markerSize, float directionRotationFromUpward, out Vector2 drawEndPos)
         {
-            // Fix X-axis for some objs: push all those not in front of camera to side
-            //  so that they don't dangle in the middle of the screen
-            if (!posInFrontOfCamera && posInsideViewport)
+            drawEndPos = markerScreenPos;
+            if (string.IsNullOrEmpty(info)) return false;
+            if (directionRotationFromUpward > -.95f)
+            {
+                // direction indicator would be on left side, so just draw text on right
+                drawEndPos.X += markerSize.X + 2;
+                ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize, drawEndPos, ImGui.ColorConvertFloat4ToU32(colour), info);
+            }
+            else
+            {
+                // direction indicator would be on right side, so draw text on the left
+                var size = CompassUi.GetTextSize(info, fontSize);
+                drawEndPos.X -= size.X + 2;
+                ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize, drawEndPos, ImGui.ColorConvertFloat4ToU32(colour), info);
+            }
+            return true;
+        }
+
+        private protected static Vector2 PushToSideOnXIfNeeded(Vector2 drawPos, bool posInFrontOfCamera)
+        {
+            if (!posInFrontOfCamera && CompassUi.IsScreenPosInsideMainViewport(drawPos))
             {
                 var viewport = ImGui.GetMainViewport();
-                drawPos.X = drawPos.X - CompassUtil.GetScreenCentre().X > 0
+                // Fix X-axis for some objs: push all those not in front of camera to side
+                //  so that they don't dangle in the middle of the screen
+                drawPos.X = drawPos.X - CompassUi.GetScreenCentre().X > 0
                     ? (viewport.Pos.X + viewport.Size.X) : viewport.Pos.X;
             }
-
-            // TODO: there's also problems on Y-axis when altitude difference and camera rotation on Y all mix together,
-            // because we use screen Y-axis to show both world-Z and altitude but they sometimes conflict with each other
-            // I dont know how to fix them right now
-
             return drawPos;
         }
 

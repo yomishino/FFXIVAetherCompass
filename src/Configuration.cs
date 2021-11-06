@@ -13,8 +13,9 @@ namespace AetherCompass
         public bool Enabled { get; set; } = true;
         public bool ShowDetailWindow { get; set; } = true;
         public bool HqIcon { get; set; } = true;
+        public float ScreenMarkFontSize { get; set; } = 17;
         // L,D,R,U; how much to squeeze into centre on each side, so generally should be positive
-        public Vector4 ScreenMarkConstraint { get; set; } = new(80, 80, 80, 80);    
+        public Vector4 ScreenMarkConstraint { get; set; } = new(80, 80, 80, 80);
 
         public bool FlagEnabled { get; set; } = true;
         public bool FlagScreen { get; set; } = true;

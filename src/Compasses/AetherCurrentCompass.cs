@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
@@ -16,6 +17,10 @@ namespace AetherCompass.Compasses
         public override bool CompassEnabled { get => config.AetherEnabled; internal set => config.AetherEnabled = value; }
         public override bool DrawDetailsEnabled { get => config.AetherDetails; private protected set => config.AetherDetails = value; }
         public override bool MarkScreenEnabled { get => config.AetherScreen; private protected set => config.AetherScreen = value; }
+
+        private static System.Numerics.Vector4 aetherCurrentInfoTextColour = new(.8f, .95f, .75f, 1);
+        private static System.Numerics.Vector4 aetheryteInfoTextColour = new(.7f, .9f, 1, 1);
+
 
 
         public AetherCurrentCompass(Configuration config, IconManager iconManager) : base(config, iconManager) { }
@@ -44,14 +49,16 @@ namespace AetherCompass.Compasses
                 var icon = iconManager.AetheryteMarkerIcon;
                 if (icon == null) return null;
                 return new Action(() =>
-                    DrawScreenMarkAllDefault(info->GameObject, icon, IconManager.AetheryteMarkerIconSize, .9f, out _));
+                    DrawScreenMarkerDefault(info->GameObject, icon, IconManager.AetheryteMarkerIconSize, 
+                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetheryteInfoTextColour, out _));
             }
             else
             {
                 var icon = iconManager.AetherCurrentMarkerIcon;
                 if (icon == null) return null;
                 return new Action(() =>
-                    DrawScreenMarkAllDefault(info->GameObject, icon, IconManager.AetherCurrentMarkerIconSize, .9f, out _));
+                    DrawScreenMarkerDefault(info->GameObject, icon, IconManager.AetherCurrentMarkerIconSize, 
+                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetherCurrentInfoTextColour, out _));
             }
         }
 

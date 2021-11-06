@@ -2,9 +2,7 @@
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using System;
 using System.Collections.Generic;
-using System.Numerics;
 using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
 
 namespace AetherCompass.Compasses
@@ -16,7 +14,7 @@ namespace AetherCompass.Compasses
         private readonly CompassDetailsWindow detailsWindow = new();
         private readonly Configuration config = null!;
 
-        private unsafe static UI3DModule* UI3DModule = ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
+        private unsafe static readonly UI3DModule* UI3DModule = ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
 
 #if DEBUG
         public unsafe static ObjectInfo* ObjectInfoArray => UI3DModule != null ? (ObjectInfo*)UI3DModule->ObjectInfoArray : null;

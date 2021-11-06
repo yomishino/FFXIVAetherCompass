@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using System;
@@ -82,29 +83,29 @@ namespace AetherCompass.Compasses
         public override unsafe Action? CreateMarkScreenAction(ObjectInfo* info)
         {
             if (info == null || info->GameObject == null) return null;
+            var obj = info->GameObject;
             var marker = iconManager.DebugMarkerIcon;
             if (marker == null) return null;
 
             // These are already handled by the Draw...Default method,
             // here is just for debug record
             var markerSize = IconManager.DebugMarkerIconSize;
-            bool inFrontOfCamera = CompassUtil.WorldToScreenPos(info->GameObject->Position, out var hitboxScrPos);
-            bool insideViewport = CompassUtil.IsScreenPosInsideMainViewport(hitboxScrPos, markerSize);
-            Vector2 screenPos;
-            screenPos = hitboxScrPos;
+            //bool inFrontOfCamera = CompassUtil.WorldToScreenPos(obj->Position, out var hitboxScrPos);
+            //bool insideViewport = CompassUtil.IsScreenPosInsideMainViewport(hitboxScrPos, markerSize);
+            //Vector2 screenPos;
+            //screenPos = hitboxScrPos;
+            Projection.WorldToScreen(obj->Position, out var screenPos, out var pCoordsRaw);
             screenPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos
-            screenPos = FixDrawPos(screenPos, inFrontOfCamera, insideViewport);
+            //screenPos = FixDrawPos(screenPos, inFrontOfCamera, insideViewport);
 
             return new Action(() =>
             {
-                if (DrawScreenMarkAllDefault(info->GameObject, marker, markerSize, .9f, out Vector2 lastDrawEndPos))
-                {
-                    lastDrawEndPos.X += markerSize.X;
-                    ImGui.GetWindowDrawList().AddText(lastDrawEndPos, ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, 1)),
-                        $"name={CompassUtil.GetName(info->GameObject)}\n" +
-                            $"worldPos={(Vector3)info->GameObject->Position}, dist={CompassUtil.Get3DDistanceFromPlayer(info->GameObject):0.0}\n" +
-                            $"sPosFixed=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, inFrontOfCam={inFrontOfCamera}");
-                }
+                string info = $"name={CompassUtil.GetName(obj)}\n" +
+                            $"worldPos={(Vector3)obj->Position}, dist={CompassUtil.Get3DDistanceFromPlayer(obj):0.0}\n" +
+                            //$"sPosFixed=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, inFrontOfCam={inFrontOfCamera}\n";
+                            $"sPos=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, raw=<{pCoordsRaw.X:0.0}, {pCoordsRaw.Y:0.0}, {pCoordsRaw.Z:0.0}>";
+                DrawScreenMarkerDefault(obj, marker, markerSize, .9f, info, new(1, 1, 1, 1), out _);
+
             });
         }
 

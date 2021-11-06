@@ -3,7 +3,7 @@ using System.Numerics;
 
 using TextureWrap = ImGuiScene.TextureWrap;
 
-namespace AetherCompass
+namespace AetherCompass.UI
 {
     public sealed class IconManager : IDisposable
     {
@@ -23,7 +23,7 @@ namespace AetherCompass
 
         public const uint AetherCurrentMarkerIconId = 60033;
         internal TextureWrap? AetherCurrentMarkerIcon { get; private set; }
-        internal static readonly Vector2 AetherCurrentMarkerIconSize = new(35, 35);
+        internal static readonly Vector2 AetherCurrentMarkerIconSize = new(30, 30);
         internal static readonly Vector2 AetherCurrentMarkerIconSizeSmall = new(25, 25);
 
         public const uint AetheryteMarkerIconId = 60453;
