@@ -4,7 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace AetherCompass.Common
+
+namespace AetherCompass.UI
 {
     public class CompassOverlay
     {
@@ -18,14 +19,20 @@ namespace AetherCompass.Common
 
         public void Draw()
         {
-            ImGuiHelpers.ForceNextWindowMainViewport();
-            ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(0, 0), ImGuiCond.Always);
-            ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
-            ImGui.Begin("AetherCompassOverlay", winFlags);
-            foreach (Action a in drawActions)
-                a.Invoke();
+            try
+            {
+                ImGuiHelpers.ForceNextWindowMainViewport();
+                ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(0, 0), ImGuiCond.Always);
+                ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
+                ImGui.Begin("AetherCompassOverlay", winFlags);
+                while (drawActions.TryDequeue(out Action? a))
+                    a?.Invoke();
+            }  
+            catch(Exception e)
+            {
+                Plugin.ShowError("Plugin encountered an error.", e.ToString());
+            }
             ImGui.End();
-            drawActions.Clear();
         }
 
         public bool RegisterDrawAction(Action a)

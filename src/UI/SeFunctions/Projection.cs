@@ -4,9 +4,9 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace AetherCompass.UI
+namespace AetherCompass.UI.SeFunctions
 {
-    public static class Projection
+    internal static class Projection
     {
         private delegate IntPtr GetMatrixSingletonDelegate();
         private static readonly GetMatrixSingletonDelegate getMatrixSingleton;
@@ -20,7 +20,7 @@ namespace AetherCompass.UI
         // Rewrite a bit of Dalamud's WorldToScreen because the result when object is off-screen can be weird sometimes
         public static bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos) => WorldToScreen(worldPos, out screenPos, out _);
 
-        internal static bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos, out Vector3 pCoordsRawOut)
+        internal static bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos, out Vector3 pCoordsRaw)
         {
             if (getMatrixSingleton == null)
                 throw new InvalidOperationException("getMatrixSingleton did not initiate correctly");
@@ -50,7 +50,7 @@ namespace AetherCompass.UI
             var worldPosDx = worldPos.ToSharpDX();
             SharpDX.Vector3.Transform(ref worldPosDx, ref viewProjectionMatrix, out SharpDX.Vector3 pCoords);
 
-            pCoordsRawOut = pCoords.ToSystem();
+            pCoordsRaw = pCoords.ToSystem();
 
             // NOTE: using abs here to fix an off-screen issue on altitude-axis,
             //  so that it will always points that direction respecting the altitude difference

@@ -61,14 +61,36 @@ namespace AetherCompass.Common
             var r = GetRotationFromPlayer(o);
             if (float.IsNaN(r)) return CompassDirection.NaN;
             CompassDirection d = 0;
-            if (MathF.Abs(r) <= 3 * MathF.PI / 8) d |= CompassDirection.S;
-            if (MathF.Abs(r) > 5 * MathF.PI / 8) d |= CompassDirection.N;
-            if (MathF.PI / 8 < r && r <= 7 * MathF.PI / 8) d |= CompassDirection.E;
-            if (-7 * MathF.PI / 8 < r && r <= -MathF.PI / 8) d |= CompassDirection.W;
+            if (MathF.Abs(r) <= 3 * MathF.PI / 8) d |= CompassDirection.South;
+            if (MathF.Abs(r) > 5 * MathF.PI / 8) d |= CompassDirection.North;
+            if (MathF.PI / 8 < r && r <= 7 * MathF.PI / 8) d |= CompassDirection.East;
+            if (-7 * MathF.PI / 8 < r && r <= -MathF.PI / 8) d |= CompassDirection.West;
             return d;
         }
 
 
+        public static TerritoryType? GetTerritoryType(uint terrId)
+            => Plugin.DataManager.GetExcelSheet<TerritoryType>()?.GetRow(terrId);
+
+        public static TerritoryType? GetCurrentTerritoryType()
+            => GetTerritoryType(Plugin.ClientState.TerritoryType);
+
+        public static uint GetCurrentMapId()
+            => GetCurrentTerritoryType()?.Map.Row ?? 0;
+
+        public static Map? GetCurrentMap()
+            => Plugin.DataManager.GetExcelSheet<Map>()?.GetRow(GetCurrentMapId());
+
+        public static string GetPlaceNameToString(uint placeNameRowId, string emptyPlaceName = "")
+        {
+            var name = Plugin.DataManager.GetExcelSheet<PlaceName>()?.GetRow(placeNameRowId)?.Name.ToString();
+            if (string.IsNullOrEmpty(name)) return emptyPlaceName;
+            return name;
+        }
+
+
+        // TODO: give wrong results for map such as residential subdivision,
+        //  because territory id is the same with main division but they use different maps
         public static Vector3 GetMapCoord(Vector3 worldPos, float scale, float offsetX, float offsetY)
         {
             // Altitude is y in world position but z in map coord
@@ -83,7 +105,7 @@ namespace AetherCompass.Common
         }
 
         public static float WorldPositionToMapCoord(float v, float scale, float offset = 0)
-            => 41f / (scale/100f) * ((MathF.Floor(v) + offset) * (scale / 100f) + 1024f) / 2048f + 1;
+            => 41f / (scale / 100f) * ((v + offset) * (scale / 100f) + 1024f) / 2048f + 1;
 
         public static Vector3 GetMapCoordInCurrentMap(Vector3 worldPos)
         {
@@ -92,10 +114,10 @@ namespace AetherCompass.Common
             return GetMapCoord(worldPos, map.SizeFactor, map.OffsetX, map.OffsetY);
         }
 
-        // NOTE: TerritoryIntendedUse == 1 seems include iff maps with Z coord, but not sure 
+        // Unknown32 seems to do with mount flying, only flyable map has it > 0,
+        //  although new Diadem also has it being 0; 
         public static bool HasZCoord(uint terrId)
-            //=> GetTerritoryType(terrId)?.TerritoryIntendedUse == 1;
-            => false;   // TEMP: because we can't find offset of each map and so can't get a reasonably accurate Z-coord
+            => GetTerritoryType(terrId)?.Unknown32 > 0;
 
         public static bool CurrentHasZCoord()
             => HasZCoord(Plugin.ClientState.TerritoryType);
@@ -105,23 +127,5 @@ namespace AetherCompass.Common
             var coord = GetMapCoordInCurrentMap(worldPos);
             return $"X:{coord.X:0.0}, Y:{coord.Y:0.0}{(showZ && CurrentHasZCoord() ? $", Z:{coord.Z:0.0}" : string.Empty)}";
         }
-
-        public static TerritoryType? GetTerritoryType(uint terrId)
-            => Plugin.DataManager.GetExcelSheet<TerritoryType>()?.GetRow(terrId);
-
-        public static TerritoryType? GetCurrentTerritoryType()
-            => GetTerritoryType(Plugin.ClientState.TerritoryType);
-
-        public static Map? GetCurrentMap()
-            => Plugin.DataManager.GetExcelSheet<Map>()?.GetRow(GetCurrentTerritoryType()?.Map.Row ?? 0);
-
-        public static string GetPlaceNameToString(uint placeNameRowId, string emptyPlaceName = "")
-        {
-            var name = Plugin.DataManager.GetExcelSheet<PlaceName>()?.GetRow(placeNameRowId)?.Name.ToString();
-            if (string.IsNullOrEmpty(name)) return emptyPlaceName;
-            return name;
-        }
-
-
     }
 }

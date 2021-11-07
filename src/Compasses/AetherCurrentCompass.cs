@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Configs;
 using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -14,16 +15,19 @@ namespace AetherCompass.Compasses
     {
         public override string Description => "Compass for aether currents." +
             "\nAlso shows Aetherites on the normal field maps (those that can be teleported to) which have not yet been interacted.";
-        public override bool CompassEnabled { get => config.AetherEnabled; internal set => config.AetherEnabled = value; }
-        public override bool DrawDetailsEnabled { get => config.AetherDetails; private protected set => config.AetherDetails = value; }
-        public override bool MarkScreenEnabled { get => config.AetherScreen; private protected set => config.AetherScreen = value; }
+        public override bool CompassEnabled { get => compassConfig.Enabled; internal set => compassConfig.Enabled = value; }
+        public override bool MarkScreenEnabled { get => compassConfig.MarkScreen; private protected set => compassConfig.MarkScreen = value; }
+        public override bool DrawDetailsEnabled { get => compassConfig.DetailWindow; private protected set => compassConfig.DetailWindow = value; }
+
+        private protected override string ClosestObjectDescription => "Aether Current";
 
         private static System.Numerics.Vector4 aetherCurrentInfoTextColour = new(.8f, .95f, .75f, 1);
         private static System.Numerics.Vector4 aetheryteInfoTextColour = new(.7f, .9f, 1, 1);
 
 
 
-        public AetherCurrentCompass(Configuration config, IconManager iconManager) : base(config, iconManager) { }
+        public AetherCurrentCompass(Configuration config, AetherCurrentCompassConfig compassConfig, IconManager iconManager) : 
+            base(config, compassConfig, iconManager) { }
 
         public override unsafe Action? CreateDrawDetailsAction(UI3DModule.ObjectInfo* info)
         {
@@ -31,6 +35,7 @@ namespace AetherCompass.Compasses
             var obj = info->GameObject;
             return new Action(() =>
             {
+                if (obj == null) return;
                 ImGui.Text($"{CompassUtil.GetName(obj)}");
                 ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(obj->Position)} (approx.)");
                 ImGui.BulletText($"{CompassUtil.GetDirectionFromPlayer(obj)} {CompassUtil.Get3DDistanceFromPlayer(obj):0.0}; " +
@@ -49,23 +54,29 @@ namespace AetherCompass.Compasses
                 var icon = iconManager.AetheryteMarkerIcon;
                 if (icon == null) return null;
                 return new Action(() =>
-                    DrawScreenMarkerDefault(info->GameObject, icon, IconManager.AetheryteMarkerIconSize, 
-                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetheryteInfoTextColour, out _));
+                {
+                    if (obj == null) return;
+                    DrawScreenMarkerDefault(obj, icon, IconManager.AetheryteMarkerIconSize,
+                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetheryteInfoTextColour, out _);
+                });
             }
             else
             {
                 var icon = iconManager.AetherCurrentMarkerIcon;
                 if (icon == null) return null;
                 return new Action(() =>
-                    DrawScreenMarkerDefault(info->GameObject, icon, IconManager.AetherCurrentMarkerIconSize, 
-                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetherCurrentInfoTextColour, out _));
+                {
+                    if (obj == null) return;
+                    DrawScreenMarkerDefault(obj, icon, IconManager.AetherCurrentMarkerIconSize,
+                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetherCurrentInfoTextColour, out _);
+                });
             }
         }
 
-        public override unsafe bool IsObjective(GameObject* o)
+        private protected override unsafe bool IsObjective(GameObject* o)
         {
             if (o == null) return false;
-            if (config.AetherShowAetherite && o->ObjectKind == (byte)ObjectKind.Aetheryte)
+            if (AetherCurrentCompassConfig != null && AetherCurrentCompassConfig.ShowAetherite && o->ObjectKind == (byte)ObjectKind.Aetheryte)
             {
                 // Filter in only non interactive teleportable ones
                 var aetherytes = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Aetheryte>();
@@ -88,6 +99,8 @@ namespace AetherCompass.Compasses
             return IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Singular.RawString) 
                 || IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Plural.RawString);
         }
+
+        private AetherCurrentCompassConfig? AetherCurrentCompassConfig => compassConfig as AetherCurrentCompassConfig;
 
         private unsafe static Telepo* TelepoUi => Telepo.Instance();
 

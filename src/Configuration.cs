@@ -1,4 +1,5 @@
-﻿using Dalamud.Configuration;
+﻿using AetherCompass.Configs;
+using Dalamud.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Numerics;
@@ -20,20 +21,23 @@ namespace AetherCompass
         public bool FlagEnabled { get; set; } = true;
         public bool FlagScreen { get; set; } = true;
 
-        public bool AetherEnabled { get; set; } = true;
-        public bool AetherScreen { get; set; } = true;
-        public bool AetherDetails { get; set; } = true;
-        public bool AetherShowAetherite { get; set; } = true;
+        //public bool AetherEnabled { get; set; } = true;
+        //public bool AetherScreen { get; set; } = true;
+        //public bool AetherDetails { get; set; } = true;
+        //public bool AetherShowAetherite { get; set; } = true;
+        public AetherCurrentCompassConfig AetherCurrentConfig { get; set; } = new();
 
 #if DEBUG
-        [JsonIgnore]
-        public bool DebugEnabled { get; set; } = true;
-        [JsonIgnore]
-        public bool DebugScreen { get; set; } = false;
-        [JsonIgnore]
-        public bool DebugDetails { get; set; } = true;
+        //[JsonIgnore]
+        //public bool DebugEnabled { get; set; } = true;
+        //[JsonIgnore]
+        //public bool DebugScreen { get; set; } = false;
+        //[JsonIgnore]
+        //public bool DebugDetails { get; set; } = true;
         [JsonIgnore]
         public bool DebugUseFullArray { get; set; } = false;    // TEMP: for debug
+        [JsonIgnore]
+        public DebugCompassConfig DebugConfig { get; set; } = new();
 #endif
 
         public void Save()

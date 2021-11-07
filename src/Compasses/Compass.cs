@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Configs;
 using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
@@ -13,29 +14,33 @@ namespace AetherCompass.Compasses
     public abstract class Compass
     {
         private protected readonly IconManager iconManager = null!;
+        private protected readonly Notifier notifier = new();
         private protected readonly Configuration config = null!;
+        private protected readonly ICompassConfig compassConfig = null!;
 
-        // For notifying CompassManager
-        internal bool HasFlagToProcess = false;
+        private protected (IntPtr Ptr, float Distance3D, IntPtr LastClosest) closestObj = (IntPtr.Zero, float.MaxValue, IntPtr.Zero);
+        internal bool HasFlagToProcess = false; // For notifying CompassManager
         internal Vector2 FlaggedMapCoord;
+
 
         public abstract string Description { get; }
         public abstract bool CompassEnabled { get; internal set; }
         public abstract bool DrawDetailsEnabled { get; private protected set; }
         public abstract bool MarkScreenEnabled { get; private protected set; }
 
+        private protected abstract string ClosestObjectDescription { get; }
         
-        public Compass(Configuration config, IconManager iconManager)
+
+        public Compass(Configuration config, ICompassConfig compassConfig, IconManager iconManager)
         {
             this.config = config;
+            this.compassConfig = compassConfig;
             this.iconManager = iconManager;
         }
 
-        public unsafe abstract bool IsObjective(GameObject* o);
-
+        private protected unsafe abstract bool IsObjective(GameObject* o);
         public unsafe abstract Action? CreateDrawDetailsAction(ObjectInfo* info);
         public unsafe abstract Action? CreateMarkScreenAction(ObjectInfo* info);
-
 
         #region Maybe TODO
         //public abstract bool ProcessMinimapEnabled { get; private protected set; }
@@ -45,6 +50,45 @@ namespace AetherCompass.Compasses
         //private protected unsafe abstract void ProcessObjectiveOnMap(ObjectInfo* o);
 
         #endregion
+
+        public unsafe virtual bool CheckObject(GameObject* o)
+        {
+            if (o == null) return false;
+            if (IsObjective(o))
+            {
+                var dist = CompassUtil.Get3DDistanceFromPlayer(o);
+                if (o->ObjectID != Plugin.ClientState.LocalPlayer?.ObjectId && dist < closestObj.Distance3D)
+                    closestObj = ((IntPtr)o, dist, closestObj.LastClosest);
+
+                return true;
+            }
+            return false;
+        }
+
+        public unsafe virtual void OnLoopEnd()
+        {
+            HasFlagToProcess = false;
+            if (closestObj.Ptr != IntPtr.Zero && closestObj.Ptr != closestObj.LastClosest && compassConfig.Notify)
+            {
+                var obj = (GameObject*)closestObj.Ptr;
+                if (obj != null)
+                {
+                    var dir = CompassUtil.GetDirectionFromPlayer(obj);
+                    var coord = CompassUtil.GetMapCoordInCurrentMap(obj->Position);
+                    var msg = Chat.CreateMapLink(Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), coord, false);   // TODO: showZ?
+                    msg.PrependText($"Found {ClosestObjectDescription} at ");
+                    msg.AppendText($", on direction {dir}, {closestObj.Distance3D:0.0} yalms from you");
+                    notifier.TryNotifyByChat(GetType().Name, msg, compassConfig.NotifySe, compassConfig.NotifySeId);
+                }
+            }
+            closestObj = (IntPtr.Zero, float.MaxValue, closestObj.Ptr);
+        }
+
+        public unsafe void OnZoneChange()
+        {
+            notifier.ResetTimer();
+            closestObj = (IntPtr.Zero, float.MaxValue, IntPtr.Zero);
+        }
 
 
         #region Helpers
@@ -65,7 +109,7 @@ namespace AetherCompass.Compasses
             lastDrawEndPos = new(0, 0);
             if (obj == null) return false;
 
-            bool inFrontOfCamera = Projection.WorldToScreen(obj->Position, out var hitboxScrPos);
+            bool inFrontOfCamera = CompassUi.WorldToScreenPos(obj->Position, out var hitboxScrPos);
 
             lastDrawEndPos = hitboxScrPos;
             lastDrawEndPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos

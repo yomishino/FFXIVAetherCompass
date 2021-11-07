@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface;
+﻿using AetherCompass.UI.SeFunctions;
+using Dalamud.Interface;
 using System;
 using System.Numerics;
 
@@ -10,16 +11,6 @@ namespace AetherCompass.UI
         public static Vector2 GetScreenCentre()
             => ImGuiHelpers.MainViewport.GetCenter();
 
-        // NOTE: for some objs, ObjectProjectedScreenSpace is not stable, can fly around when kept at certain distance? (NamePlatePos is fine)
-        public static Vector2 GetProjectedScreenPos(Vector3 projection)
-        {
-            var centre = ImGuiHelpers.MainViewport.GetCenter();
-            var size = ImGuiHelpers.MainViewport.Size;
-            return new Vector2(
-                centre.X + projection.X * size.X / 2,
-                centre.Y - projection.Y * size.Y / 2); // projection Y goes upwards, i.e. reversed of screen Y
-        }
-
         public static bool IsScreenPosInsideMainViewport(Vector2 screenPos)
         {
             var pos = ImGuiHelpers.MainViewport.Pos;
@@ -29,7 +20,10 @@ namespace AetherCompass.UI
         }
 
         public static bool WorldToScreenPos(Vector3 worldPos, out Vector2 screenPos)
-            => Plugin.GameGui.WorldToScreen(worldPos, out screenPos);
+            => Projection.WorldToScreen(worldPos, out screenPos);
+
+        internal static bool WorldToScreenPos(Vector3 worldPos, out Vector2 screenPos, out Vector3 pCoordsRaw)
+            => Projection.WorldToScreen(worldPos, out screenPos, out pCoordsRaw);
 
         public static Vector2 GetConstrainedScreenPos(Vector2 screenPosUL, Vector4 screenConstraint, Vector2 extraConstraint)
         {

@@ -35,9 +35,6 @@ namespace AetherCompass
         [PluginService]
         [RequiredVersion("1.0")]
         internal static Dalamud.Game.Gui.ChatGui ChatGui { get; private set; } = null!;
-        [PluginService]
-        [RequiredVersion("1.0")]
-        internal static Dalamud.Game.Gui.Toast.ToastGui ToastGui { get; private set; } = null!;
 
 
         public string Name =>
@@ -52,6 +49,8 @@ namespace AetherCompass
         private readonly Configuration config;
         private readonly IconManager iconManager;
         private readonly CompassManager compassMgr;
+        private readonly CompassOverlay overlay;
+        private readonly CompassDetailsWindow detailsWindow;
 
         public bool Enabled 
         {
@@ -63,8 +62,11 @@ namespace AetherCompass
         public Plugin()
         {
             config = PluginInterface.GetPluginConfig() as Configuration ?? new();
+            overlay = new();
+            detailsWindow = new();
+
             iconManager = new(config);
-            compassMgr = new(config);
+            compassMgr = new(overlay, detailsWindow, config);
 
             PluginCommands.AddCommands(this);
 
@@ -73,10 +75,12 @@ namespace AetherCompass
             PluginInterface.UiBuilder.Draw += OnDrawUi;
             PluginInterface.UiBuilder.OpenConfigUi += OnOpenConfigUi;
 
-            compassMgr.AddCompass(new AetherCurrentCompass(config, iconManager));
+            compassMgr.AddCompass(new AetherCurrentCompass(config, config.AetherCurrentConfig, iconManager));
 #if DEBUG
-            compassMgr.AddCompass(new DebugCompass(config, iconManager));
+            compassMgr.AddCompass(new DebugCompass(config, config.DebugConfig, iconManager));
 #endif
+            
+            ClientState.TerritoryChanged += OnZoneChange;
         }
 
         public static void LogDebug(string msg) => PluginLog.Debug(msg);
@@ -85,31 +89,17 @@ namespace AetherCompass
 
         public static void ShowError(string chatMsg, string logMsg)
         {
-            ChatGui.PrintError(chatMsg);
+            Chat.PrintErrorChat(chatMsg);
             LogError(logMsg);
         
-        }
-
-        public static void PrintChat(string msg)
-        {
-            ChatGui.Print(msg);
-        }
-
-        public static void PrintChat(Dalamud.Game.Text.SeStringHandling.SeString msg)
-        {
-            ChatGui.PrintChat(new Dalamud.Game.Text.XivChatEntry()
-            {
-                Message = msg,
-                Type = Dalamud.Game.Text.XivChatType.Echo
-            });
         }
 
         private void OnDrawUi()
         {
             if (Enabled && ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
             {
-                compassMgr.OnTick();
-                
+                overlay.Draw();
+                if (config.ShowDetailWindow) detailsWindow.Draw();
             }
 
             if (inConfig)
@@ -120,12 +110,22 @@ namespace AetherCompass
 
         private void OnFrameworkUpdate(Framework framework)
         {
-            
+            if (Enabled && ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
+                compassMgr.OnTick();
+
         }
 
         private void OnOpenConfigUi()
         {
             inConfig = true;
+        }
+
+        private void OnZoneChange(object? _, ushort terr)
+        {
+            if (terr == 0) return;
+            // Do not do null check of LocalPlayer here, local player is almost always null when this event fired
+            if (Enabled && ClientState.LocalContentId != 0)
+                compassMgr.OnZoneChange();
         }
 
         #region IDisposable Support
@@ -139,7 +139,9 @@ namespace AetherCompass
 
             PluginCommands.RemoveCommands();
             iconManager.Dispose();
-            
+
+            ClientState.TerritoryChanged -= OnZoneChange;
+
             PluginInterface.UiBuilder.Draw -= OnDrawUi;
             PluginInterface.UiBuilder.OpenConfigUi -= OnOpenConfigUi;
 

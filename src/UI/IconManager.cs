@@ -52,7 +52,7 @@ namespace AetherCompass.UI
             AltitudeLowerIcon = GetIconAsImGuiTexture(AltitudeLowerIconId);
             DirectionScreenIndicatorIcon = GetIconAsImGuiTexture(DirectionScreenIndicatorIconId);
 
-            if (config.AetherEnabled)
+            //if (config.AetherCurrentConfig.Enabled)
             {
                 AetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
                 AetheryteMarkerIcon = GetIconAsImGuiTexture(AetheryteMarkerIconId);
@@ -63,7 +63,7 @@ namespace AetherCompass.UI
             if (AetheryteMarkerIcon == null) ShowLoadIconError(AetheryteMarkerIconId);
 
 #if DEBUG
-            if (config.DebugEnabled) DebugMarkerIcon = GetIconAsImGuiTexture(DebugMarkerIconId);
+            if (config.DebugConfig.Enabled) DebugMarkerIcon = GetIconAsImGuiTexture(DebugMarkerIconId);
             if (AltitudeHigherIcon == null) ShowLoadIconError(AltitudeHigherIconId);
             if (AltitudeLowerIcon == null) ShowLoadIconError(AltitudeLowerIconId);
             if (DebugMarkerIcon == null) ShowLoadIconError(DebugMarkerIconId);
