@@ -20,12 +20,12 @@ namespace AetherCompass.Compasses
         public FlagCompass(Configuration config, ICompassConfig compassConfig, IconManager iconManager) : 
             base(config, compassConfig, iconManager) { }
 
-        public override unsafe Action? CreateDrawDetailsAction(UI3DModule.ObjectInfo* info)
+        public override unsafe Action? CreateDrawDetailsAction(GameObject* obj)
         {
             throw new NotImplementedException();
         }
 
-        public override unsafe Action? CreateMarkScreenAction(UI3DModule.ObjectInfo* info)
+        public override unsafe Action? CreateMarkScreenAction(GameObject* obj)
         {
             throw new NotImplementedException();
         }

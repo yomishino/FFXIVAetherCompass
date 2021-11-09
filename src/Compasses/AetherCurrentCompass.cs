@@ -29,47 +29,37 @@ namespace AetherCompass.Compasses
         public AetherCurrentCompass(Configuration config, AetherCurrentCompassConfig compassConfig, IconManager iconManager) : 
             base(config, compassConfig, iconManager) { }
 
-        public override unsafe Action? CreateDrawDetailsAction(UI3DModule.ObjectInfo* info)
+        public override unsafe Action? CreateDrawDetailsAction(GameObject* obj)
         {
-            if (info == null || info->GameObject == null) return null;
-            var obj = info->GameObject;
-            return new Action(() =>
+            if (obj == null) return null;
+            return new(() =>
             {
                 if (obj == null) return;
                 ImGui.Text($"{CompassUtil.GetName(obj)}");
                 ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(obj->Position)} (approx.)");
-                ImGui.BulletText($"{CompassUtil.GetDirectionFromPlayer(obj)} {CompassUtil.Get3DDistanceFromPlayer(obj):0.0}; " +
-                    $"Altitude diff: {(int)CompassUtil.GetAltitudeDiffFromPlayer(obj)}");
-                DrawFlagButton($"##{(long)info->GameObject}", CompassUtil.GetMapCoordInCurrentMap(obj->Position));
+                ImGui.BulletText(($"{CompassUtil.GetDirectionFromPlayer(obj)} {CompassUtil.Get3DDistanceFromPlayer(obj):0.0}; " +
+                    $"Altitude diff: {(int)CompassUtil.GetAltitudeDiffFromPlayer(obj)}"));
+                DrawFlagButton($"##{(long)obj}", CompassUtil.GetMapCoordInCurrentMap(obj->Position));
                 ImGui.Separator();
             });
         }
 
-        public override unsafe Action? CreateMarkScreenAction(UI3DModule.ObjectInfo* info)
+        public override unsafe Action? CreateMarkScreenAction(GameObject* obj)
         {
-            if (info == null || info->GameObject == null) return null;
-            var obj = info->GameObject;
+            if (obj == null) return null;
             if (obj->ObjectKind == (byte)ObjectKind.Aetheryte)
             {
                 var icon = iconManager.AetheryteMarkerIcon;
                 if (icon == null) return null;
-                return new Action(() =>
-                {
-                    if (obj == null) return;
-                    DrawScreenMarkerDefault(obj, icon, IconManager.AetheryteMarkerIconSize,
-                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetheryteInfoTextColour, out _);
-                });
+                return new(() => DrawScreenMarkerDefault(obj, icon, IconManager.AetheryteMarkerIconSize,
+                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetheryteInfoTextColour, out _));
             }
             else
             {
                 var icon = iconManager.AetherCurrentMarkerIcon;
                 if (icon == null) return null;
-                return new Action(() =>
-                {
-                    if (obj == null) return;
-                    DrawScreenMarkerDefault(obj, icon, IconManager.AetherCurrentMarkerIconSize,
-                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetherCurrentInfoTextColour, out _);
-                });
+                return new(() => DrawScreenMarkerDefault(obj, icon, IconManager.AetherCurrentMarkerIconSize,
+                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetherCurrentInfoTextColour, out _));
             }
         }
 

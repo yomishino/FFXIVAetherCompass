@@ -18,8 +18,9 @@ namespace AetherCompass.UI
         public bool UnregisterCompass(Compass c)
             => drawActions.Remove(c);
 
-        public bool RegisterDrawAction(Compass c, Action a)
+        public bool RegisterDrawAction(Compass c, Action? a)
         {
+            if (a == null) return false;
             if (!drawActions.TryGetValue(c, out var queue))
                 return false;
             queue.Enqueue(a);
@@ -35,50 +36,49 @@ namespace AetherCompass.UI
                     queue.Clear();
                 return;
             }
-            try
-            {
-                ImGui.Begin("AetherCompass: Compasses");
-                var regionName = CompassUtil.GetPlaceNameToString(map.PlaceNameRegion.Row);
-                var placeName = CompassUtil.GetPlaceNameToString(map.PlaceName.Row);
-                var subName = CompassUtil.GetPlaceNameToString(map.PlaceNameSub.Row);
-                var mapName = regionName;
-                if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(placeName))
-                    mapName += " > " + placeName;
-                else if (!string.IsNullOrEmpty(placeName))
-                    mapName = placeName;
-                if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(subName))
-                    mapName += " > " + subName;
-                ImGui.TextWrapped($"Current Map:  {mapName}");
+            ImGui.Begin("AetherCompass: Compasses");
+            var regionName = CompassUtil.GetPlaceNameToString(map.PlaceNameRegion.Row);
+            var placeName = CompassUtil.GetPlaceNameToString(map.PlaceName.Row);
+            var subName = CompassUtil.GetPlaceNameToString(map.PlaceNameSub.Row);
+            var mapName = regionName;
+            if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(placeName))
+                mapName += " > " + placeName;
+            else if (!string.IsNullOrEmpty(placeName))
+                mapName = placeName;
+            if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(subName))
+                mapName += " > " + subName;
+            ImGui.TextWrapped($"Current Map:  {mapName}");
 #if DEBUG
-                //ImGui.Text($"Territory: {Plugin.ClientState.TerritoryType}; LocalContentId: {Plugin.ClientState.LocalContentId}");
-                ImGui.Text($"Map data: SizeFactor={map.SizeFactor}, OffsetX={map.OffsetX}, OffsetY={map.OffsetY}");
-                ImGui.Text($"Main Viewport: pos={Dalamud.Interface.ImGuiHelpers.MainViewport.Pos}, " +
-                    $"size={Dalamud.Interface.ImGuiHelpers.MainViewport.Size}, dpi={Dalamud.Interface.ImGuiHelpers.MainViewport.DpiScale}");
+            //ImGui.Text($"Territory: {Plugin.ClientState.TerritoryType}; LocalContentId: {Plugin.ClientState.LocalContentId}");
+            ImGui.Text($"Map data: SizeFactor={map.SizeFactor}, OffsetX={map.OffsetX}, OffsetY={map.OffsetY}");
+            ImGui.Text($"Main Viewport: pos={Dalamud.Interface.ImGuiHelpers.MainViewport.Pos}, " +
+                $"size={Dalamud.Interface.ImGuiHelpers.MainViewport.Size}, dpi={Dalamud.Interface.ImGuiHelpers.MainViewport.DpiScale}");
 #endif
-                if (ImGui.BeginTabBar("CompassesTabBar", ImGuiTabBarFlags.Reorderable))
+            if (ImGui.BeginTabBar("CompassesTabBar", ImGuiTabBarFlags.Reorderable))
+            {
+                foreach (Compass c in drawActions.Keys)
                 {
-                    foreach (Compass c in drawActions.Keys)
+                    if (c.CompassEnabled && c.DrawDetailsEnabled)
                     {
-                        if (c.CompassEnabled && c.DrawDetailsEnabled)
+                        var name = c.GetType().Name;
+                        name = name.Substring(0, name.Length - "Compass".Length);
+                        if (ImGui.BeginTabItem(name))
                         {
-                            var name = c.GetType().Name;
-                            name = name.Substring(0, name.Length - "Compass".Length);
-                            if (ImGui.BeginTabItem(name))
-                            {
-                                while (drawActions[c].TryDequeue(out Action? a))
-                                    a?.Invoke();
-                                ImGui.EndTabItem();
-                            }
+                            while (drawActions[c].TryDequeue(out Action? a))
+                                a?.Invoke();
+                            ImGui.EndTabItem();
                         }
                     }
-                    ImGui.EndTabBar();
                 }
-                ImGui.End();
+                ImGui.EndTabBar();
             }
-            catch (Exception e)
-            {
-                Plugin.ShowError("Plugin encounterd an error.", e.ToString());
-            }
+            ImGui.End();
+        }
+
+        public void Clear()
+        {
+            foreach (var q in drawActions.Values)
+                q.Clear();
         }
 
     }

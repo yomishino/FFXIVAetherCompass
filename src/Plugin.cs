@@ -35,6 +35,9 @@ namespace AetherCompass
         [PluginService]
         [RequiredVersion("1.0")]
         internal static Dalamud.Game.Gui.ChatGui ChatGui { get; private set; } = null!;
+        [PluginService]
+        [RequiredVersion("1.0")]
+        internal static Dalamud.Game.Gui.Toast.ToastGui ToastGui { get; private set; } = null!;
 
 
         public string Name =>
@@ -55,7 +58,15 @@ namespace AetherCompass
         public bool Enabled 
         {
             get => config.Enabled;
-            private set => config.Enabled = value;
+            private set 
+            { 
+                config.Enabled = value;
+                if (!value)
+                {
+                    overlay.Clear();
+                    detailsWindow.Clear();
+                }
+            }
         }
         private bool inConfig = false;
 
@@ -96,10 +107,28 @@ namespace AetherCompass
 
         private void OnDrawUi()
         {
-            if (Enabled && ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
+            if (Enabled)
             {
-                overlay.Draw();
-                if (config.ShowDetailWindow) detailsWindow.Draw();
+                if (ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
+                {
+                    try
+                    {
+                        overlay.Draw();
+                        if (config.ShowDetailWindow) detailsWindow.Draw();
+                    }
+                    catch(Exception e)
+                    {
+                        ShowError("Plugin encountered an error.", e.ToString());
+                    }
+                }
+                else
+                {
+                    // Clear when should not draw to avoid any action remaining in queue be drawn later
+                    // which would cause game crash due to accessing invalid address and so on
+                    // (Mostly I think is due to invalid access when calling WorldToScreen related things)
+                    overlay.Clear();
+                    if (config.ShowDetailWindow) detailsWindow.Clear();
+                }
             }
 
             if (inConfig)
@@ -111,8 +140,16 @@ namespace AetherCompass
         private void OnFrameworkUpdate(Framework framework)
         {
             if (Enabled && ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
-                compassMgr.OnTick();
-
+            {
+                try
+                {
+                    compassMgr.OnTick();
+                }
+                catch(Exception e)
+                {
+                    ShowError("Plugin encountered an error.", e.ToString());
+                }
+            }
         }
 
         private void OnOpenConfigUi()

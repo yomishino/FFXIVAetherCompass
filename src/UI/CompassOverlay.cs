@@ -19,29 +19,28 @@ namespace AetherCompass.UI
 
         public void Draw()
         {
-            try
-            {
-                ImGuiHelpers.ForceNextWindowMainViewport();
-                ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(0, 0), ImGuiCond.Always);
-                ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
-                ImGui.Begin("AetherCompassOverlay", winFlags);
-                while (drawActions.TryDequeue(out Action? a))
-                    a?.Invoke();
-            }  
-            catch(Exception e)
-            {
-                Plugin.ShowError("Plugin encountered an error.", e.ToString());
-            }
+            ImGuiHelpers.ForceNextWindowMainViewport();
+            ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.Pos);
+            ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
+            ImGui.Begin("AetherCompassOverlay", winFlags);
+            while (drawActions.TryDequeue(out Action? a))
+                a?.Invoke();
             ImGui.End();
         }
 
-        public bool RegisterDrawAction(Action a)
+        public bool RegisterDrawAction(Action? a)
         {
             if (a == null) return false;
+            // TEMP:
+            while (drawActions.Count > 100) drawActions.Dequeue();
             drawActions.Enqueue(a);
             return true;
         }
 
-        
+        public void Clear()
+        {
+            drawActions.Clear();
+        }
+
     }
 }

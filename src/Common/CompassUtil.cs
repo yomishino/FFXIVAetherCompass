@@ -13,6 +13,14 @@ namespace AetherCompass.Common
             => o == null ? string.Empty
             : MemoryHelper.ReadSeStringNullTerminated((IntPtr)o->Name).TextValue;
 
+        public unsafe static float Get3DDistance(GameObject* o1, GameObject* o2)
+        {
+            if (o1 == null || o2 == null) return float.NaN;
+            return MathF.Sqrt(MathF.Pow(o1->Position.X - o2->Position.X, 2)
+                + MathF.Pow(o1->Position.Y - o2->Position.Y, 2)
+                + MathF.Pow(o1->Position.Z - o2->Position.Z, 2));
+        }
+
         public unsafe static float Get3DDistanceFromPlayer(GameObject* o)
         {
             if (o == null) return float.NaN;
@@ -122,10 +130,10 @@ namespace AetherCompass.Common
         public static bool CurrentHasZCoord()
             => HasZCoord(Plugin.ClientState.TerritoryType);
 
+        public static string MapCoordToFormattedString(Vector3 coord, bool showZ = true)
+            => $"X:{coord.X:0.0}, Y:{coord.Y:0.0}{(showZ && CurrentHasZCoord() ? $", Z:{coord.Z:0.0}" : string.Empty)}";
+
         public static string GetMapCoordInCurrentMapFormattedString(Vector3 worldPos, bool showZ = true)
-        {
-            var coord = GetMapCoordInCurrentMap(worldPos);
-            return $"X:{coord.X:0.0}, Y:{coord.Y:0.0}{(showZ && CurrentHasZCoord() ? $", Z:{coord.Z:0.0}" : string.Empty)}";
-        }
+            => MapCoordToFormattedString(GetMapCoordInCurrentMap(worldPos), showZ);
     }
 }

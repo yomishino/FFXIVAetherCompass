@@ -6,8 +6,6 @@ using ImGuiNET;
 using System;
 using System.Numerics;
 
-using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
-
 
 namespace AetherCompass.Compasses
 {
@@ -45,11 +43,10 @@ namespace AetherCompass.Compasses
             || o->ObjectKind == (byte)ObjectKind.AreaObject);
 
 
-        public override unsafe Action? CreateDrawDetailsAction(ObjectInfo* info)
+        public override unsafe Action? CreateDrawDetailsAction(GameObject* obj)
         {
-            if (info == null || info->GameObject == null) return null;
-            var obj = info->GameObject;
-            return new Action(() =>
+            if (obj == null) return null;
+            return new(() =>
             {
                 if (obj == null) return;
                 ImGui.Text($"Object: {CompassUtil.GetName(obj)}");
@@ -83,11 +80,9 @@ namespace AetherCompass.Compasses
         }
 
 
-
-        public override unsafe Action? CreateMarkScreenAction(ObjectInfo* info)
+        public override unsafe Action? CreateMarkScreenAction(GameObject* obj)
         {
-            if (info == null || info->GameObject == null) return null;
-            var obj = info->GameObject;
+            if (obj == null) return null;
             var marker = iconManager.DebugMarkerIcon;
             if (marker == null) return null;
 
@@ -104,7 +99,6 @@ namespace AetherCompass.Compasses
                             $"worldPos={(Vector3)obj->Position}, dist={CompassUtil.Get3DDistanceFromPlayer(obj):0.0}\n" +
                             $"sPosUnfixed=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, raw=<{pCoordsRaw.X:0.0}, {pCoordsRaw.Y:0.0}, {pCoordsRaw.Z:0.0}>";
                 DrawScreenMarkerDefault(obj, marker, markerSize, .9f, info, new(1, 1, 1, 1), out _);
-
             });
         }
 
