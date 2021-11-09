@@ -13,8 +13,8 @@ namespace AetherCompass.Compasses
     public abstract class Compass
     {
         private protected readonly IconManager iconManager = null!;
-        private protected readonly Notifier notifier = new();
-        private protected readonly Configuration config = null!;
+        //private protected readonly Notifier notifier = new();
+        private protected readonly PluginConfig config = null!;
         private protected readonly ICompassConfig compassConfig = null!;
 
         private bool ready = false;
@@ -37,7 +37,7 @@ namespace AetherCompass.Compasses
         private protected abstract string ClosestObjectDescription { get; }
         
 
-        public Compass(Configuration config, ICompassConfig compassConfig, IconManager iconManager)
+        public Compass(PluginConfig config, ICompassConfig compassConfig, IconManager iconManager)
         {
             this.config = config;
             this.compassConfig = compassConfig;
@@ -97,12 +97,12 @@ namespace AetherCompass.Compasses
                             var msg = Chat.CreateMapLink(Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), coord, false);   // TODO: showZ?
                             msg.PrependText($"Found {ClosestObjectDescription} at ");
                             msg.AppendText($", on {dir}, {closestObj.Distance3D:0.0} yalms from you");
-                            notifier.TryNotifyByChat(GetType().Name, msg, compassConfig.NotifySe, compassConfig.NotifySeId);
+                            Notifier.TryNotifyByChat(GetType().Name, msg, compassConfig.NotifySe, compassConfig.NotifySeId);
                         }
                         if (compassConfig.NotifyToast)
                         {
                             var msg = $"Found {ClosestObjectDescription} on {dir}, {closestObj.Distance3D:0} yalms from you, at {CompassUtil.MapCoordToFormattedString(coord)}";
-                            notifier.TryNotifyByToast(msg);
+                            Notifier.TryNotifyByToast(msg);
                         }
                     }
                     //Plugin.LogDebug($"{GetType().Name}:reset1:BEFORE: {closestObj.LastClosest}, {closestObj.SecondLast}");

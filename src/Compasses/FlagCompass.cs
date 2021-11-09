@@ -17,7 +17,7 @@ namespace AetherCompass.Compasses
         private protected override string ClosestObjectDescription => "Flagged Position";
 
 
-        public FlagCompass(Configuration config, ICompassConfig compassConfig, IconManager iconManager) : 
+        public FlagCompass(PluginConfig config, ICompassConfig compassConfig, IconManager iconManager) : 
             base(config, compassConfig, iconManager) { }
 
         public override unsafe Action? CreateDrawDetailsAction(GameObject* obj)

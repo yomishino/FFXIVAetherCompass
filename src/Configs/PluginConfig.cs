@@ -4,10 +4,10 @@ using Newtonsoft.Json;
 using System;
 using System.Numerics;
 
-namespace AetherCompass
+namespace AetherCompass.Configs
 {
     [Serializable]
-    public class Configuration : IPluginConfiguration
+    public class PluginConfig : IPluginConfiguration
     {
         public int Version { get; set; } = 0;
 

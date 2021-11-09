@@ -31,7 +31,7 @@ namespace AetherCompass.Compasses
         private protected override string ClosestObjectDescription => "DebugCompass Objective";
 
 
-        public DebugCompass(Configuration config, ICompassConfig compassConfig, IconManager iconManager) 
+        public DebugCompass(PluginConfig config, ICompassConfig compassConfig, IconManager iconManager) 
             : base(config, compassConfig, iconManager) { }
 
         private protected override unsafe bool IsObjective(GameObject* o)

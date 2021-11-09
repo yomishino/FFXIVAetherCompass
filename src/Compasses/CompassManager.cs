@@ -1,4 +1,5 @@
-﻿using AetherCompass.Common;
+﻿using AetherCompass.Configs;
+using AetherCompass.Common;
 using AetherCompass.UI;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -14,7 +15,7 @@ namespace AetherCompass.Compasses
         private readonly HashSet<Compass> compasses = new();
         private readonly CompassOverlay overlay = null!;
         private readonly CompassDetailsWindow detailsWindow = null!;
-        private readonly Configuration config = null!;
+        private readonly PluginConfig config = null!;
 
         private unsafe static readonly UI3DModule* UI3DModule = ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
 
@@ -29,7 +30,7 @@ namespace AetherCompass.Compasses
         private unsafe static int SortedObjectInfoCount => UI3DModule != null ? UI3DModule->SortedObjectInfoCount : 0;
 
 
-        public CompassManager(CompassOverlay overlay, CompassDetailsWindow window, Configuration config)
+        public CompassManager(CompassOverlay overlay, CompassDetailsWindow window, PluginConfig config)
         {
             this.overlay = overlay;
             this.detailsWindow = window;

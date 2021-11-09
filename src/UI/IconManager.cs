@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AetherCompass.Configs;
+using System;
 using System.Numerics;
 
 using TextureWrap = ImGuiScene.TextureWrap;
@@ -7,7 +8,7 @@ namespace AetherCompass.UI
 {
     public sealed class IconManager : IDisposable
     {
-        private readonly Configuration config = null!;
+        private readonly PluginConfig config = null!;
 
         public const uint AltitudeHigherIconId = 60954;
         internal TextureWrap? AltitudeHigherIcon { get; private set; }
@@ -37,7 +38,7 @@ namespace AetherCompass.UI
         internal static readonly uint DebugMarkerIconColour = ImGuiNET.ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
 
 
-        public IconManager(Configuration config)
+        public IconManager(PluginConfig config)
         {
             this.config = config;
             LoadIcon();
@@ -63,7 +64,8 @@ namespace AetherCompass.UI
             if (AetheryteMarkerIcon == null) ShowLoadIconError(AetheryteMarkerIconId);
 
 #if DEBUG
-            if (config.DebugConfig.Enabled) DebugMarkerIcon = GetIconAsImGuiTexture(DebugMarkerIconId);
+            //if (config.DebugConfig.Enabled) 
+                DebugMarkerIcon = GetIconAsImGuiTexture(DebugMarkerIconId);
             if (AltitudeHigherIcon == null) ShowLoadIconError(AltitudeHigherIconId);
             if (AltitudeLowerIcon == null) ShowLoadIconError(AltitudeLowerIconId);
             if (DebugMarkerIcon == null) ShowLoadIconError(DebugMarkerIconId);
@@ -85,7 +87,7 @@ namespace AetherCompass.UI
                 DebugMarkerIconId => nameof(DebugMarkerIcon),
                 _ => "(UnknownIcon)"
             };
-            Plugin.ShowError($"AetherCompass encountered an error: Failed to load icon",
+            Plugin.ShowError($"Plugin encountered an error: Failed to load icon",
                 $"Failed to load icon: {name}, IconId = {iconId}");
         }
 

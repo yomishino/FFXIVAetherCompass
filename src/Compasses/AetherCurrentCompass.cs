@@ -26,7 +26,7 @@ namespace AetherCompass.Compasses
 
 
 
-        public AetherCurrentCompass(Configuration config, AetherCurrentCompassConfig compassConfig, IconManager iconManager) : 
+        public AetherCurrentCompass(PluginConfig config, AetherCurrentCompassConfig compassConfig, IconManager iconManager) : 
             base(config, compassConfig, iconManager) { }
 
         public override unsafe Action? CreateDrawDetailsAction(GameObject* obj)

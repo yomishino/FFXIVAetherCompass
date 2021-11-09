@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Compasses;
+using AetherCompass.Configs;
 using AetherCompass.UI;
 using Dalamud.Game;
 using Dalamud.IoC;
@@ -49,7 +50,7 @@ namespace AetherCompass
             "Aether Compass";
 #endif
 
-        private readonly Configuration config;
+        private readonly PluginConfig config;
         private readonly IconManager iconManager;
         private readonly CompassManager compassMgr;
         private readonly CompassOverlay overlay;
@@ -72,7 +73,7 @@ namespace AetherCompass
 
         public Plugin()
         {
-            config = PluginInterface.GetPluginConfig() as Configuration ?? new();
+            config = PluginInterface.GetPluginConfig() as PluginConfig ?? new();
             overlay = new();
             detailsWindow = new();
 

@@ -4,13 +4,13 @@ using System;
 
 namespace AetherCompass.UI
 {
-    public class Notifier
+    public static class Notifier
     {
         
         private static DateTime lastSeNotifiedTime = DateTime.MinValue;
 
 
-        public void TryNotifyByChat(string compassName, SeString msg, bool playSe, int macroSeId = 0)
+        public static void TryNotifyByChat(string compassName, SeString msg, bool playSe, int macroSeId = 0)
         {
             Chat.PrintChat(msg.PrependText($"{compassName}: "));
             if (playSe && CanNotifyBySe())
@@ -20,7 +20,7 @@ namespace AetherCompass.UI
             }
         }
 
-        public void TryNotifyByToast(string msg)
+        public static void TryNotifyByToast(string msg)
         {
             Plugin.ToastGui.ShowNormal(msg);
         }
@@ -30,7 +30,7 @@ namespace AetherCompass.UI
             => (DateTime.UtcNow - lastSeNotifiedTime).TotalSeconds > 3;
 
 
-        public void ResetTimer()
+        public static void ResetTimer()
         {
             lastSeNotifiedTime = DateTime.MinValue;
         }
