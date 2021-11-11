@@ -1,6 +1,7 @@
 ﻿using AetherCompass.Configs;
 using AetherCompass.Common;
 using AetherCompass.UI;
+using AetherCompass.UI.GUI;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using System;
@@ -40,7 +41,7 @@ namespace AetherCompass.Compasses
         public bool AddCompass(Compass c)
         {
             if (!compasses.Add(c)) return false;
-            if (c.DrawDetailsEnabled && !detailsWindow.RegisterCompass(c)) return false;
+            if (!detailsWindow.RegisterCompass(c)) return false;
             return true;
         }
 
@@ -80,13 +81,13 @@ namespace AetherCompass.Compasses
                     {
                         if (!compass.CompassEnabled) continue;
                         if (!compass.CheckObject(info->GameObject)) continue;
-                        if (config.ShowDetailWindow && compass.DrawDetailsEnabled)
+                        if (compass.ShowDetail)
                         {
                             var action = compass.CreateDrawDetailsAction(info->GameObject);
                             if (action != null)
                                 detailsWindow.RegisterDrawAction(compass, action);
                         }
-                        if (compass.MarkScreenEnabled)
+                        if (compass.MarkScreen)
                         {
                             var action = compass.CreateMarkScreenAction(info->GameObject);
                             if (action != null)
@@ -102,7 +103,7 @@ namespace AetherCompass.Compasses
 #endif
                             if (Plugin.GameGui.OpenMapWithMapLink(maplink))
                             {
-                                var msg = Chat.CreateMapLink(terrId, map.RowId, maplink.XCoord, maplink.YCoord).PrependText("Flag set @");
+                                var msg = Chat.CreateMapLink(terrId, map.RowId, maplink.XCoord, maplink.YCoord).PrependText("Flag set: ");
                                 Chat.PrintChat(msg);
                                 compass.HasFlagToProcess = false;
                             }
@@ -122,6 +123,12 @@ namespace AetherCompass.Compasses
         {
             foreach (var compass in compasses)
                 compass.OnZoneChange();
+        }
+
+        public void DrawCompassConfigUi()
+        {
+            foreach (var compass in compasses)
+                compass.DrawConfigUi();
         }
     }
 }

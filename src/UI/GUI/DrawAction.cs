@@ -2,7 +2,7 @@
 using ImGuiNET;
 using System;
 
-namespace AetherCompass.UI
+namespace AetherCompass.UI.GUI
 {
     public unsafe class DrawAction
     {

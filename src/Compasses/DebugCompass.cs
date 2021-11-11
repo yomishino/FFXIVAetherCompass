@@ -1,6 +1,6 @@
 ﻿using AetherCompass.Common;
 using AetherCompass.Configs;
-using AetherCompass.UI;
+using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using System;
@@ -11,28 +11,14 @@ namespace AetherCompass.Compasses
 {
     public class DebugCompass : Compass
     {
+        public override string CompassName => "Debug Compass"; 
         public override string Description => "For Debug";
-        public override bool CompassEnabled
-        {
-            get => compassConfig.Enabled;
-            internal set => compassConfig.Enabled = value;
-        }
-        public override bool MarkScreenEnabled
-        {
-            get => compassConfig.MarkScreen;
-            private protected set => compassConfig.MarkScreen = value;
-        }
-        public override bool DrawDetailsEnabled 
-        { 
-            get => compassConfig.DetailWindow; 
-            private protected set => compassConfig.DetailWindow = value; 
-        }
-
         private protected override string ClosestObjectDescription => "DebugCompass Objective";
 
 
-        public DebugCompass(PluginConfig config, ICompassConfig compassConfig, IconManager iconManager) 
+        public DebugCompass(PluginConfig config, CompassConfig compassConfig, IconManager iconManager) 
             : base(config, compassConfig, iconManager) { }
+
 
         private protected override unsafe bool IsObjective(GameObject* o)
             => o != null && (o->ObjectID == Plugin.ClientState.LocalPlayer?.ObjectId
@@ -79,7 +65,6 @@ namespace AetherCompass.Compasses
             });
         }
 
-
         public override unsafe Action? CreateMarkScreenAction(GameObject* obj)
         {
             if (obj == null) return null;
@@ -101,6 +86,5 @@ namespace AetherCompass.Compasses
                 DrawScreenMarkerDefault(obj, marker, markerSize, .9f, info, new(1, 1, 1, 1), out _);
             });
         }
-
     }
 }

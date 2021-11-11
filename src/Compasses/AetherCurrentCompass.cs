@@ -1,8 +1,7 @@
 ﻿using AetherCompass.Common;
 using AetherCompass.Configs;
-using AetherCompass.UI;
+using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 using System;
 
@@ -13,17 +12,19 @@ namespace AetherCompass.Compasses
 {
     public class AetherCurrentCompass : Compass
     {
-        public override string Description => "Compass for aether currents." +
-            "\nAlso shows Aetherites on the normal field maps (those that can be teleported to) which have not yet been interacted.";
-        public override bool CompassEnabled { get => compassConfig.Enabled; internal set => compassConfig.Enabled = value; }
-        public override bool MarkScreenEnabled { get => compassConfig.MarkScreen; private protected set => compassConfig.MarkScreen = value; }
-        public override bool DrawDetailsEnabled { get => compassConfig.DetailWindow; private protected set => compassConfig.DetailWindow = value; }
-
+        public override string CompassName => "Aether Current Compass";
+        public override string Description => "Compass that detects Aether Currents nearby." +
+            "\nOptionally also shows nearby Aetherytes in the wild fields (those that can teleport to) " +
+            "which have not yet been interacted.";
+        
         private protected override string ClosestObjectDescription => "Aether Current";
 
         private static System.Numerics.Vector4 aetherCurrentInfoTextColour = new(.8f, .95f, .75f, 1);
         private static System.Numerics.Vector4 aetheryteInfoTextColour = new(.7f, .9f, 1, 1);
 
+#if DEBUG
+        private bool showAllAetherytes = false;  // for debug, show all incl. towns' and interacted
+#endif
 
 
         public AetherCurrentCompass(PluginConfig config, AetherCurrentCompassConfig compassConfig, IconManager iconManager) : 
@@ -52,14 +53,14 @@ namespace AetherCompass.Compasses
                 var icon = iconManager.AetheryteMarkerIcon;
                 if (icon == null) return null;
                 return new(() => DrawScreenMarkerDefault(obj, icon, IconManager.AetheryteMarkerIconSize,
-                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetheryteInfoTextColour, out _));
+                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0}", aetheryteInfoTextColour, out _));
             }
             else
             {
                 var icon = iconManager.AetherCurrentMarkerIcon;
                 if (icon == null) return null;
                 return new(() => DrawScreenMarkerDefault(obj, icon, IconManager.AetherCurrentMarkerIconSize,
-                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0.0}", aetherCurrentInfoTextColour, out _));
+                        .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0}", aetherCurrentInfoTextColour, out _));
             }
         }
 
@@ -68,6 +69,9 @@ namespace AetherCompass.Compasses
             if (o == null) return false;
             if (AetherCurrentCompassConfig != null && AetherCurrentCompassConfig.ShowAetherite && o->ObjectKind == (byte)ObjectKind.Aetheryte)
             {
+#if DEBUG
+                if (showAllAetherytes) return true;
+#endif
                 // Filter in only non interactive teleportable ones
                 var aetherytes = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Aetheryte>();
                 if (aetherytes == null || aetherytes.GetRow(o->DataID) == null) return false;
@@ -78,6 +82,7 @@ namespace AetherCompass.Compasses
                 if (terr == null || terr.TerritoryIntendedUse > 1 || terr.BattalionMode != 1) return false;
                 var telepo = TelepoUi;
                 if (telepo == null) return false;
+                telepo->UpdateAetheryteList();
                 var tlList = telepo->TeleportList;
                 for (ulong i = 0; i < tlList.Size(); i++)
                     if (tlList.Get(i).AetheryteId == o->DataID) return false;   // interacted one
@@ -90,8 +95,6 @@ namespace AetherCompass.Compasses
                 || IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Plural.RawString);
         }
 
-        private AetherCurrentCompassConfig? AetherCurrentCompassConfig => compassConfig as AetherCurrentCompassConfig;
-
         private unsafe static Telepo* TelepoUi => Telepo.Instance();
 
         private static bool IsNameOfAetherCurrent(string? name)
@@ -103,6 +106,23 @@ namespace AetherCompass.Compasses
                 || name == "Windätherquelle" || name == "Windätherquellen"
                 || name == "vent éthéré" || name == "vents éthérés"
                 ;
+        }
+
+        private AetherCurrentCompassConfig? AetherCurrentCompassConfig => compassConfig as AetherCurrentCompassConfig;
+
+        public override void DrawConfigUiExtra()
+        {
+            var aConfig = AetherCurrentCompassConfig;
+            if (aConfig == null) return;
+            ImGui.Checkbox("Detect Aetherytes (?)", ref aConfig.ShowAetherite);
+            if (ImGui.IsItemHovered())
+                ImGui.SetTooltip("Also allow this compass to detect Aetherytes " +
+                    "that have not been interacted in the wild fields.\n" +
+                    "Will NOT detect Aetherytes in towns, whether interacted or not.");
+#if DEBUG
+            if (aConfig.ShowAetherite)
+                ImGui.Checkbox("[DEBUG] Detect All Aetherytes", ref showAllAetherytes);
+#endif
         }
     }
 }

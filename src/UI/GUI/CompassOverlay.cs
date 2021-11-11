@@ -2,10 +2,9 @@
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 
 
-namespace AetherCompass.UI
+namespace AetherCompass.UI.GUI
 {
     public class CompassOverlay
     {

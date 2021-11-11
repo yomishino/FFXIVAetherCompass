@@ -4,7 +4,7 @@ using System;
 using System.Numerics;
 
 
-namespace AetherCompass.UI
+namespace AetherCompass.UI.GUI
 {
     public static class CompassUi
     {

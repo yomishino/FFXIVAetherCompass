@@ -4,7 +4,7 @@ using System.Numerics;
 
 using TextureWrap = ImGuiScene.TextureWrap;
 
-namespace AetherCompass.UI
+namespace AetherCompass.UI.GUI
 {
     public sealed class IconManager : IDisposable
     {
@@ -41,35 +41,112 @@ namespace AetherCompass.UI
         public IconManager(PluginConfig config)
         {
             this.config = config;
-            LoadIcon();
         }
 
-        // TODO: load all or load according to enabled or not?
-        public void LoadIcon()
+        public void ReloadIcons()
         {
-            DisposeIcons();
+            DisposeAllIcons();
 
+            if (!config.Enabled) return;
+
+            LoadCommonIcons();
+            if (config.AetherCurrentConfig.Enabled)
+                LoadAetherCurrentCompassIcons();
+#if DEBUG
+            if (config.DebugConfig.Enabled)
+                LoadDebugCompassIcons();
+#endif
+        }
+
+        public void ReloadAllIcons()
+        {
+            DisposeAllIcons();
+
+            LoadCommonIcons();
+            LoadAetherCurrentCompassIcons();
+            LoadDebugCompassIcons();
+        }
+
+        private void LoadCommonIcons()
+        {
             AltitudeHigherIcon = GetIconAsImGuiTexture(AltitudeHigherIconId);
             AltitudeLowerIcon = GetIconAsImGuiTexture(AltitudeLowerIconId);
             DirectionScreenIndicatorIcon = GetIconAsImGuiTexture(DirectionScreenIndicatorIconId);
 
-            //if (config.AetherCurrentConfig.Enabled)
-            {
-                AetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
-                AetheryteMarkerIcon = GetIconAsImGuiTexture(AetheryteMarkerIconId);
-            }
-
-            if (DirectionScreenIndicatorIcon == null) ShowLoadIconError(DirectionScreenIndicatorIconId);
-            if (AetherCurrentMarkerIcon == null) ShowLoadIconError(AetherCurrentMarkerIconId);
-            if (AetheryteMarkerIcon == null) ShowLoadIconError(AetheryteMarkerIconId);
-
-#if DEBUG
-            //if (config.DebugConfig.Enabled) 
-                DebugMarkerIcon = GetIconAsImGuiTexture(DebugMarkerIconId);
             if (AltitudeHigherIcon == null) ShowLoadIconError(AltitudeHigherIconId);
             if (AltitudeLowerIcon == null) ShowLoadIconError(AltitudeLowerIconId);
+            if (DirectionScreenIndicatorIcon == null) ShowLoadIconError(DirectionScreenIndicatorIconId);
+            
+        }
+
+        private void LoadAetherCurrentCompassIcons()
+        {
+            AetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
+            AetheryteMarkerIcon = GetIconAsImGuiTexture(AetheryteMarkerIconId);
+
+            if (AetherCurrentMarkerIcon == null) ShowLoadIconError(AetherCurrentMarkerIconId);
+            if (AetheryteMarkerIcon == null) ShowLoadIconError(AetheryteMarkerIconId);
+        }
+
+        private void LoadDebugCompassIcons()
+        {
+            DebugMarkerIcon = GetIconAsImGuiTexture(DebugMarkerIconId);
             if (DebugMarkerIcon == null) ShowLoadIconError(DebugMarkerIconId);
-#endif
+        }
+
+
+        private void DisposeCommonIcons()
+        {
+            if (AltitudeHigherIcon != null)
+            {
+                AltitudeHigherIcon.Dispose();
+                AltitudeHigherIcon = null;
+            }
+            if (AltitudeLowerIcon != null)
+            {
+                AltitudeLowerIcon.Dispose();
+                AltitudeLowerIcon = null;
+            }
+            if (DirectionScreenIndicatorIcon != null)
+            {
+                DirectionScreenIndicatorIcon.Dispose();
+                DirectionScreenIndicatorIcon = null;
+            }
+        }
+
+        private void DisposeAetherCurrentCompassIcons()
+        {
+            if (AetherCurrentMarkerIcon != null) 
+            {
+                AetherCurrentMarkerIcon.Dispose();
+                AetherCurrentMarkerIcon = null;
+            }
+            if (AetheryteMarkerIcon != null) 
+            {
+                AetheryteMarkerIcon.Dispose();
+                AetheryteMarkerIcon = null;
+            }
+        }
+
+        private void DisposeDebugIcons()
+        {
+            if (DebugMarkerIcon != null) 
+            {
+                DebugMarkerIcon.Dispose();
+                DebugMarkerIcon = null;
+            }
+        }
+
+        private void DisposeAllIcons()
+        {
+            DisposeCommonIcons();
+            DisposeAetherCurrentCompassIcons();
+            DisposeDebugIcons();
+        }
+
+        public void Dispose()
+        {
+            DisposeAllIcons();
         }
 
         private TextureWrap? GetIconAsImGuiTexture(uint iconId)
@@ -90,23 +167,5 @@ namespace AetherCompass.UI
             Plugin.ShowError($"Plugin encountered an error: Failed to load icon",
                 $"Failed to load icon: {name}, IconId = {iconId}");
         }
-
-        private void DisposeIcons()
-        {
-            if (AltitudeHigherIcon != null) AltitudeHigherIcon.Dispose();
-            if (AltitudeLowerIcon != null) AltitudeLowerIcon.Dispose();
-            if (DirectionScreenIndicatorIcon != null) DirectionScreenIndicatorIcon.Dispose();
-            
-            if (AetherCurrentMarkerIcon != null) AetherCurrentMarkerIcon.Dispose();
-            if (AetheryteMarkerIcon != null) AetheryteMarkerIcon.Dispose();
-
-            if (DebugMarkerIcon != null) DebugMarkerIcon.Dispose();
-        }
-
-        public void Dispose()
-        {
-            DisposeIcons();
-        }
-    
     }
 }
