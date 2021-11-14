@@ -97,6 +97,7 @@ namespace AetherCompass
             ClientState.TerritoryChanged += OnZoneChange;
 
             Reload();
+
         }
 
         public static void LogDebug(string msg) => PluginLog.Debug(msg);
@@ -281,7 +282,7 @@ namespace AetherCompass
         private void OnZoneChange(object? _, ushort terr)
         {
             if (terr == 0) return;
-            // Do not do null check of LocalPlayer here, local player is almost always null when this event fired
+            // Local player is almost always null when this event fired
             if (Enabled && ClientState.LocalContentId != 0)
                 compassMgr.OnZoneChange();
         }

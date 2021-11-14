@@ -27,10 +27,6 @@ namespace AetherCompass.UI.GUI
         internal static readonly Vector2 AetherCurrentMarkerIconSize = new(30, 30);
         internal static readonly Vector2 AetherCurrentMarkerIconSizeSmall = new(25, 25);
 
-        public const uint AetheryteMarkerIconId = 60453;
-        internal TextureWrap? AetheryteMarkerIcon { get; private set; }
-        internal static readonly Vector2 AetheryteMarkerIconSize = new(30, 30);
-
         // Armorer job icon, just randomly picked a asymmetrical one for debug
         public const uint DebugMarkerIconId = 62110;
         internal TextureWrap? DebugMarkerIcon { get; private set; }
@@ -82,10 +78,8 @@ namespace AetherCompass.UI.GUI
         private void LoadAetherCurrentCompassIcons()
         {
             AetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
-            AetheryteMarkerIcon = GetIconAsImGuiTexture(AetheryteMarkerIconId);
-
+            
             if (AetherCurrentMarkerIcon == null) ShowLoadIconError(AetherCurrentMarkerIconId);
-            if (AetheryteMarkerIcon == null) ShowLoadIconError(AetheryteMarkerIconId);
         }
 
         private void LoadDebugCompassIcons()
@@ -121,11 +115,6 @@ namespace AetherCompass.UI.GUI
                 AetherCurrentMarkerIcon.Dispose();
                 AetherCurrentMarkerIcon = null;
             }
-            if (AetheryteMarkerIcon != null) 
-            {
-                AetheryteMarkerIcon.Dispose();
-                AetheryteMarkerIcon = null;
-            }
         }
 
         private void DisposeDebugIcons()
@@ -160,7 +149,6 @@ namespace AetherCompass.UI.GUI
                 AltitudeLowerIconId => nameof(AltitudeLowerIcon),
                 DirectionScreenIndicatorIconId => nameof(DirectionScreenIndicatorIcon),
                 AetherCurrentMarkerIconId => nameof(AetherCurrentMarkerIcon),
-                AetheryteMarkerIconId => nameof(AetheryteMarkerIcon),
                 DebugMarkerIconId => nameof(DebugMarkerIcon),
                 _ => "(UnknownIcon)"
             };
