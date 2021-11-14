@@ -67,76 +67,7 @@ namespace AetherCompass.Compasses
         }
 
 
-        #region Config UI
-        public void DrawConfigUi()
-        {
-            ImGui.Checkbox($"Enable Compass: {CompassName}", ref compassConfig.Enabled);
-            // Reload icons iff changed
-            if (compassConfig.Enabled != _compassEnabled) CompassEnabled = compassConfig.Enabled;
-            ImGui.Indent();
-            ImGui.Bullet();
-            ImGui.SameLine();
-            ImGui.TextWrapped(Description);
-            if (compassConfig.Enabled)
-            {
-                ImGui.PushID($"{CompassName}");
-                if (ImGui.TreeNode($"Compass settings"))
-                {
-                    if (config.ShowScreenMark)
-                    {
-                        ImGui.Checkbox("Mark detected objects on screen (?)", ref compassConfig.MarkScreen);
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("Mark objects detected by this compass on screen. " +
-                                "showing the direction and distance.");
-                    }
-                    if (config.ShowDetailWindow)
-                    {
-                        ImGui.Checkbox("Show objects details (?)", ref compassConfig.ShowDetail);
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("List details of objects detected by this compass in the Details Window.");
-                    }
-                    if (config.NotifyChat)
-                    {
-                        ImGui.Checkbox("Chat Notification (?)", ref compassConfig.NotifyChat);
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("Allow this compass to send a chat message about an object detected.");
-                        if (config.NotifySe)
-                        {
-                            ImGui.Checkbox("Sound Notification (?)", ref compassConfig.NotifySe);
-                            if (ImGui.IsItemHovered())
-                                ImGui.SetTooltip("Also allow this compass to make sound when sending chat message notification.");
-                            if (compassConfig.NotifySe)
-                            {
-                                ImGui.Text("Sound Effect ID: ");
-                                ImGui.SameLine();
-                                ImGui.InputInt("(?)##SoundId", ref compassConfig.NotifySeId);
-                                if (compassConfig.NotifySeId < 1) compassConfig.NotifySeId = 1;
-                                if (compassConfig.NotifySeId > 16) compassConfig.NotifySeId = 16;
-                                if (ImGui.IsItemHovered())
-                                    ImGui.SetTooltip("Input the Sound Effect ID for sound notification, from 1 to 16.\n" +
-                                        "Sound Effect ID is the same as the game's macro sound effects <se.1>~<se.16>. " +
-                                        "For example, if <se.1> is to be used, then enter \"1\" here.");
-                            }
-                        }
-                    }
-                    if (config.NotifyToast)
-                    {
-                        ImGui.Checkbox("Toast Notification (?)", ref compassConfig.NotifyToast);
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("Allow this compass to make a Toast notification about an object detected.");
-                    }
-                    DrawConfigUiExtra();
-                    ImGui.TreePop();
-                }
-                ImGui.PopID();
-            }
-            ImGui.Unindent();
-        }
-
-        public virtual void DrawConfigUiExtra() { }
-        #endregion
-
-
+        public abstract bool IsEnabledTerritory(uint terr);
         private protected unsafe abstract bool IsObjective(GameObject* o);
         public unsafe abstract Action? CreateDrawDetailsAction(GameObject* o);
         public unsafe abstract Action? CreateMarkScreenAction(GameObject* o);
@@ -216,6 +147,76 @@ namespace AetherCompass.Compasses
             ready = true;
             closestObj = (IntPtr.Zero, float.MaxValue, IntPtr.Zero, IntPtr.Zero);
         }
+
+
+        #region Config UI
+        public void DrawConfigUi()
+        {
+            ImGui.Checkbox($"Enable Compass: {CompassName}", ref compassConfig.Enabled);
+            // Reload icons iff changed
+            if (compassConfig.Enabled != _compassEnabled) CompassEnabled = compassConfig.Enabled;
+            ImGui.Indent();
+            ImGui.Bullet();
+            ImGui.SameLine();
+            ImGui.TextWrapped(Description);
+            if (compassConfig.Enabled)
+            {
+                ImGui.PushID($"{CompassName}");
+                if (ImGui.TreeNode($"Compass settings"))
+                {
+                    if (config.ShowScreenMark)
+                    {
+                        ImGui.Checkbox("Mark detected objects on screen (?)", ref compassConfig.MarkScreen);
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("Mark objects detected by this compass on screen. " +
+                                "showing the direction and distance.");
+                    }
+                    if (config.ShowDetailWindow)
+                    {
+                        ImGui.Checkbox("Show objects details (?)", ref compassConfig.ShowDetail);
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("List details of objects detected by this compass in the Details Window.");
+                    }
+                    if (config.NotifyChat)
+                    {
+                        ImGui.Checkbox("Chat Notification (?)", ref compassConfig.NotifyChat);
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("Allow this compass to send a chat message about an object detected.");
+                        if (config.NotifySe)
+                        {
+                            ImGui.Checkbox("Sound Notification (?)", ref compassConfig.NotifySe);
+                            if (ImGui.IsItemHovered())
+                                ImGui.SetTooltip("Also allow this compass to make sound when sending chat message notification.");
+                            if (compassConfig.NotifySe)
+                            {
+                                ImGui.Text("Sound Effect ID: ");
+                                ImGui.SameLine();
+                                ImGui.InputInt("(?)##SoundId", ref compassConfig.NotifySeId);
+                                if (compassConfig.NotifySeId < 1) compassConfig.NotifySeId = 1;
+                                if (compassConfig.NotifySeId > 16) compassConfig.NotifySeId = 16;
+                                if (ImGui.IsItemHovered())
+                                    ImGui.SetTooltip("Input the Sound Effect ID for sound notification, from 1 to 16.\n" +
+                                        "Sound Effect ID is the same as the game's macro sound effects <se.1>~<se.16>. " +
+                                        "For example, if <se.1> is to be used, then enter \"1\" here.");
+                            }
+                        }
+                    }
+                    if (config.NotifyToast)
+                    {
+                        ImGui.Checkbox("Toast Notification (?)", ref compassConfig.NotifyToast);
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("Allow this compass to make a Toast notification about an object detected.");
+                    }
+                    DrawConfigUiExtra();
+                    ImGui.TreePop();
+                }
+                ImGui.PopID();
+            }
+            ImGui.Unindent();
+        }
+
+        public virtual void DrawConfigUiExtra() { }
+        #endregion
 
 
         #region Helpers

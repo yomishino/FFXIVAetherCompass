@@ -113,6 +113,8 @@ namespace AetherCompass
 
         private void OnDrawUi()
         {
+            if (ClientState.LocalContentId == 0 || NotInCompassWorkZone()) return;
+
             if (Enabled)
             {
                 if (ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
@@ -286,6 +288,12 @@ namespace AetherCompass
             if (Enabled && ClientState.LocalContentId != 0)
                 compassMgr.OnZoneChange();
         }
+
+        // Not in work zone if its invalid zone or pvp zone
+        private static bool NotInCompassWorkZone()
+            => (DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
+                .GetRow(ClientState.TerritoryType)?.IsPvpZone) ?? true;
+
 
         #region IDisposable Support
 

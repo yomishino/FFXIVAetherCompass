@@ -20,6 +20,10 @@ namespace AetherCompass.Compasses
             : base(config, compassConfig, iconManager) { }
 
 
+        public override bool IsEnabledTerritory(uint terr)
+            //=> true;
+            => terr != 129; // debug: disable it on limsa lower deck
+
         private protected override unsafe bool IsObjective(GameObject* o)
             => o != null && (o->ObjectID == Plugin.ClientState.LocalPlayer?.ObjectId
             || o->ObjectKind == (byte)ObjectKind.EventObj 

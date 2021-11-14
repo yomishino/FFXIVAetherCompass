@@ -20,6 +20,9 @@ namespace AetherCompass.Compasses
         public AetherCurrentCompass(PluginConfig config, AetherCurrentCompassConfig compassConfig, IconManager iconManager) : 
             base(config, compassConfig, iconManager) { }
 
+        public override bool IsEnabledTerritory(uint terr)
+            => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1;
+
         public override unsafe Action? CreateDrawDetailsAction(GameObject* obj)
         {
             if (obj == null) return null;

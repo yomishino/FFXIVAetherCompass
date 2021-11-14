@@ -14,6 +14,7 @@ namespace AetherCompass.Compasses
     public unsafe sealed class CompassManager
     {
         private readonly HashSet<Compass> compasses = new();
+        private readonly HashSet<Compass> workingCompasses = new();
         private readonly CompassOverlay overlay = null!;
         private readonly CompassDetailsWindow detailsWindow = null!;
         private readonly PluginConfig config = null!;
@@ -42,6 +43,8 @@ namespace AetherCompass.Compasses
         {
             if (!compasses.Add(c)) return false;
             if (!detailsWindow.RegisterCompass(c)) return false;
+            if (c.IsEnabledTerritory(Plugin.ClientState.TerritoryType))
+                workingCompasses.Add(c);
             return true;
         }
 
@@ -49,6 +52,7 @@ namespace AetherCompass.Compasses
         {
             if (!compasses.Contains(c)) return false;
             detailsWindow.UnregisterCompass(c);
+            workingCompasses.Remove(c);
             return compasses.Remove(c);
         }
 
@@ -77,7 +81,7 @@ namespace AetherCompass.Compasses
 #endif
                         ((ObjectInfo**)array)[i];
                     if (info == null) continue;
-                    foreach (var compass in compasses)
+                    foreach (var compass in workingCompasses)
                     {
                         if (!compass.CompassEnabled) continue;
                         if (!compass.CheckObject(info->GameObject)) continue;
@@ -115,14 +119,20 @@ namespace AetherCompass.Compasses
             {
                 Plugin.ShowError("Plugin encountered an error", e.ToString());
             }
-            foreach (var compass in compasses)
+            foreach (var compass in workingCompasses)
                 compass.OnLoopEnd();
         }
 
         public void OnZoneChange()
         {
+            workingCompasses.Clear();
+            var terr = Plugin.ClientState.TerritoryType;
             foreach (var compass in compasses)
+            {
                 compass.OnZoneChange();
+                if (compass.IsEnabledTerritory(terr))
+                    workingCompasses.Add(compass);
+            }
         }
 
         public void DrawCompassConfigUi()
