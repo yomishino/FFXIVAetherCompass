@@ -17,6 +17,7 @@ namespace AetherCompass.Configs
         // L,D,R,U; how much to squeeze into centre on each side, so generally should be positive
         public Vector4 ScreenMarkConstraint = new(80, 80, 80, 80);
         public bool ShowDetailWindow = false;
+        public bool HideDetailInContents = false;
         public bool NotifyChat = false;
         public bool NotifySe = false;
         public bool NotifyToast = false;
@@ -45,6 +46,7 @@ namespace AetherCompass.Configs
                 ScreenMarkFontSize = config.ScreenMarkFontSize;
                 ScreenMarkConstraint = config.ScreenMarkConstraint;
                 ShowDetailWindow = config.ShowDetailWindow;
+                HideDetailInContents = config.HideDetailInContents;
                 NotifyChat = config.NotifyChat;
                 NotifySe = config.NotifySe;
                 NotifyToast = config.NotifyToast;

@@ -122,7 +122,11 @@ namespace AetherCompass
                     try
                     {
                         if (config.ShowScreenMark) overlay.Draw();
-                        if (config.ShowDetailWindow) detailsWindow.Draw();
+                        if (config.ShowDetailWindow)
+                        {
+                            if (!(config.HideDetailInContents && IsDetailWindowHideZone()))
+                                detailsWindow.Draw();
+                        }
                     }
                     catch(Exception e)
                     {
@@ -203,6 +207,15 @@ namespace AetherCompass
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip("If enabled, will show a window listing details of detected objects.\n\n" +
                             "You can configure this for each compass separately below.");
+                    if (config.ShowDetailWindow)
+                    {
+                        ImGui.TreePush();
+                        ImGui.Checkbox("Don't show in instanced contents (?)", ref config.HideDetailInContents);
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("If enabled, will auto hide the detail window in instanced contents" +
+                                "such as dungeons, trials and raids.");
+                        ImGui.TreePop();
+                    }
                     ImGui.Checkbox("Enable chat notification (?)", ref config.NotifyChat);
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip("If enabled, will allow compasses to send notifications " +
@@ -293,6 +306,16 @@ namespace AetherCompass
         private static bool NotInCompassWorkZone()
             => (DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
                 .GetRow(ClientState.TerritoryType)?.IsPvpZone) ?? true;
+
+        private static bool IsDetailWindowHideZone()
+        {
+            var terr = (DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
+                .GetRow(ClientState.TerritoryType));
+            if (terr == null) return true;
+            // BattalionMode > 1: pvp or LoVM
+            // Exclusive type == 2: all the nonsolo instanced contents 
+            return terr.BattalionMode > 1 || terr.ExclusiveType == 2;
+        }
 
 
         #region IDisposable Support
