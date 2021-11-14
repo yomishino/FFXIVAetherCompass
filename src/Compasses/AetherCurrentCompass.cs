@@ -14,7 +14,8 @@ namespace AetherCompass.Compasses
         
         private protected override string ClosestObjectDescription => "Aether Current";
 
-        private static System.Numerics.Vector4 aetherCurrentInfoTextColour = new(.8f, .95f, .75f, 1);
+        private static System.Numerics.Vector4 infoTextColour = new(.8f, .95f, .75f, 1);
+        private const float infoTextShadowLightness = .1f;
 
 
         public AetherCurrentCompass(PluginConfig config, AetherCurrentCompassConfig compassConfig, IconManager iconManager) : 
@@ -47,17 +48,18 @@ namespace AetherCompass.Compasses
             var name = CompassUtil.GetName(obj);
             var dist = CompassUtil.DistanceToFormattedString(CompassUtil.Get3DDistanceFromPlayer(obj), true);
             return new(() => DrawScreenMarkerDefault(obj, icon, IconManager.MarkerIconSize,
-                .9f, $"{name}\n{dist}", aetherCurrentInfoTextColour, .1f, out _));
+                .9f, $"{name}\n{dist}", infoTextColour, infoTextShadowLightness, out _));
         }
 
         private protected override unsafe bool IsObjective(GameObject* o)
         {
             if (o == null) return false;
             if (o->ObjectKind != (byte)ObjectKind.EventObj) return false;
-            var eObjNames = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.EObjName>();
-            if (eObjNames == null) return false;
-            return IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Singular.RawString) 
-                || IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Plural.RawString);
+            //var eObjNames = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.EObjName>();
+            //if (eObjNames == null) return false;
+            //return IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Singular.RawString)
+            //    || IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Plural.RawString);
+            return IsNameOfAetherCurrent(CompassUtil.GetName(o));
         }
 
         private static bool IsNameOfAetherCurrent(string? name)
@@ -66,7 +68,7 @@ namespace AetherCompass.Compasses
             name = name.ToLower();
             return name == "aether current" || name == "aether currents"
                 || name == "風脈の泉"
-                || name == "Windätherquelle" || name == "Windätherquellen"
+                || name == "windätherquelle" || name == "windätherquellen"
                 || name == "vent éthéré" || name == "vents éthérés"
                 ;
         }

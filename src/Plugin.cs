@@ -41,7 +41,7 @@ namespace AetherCompass
         [PluginService]
         [RequiredVersion("1.0")]
         internal static Dalamud.Game.Gui.Toast.ToastGui ToastGui { get; private set; } = null!;
-
+        
 
         public string Name =>
 #if DEBUG
