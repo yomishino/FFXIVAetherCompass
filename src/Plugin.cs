@@ -152,6 +152,7 @@ namespace AetherCompass
                 {
                     ImGui.NewLine();
                     ImGui.Text("Plugin Settings:");
+                    ImGui.NewLine();
                     ImGui.Checkbox("Enable marking detected objects on screen (?)", ref config.ShowScreenMark);
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip("If enabled, will allow Compasses to mark objects detected by them on screen," +
@@ -168,19 +169,14 @@ namespace AetherCompass
                         }
                         if (ImGui.IsItemHovered())
                             ImGui.SetTooltip("If enabled, will use HQ icons when marking detected objects.");
-                        // TODO: marker size scale for every part instead of font size
-                        // TODO: show dummy marker for config
-                        ImGui.Columns(2);
-                        ImGui.Text("Marker font size: ");
-                        ImGui.NextColumn();
-                        ImGui.InputInt("(?)##screenmarkerfontsize", ref config.ScreenMarkFontSize);
-                        if (config.ScreenMarkFontSize < 10) config.ScreenMarkFontSize = 10;
-                        if (config.ScreenMarkFontSize > 500) config.ScreenMarkFontSize = 500;
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip(""); // todo: tooltip
-                        ImGui.NextColumn();
-                        ImGui.Text("Marker display area: ");
-                        ImGui.NextColumn();
+                        ImGui.Text("Marker size scale: ");
+                        ImGui.SameLine();
+                        ImGui.DragFloat("(?) ##screenmarkersizescale", ref config.ScreenMarkSizeScale, 
+                            .01f, PluginConfig.ScreenMarkSizeScaleMin, PluginConfig.ScreenMarkSizeScaleMax);
+                        overlay.RegisterDrawAction(
+                            () => Compass.DrawConfigDummyMarker($"Marker size scale: {config.ScreenMarkSizeScale:0.0}", config.ScreenMarkSizeScale));
+                        ImGui.Text("Marker display area (Left/Bottom/Right/Top): ");
+                        ImGui.Indent();
                         var viewport = ImGui.GetMainViewport().Pos;
                         var vsize = ImGui.GetMainViewport().Size;
                         System.Numerics.Vector4 displayArea = new(
@@ -188,19 +184,23 @@ namespace AetherCompass
                             viewport.Y + vsize.Y - config.ScreenMarkConstraint.Y, // D
                             viewport.X + vsize.X - config.ScreenMarkConstraint.Z, // R
                             viewport.Y + config.ScreenMarkConstraint.W); // U
-                        ImGui.DragFloat4("(?)##markerdisplayarea", ref displayArea, 1);
+                        ImGui.DragFloat4("(?)##markerdisplayarea", ref displayArea, 1, PluginConfig.ScreenMarkConstraintMin);
                         config.ScreenMarkConstraint = new(
                             displayArea.X - viewport.X, // L
                             viewport.Y + vsize.Y - displayArea.Y, // D
                             viewport.X + vsize.X - displayArea.Z, // R
                             displayArea.W - viewport.Y); // U
                         if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip(""); //todo: tooltip
+                            ImGui.SetTooltip("Set the display area for the markers.\n" +
+                                "The display area is shown as the red rectangle on the screen." +
+                                "Detected objects will be marked on screen within this area.");
                         overlay.RegisterDrawAction(() => ImGui.GetWindowDrawList().AddRect(
                             new(displayArea.X, displayArea.W), new(displayArea.Z, displayArea.Y),
-                            ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1)), 0, 
+                            ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1)), 0,
                             ImDrawFlags.Closed, 4));
-                        ImGui.Columns(1);
+                        ImGui.Text($"(Screen display area is: " +
+                            $"{viewport.X:0.0}, {viewport.Y + vsize.Y:0.0}, {viewport.X + vsize.X:0.0}, {viewport.Y:0.0} )");
+                        ImGui.Unindent();
                         ImGui.TreePop();
                     }
                     ImGui.Checkbox("Show detected objects' details (?)", ref config.ShowDetailWindow);
@@ -223,11 +223,13 @@ namespace AetherCompass
                             "You can configure this for each compass separately below. ");
                     if (config.NotifyChat)
                     {
+                        ImGui.TreePush();
                         ImGui.Checkbox("Also enable sound notification (?)", ref config.NotifySe);
                         if (ImGui.IsItemHovered())
                             ImGui.SetTooltip("If enabled, will allow compasses to make sound notification " +
                                 "alongside chat notification.\n\n" +
                                 "You can configure this for each compass separately below.");
+                        ImGui.TreePop();
                     }
                     ImGui.Checkbox("Enable Toast notification (?)", ref config.NotifyToast);
                     if (ImGui.IsItemHovered())
@@ -261,6 +263,8 @@ namespace AetherCompass
                     Reload();
                 }
                 ImGui.End();
+
+                config.CheckValueValidity(ImGui.GetMainViewport().Size);
 
                 // for drawing the marker display area
                 if (config.ShowScreenMark) overlay.Draw();
@@ -324,7 +328,7 @@ namespace AetherCompass
         {
             if (!disposing) return;
 
-            config.Save();
+            //config.Save();
 
             PluginCommands.RemoveCommands();
             iconManager.Dispose();

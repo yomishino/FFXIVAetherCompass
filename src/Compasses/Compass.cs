@@ -156,9 +156,11 @@ namespace AetherCompass.Compasses
             // Reload icons iff changed
             if (compassConfig.Enabled != _compassEnabled) CompassEnabled = compassConfig.Enabled;
             ImGui.Indent();
-            ImGui.Bullet();
+            ImGui.Indent();
+            CompassUi.DrawCompassIconText();
             ImGui.SameLine();
             ImGui.TextWrapped(Description);
+            ImGui.Unindent();
             if (compassConfig.Enabled)
             {
                 ImGui.PushID($"{CompassName}");
@@ -230,10 +232,22 @@ namespace AetherCompass.Compasses
             }
         }
 
-        // TODO: found a bug that when logged out then log in, crash the game; may be fixed by clearing draw action queues
 
+        internal static bool DrawConfigDummyMarker(string info, float scale)
+        {
+            var icon = IconManager.ConfigDummyMarkerIcon;
+            if (icon == null) return false;
+            var drawPos = CompassUi.GetScreenCentre();
+            if (DrawScreenMarkerIcon(icon.ImGuiHandle, drawPos, IconManager.MarkerIconSize, true, scale, 1, out drawPos))
+            {
+                DrawExtraInfoByMarker(info, scale, new(1, 1, 1, 1), drawPos, IconManager.MarkerIconSize, 0, out _);
+                return true;
+            }
+            return false;
+        }
+        
         private protected virtual unsafe bool DrawScreenMarkerDefault(GameObject* obj, 
-            ImGuiScene.TextureWrap icon, Vector2 iconSize, float iconAlpha, string info,
+            ImGuiScene.TextureWrap icon, Vector2 iconSizeRaw, float iconAlpha, string info,
             Vector4 infoTextColour, out Vector2 lastDrawEndPos)
         {
             lastDrawEndPos = new(0, 0);
@@ -249,28 +263,32 @@ namespace AetherCompass.Compasses
             var altidueDiff = CompassUtil.GetAltitudeDiffFromPlayer(obj);
 
             // Draw direction indicator
-            DrawDirectionIcon(lastDrawEndPos, IconManager.DebugMarkerIconColour, out float rotationFromUpward, out lastDrawEndPos);
+            DrawDirectionIcon(lastDrawEndPos, config.ScreenMarkSizeScale, 
+                IconManager.DirectionScreenIndicatorIconColour, 
+                out float rotationFromUpward, out lastDrawEndPos);
             // Marker
-            bool markerDrawn = DrawScreenMarkerIcon(icon.ImGuiHandle, lastDrawEndPos, iconSize, true, iconAlpha, out lastDrawEndPos);
+            bool markerDrawn = DrawScreenMarkerIcon(icon.ImGuiHandle, lastDrawEndPos, 
+                iconSizeRaw, true, config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
             if (markerDrawn)
             {
                 // Altitude
-                DrawAltitudeDiffIcon(altidueDiff, lastDrawEndPos, true, iconAlpha, out _);
+                DrawAltitudeDiffIcon(altidueDiff, lastDrawEndPos, true, 
+                    config.ScreenMarkSizeScale, iconAlpha, out _);
                 // Info
-                DrawExtraInfoByMarker(info, infoTextColour, config.ScreenMarkFontSize, lastDrawEndPos,
-                    iconSize, rotationFromUpward, out _);
+                DrawExtraInfoByMarker(info, config.ScreenMarkSizeScale, infoTextColour, 
+                    lastDrawEndPos, iconSizeRaw, rotationFromUpward, out _);
             }
             return markerDrawn;
         }
 
-        private protected bool DrawDirectionIcon(Vector2 screenPosRaw, 
+        private protected bool DrawDirectionIcon(Vector2 screenPosRaw, float scale,
             uint colour, out float rotationFromUpward, out Vector2 drawEndPos)
         {
             drawEndPos = screenPosRaw;
             rotationFromUpward = 0;
-            var icon = iconManager.DirectionScreenIndicatorIcon;
+            var icon = IconManager.DirectionScreenIndicatorIcon;
             if (icon == null) return false;
-            var iconSize = IconManager.DirectionScreenIndicatorIconSize;
+            var iconSize = IconManager.DirectionScreenIndicatorIconSize * scale;
             rotationFromUpward = CompassUi.GetAngleOnScreen(drawEndPos);
             // Flip the direction indicator along X when not inside viewport;
             if (!CompassUi.IsScreenPosInsideMainViewport(drawEndPos))
@@ -286,8 +304,10 @@ namespace AetherCompass.Compasses
         }
 
         private protected static bool DrawScreenMarkerIcon(IntPtr iconTexHandle, 
-            Vector2 drawScreenPos, Vector2 iconSize, bool posIsRaw, float alpha, out Vector2 drawEndPos)
+            Vector2 drawScreenPos, Vector2 iconSizeRaw, bool posIsRaw,
+            float scale, float alpha, out Vector2 drawEndPos)
         {
+            var iconSize = iconSizeRaw * scale;
             drawEndPos = drawScreenPos;
             if (iconTexHandle == IntPtr.Zero) return false;
             if (posIsRaw)
@@ -297,39 +317,43 @@ namespace AetherCompass.Compasses
             return true;
         }
 
-        private protected bool DrawAltitudeDiffIcon(float altDiff, Vector2 screenPos, 
-            bool posIsRaw, float alpha, out Vector2 drawEndPos)
+        private protected static bool DrawAltitudeDiffIcon(float altDiff, Vector2 screenPos, 
+            bool posIsRaw, float scale, float alpha, out Vector2 drawEndPos)
         {
             drawEndPos = screenPos;
             ImGuiScene.TextureWrap? icon = null;
-            if (altDiff > 10) icon = iconManager.AltitudeHigherIcon;
-            if (altDiff < -10) icon = iconManager.AltitudeLowerIcon;
+            if (altDiff > 10) icon = IconManager.AltitudeHigherIcon;
+            if (altDiff < -10) icon = IconManager.AltitudeLowerIcon;
             if (icon == null) return false;
+            var iconSize = IconManager.AltitudeIconSize * scale;
             if (posIsRaw)
-                drawEndPos -= IconManager.AltitudeIconSize / 2;
-            ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle, drawEndPos, drawEndPos + IconManager.AltitudeIconSize,
+                drawEndPos -= iconSize / 2;
+            ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle, drawEndPos, drawEndPos + iconSize,
                 new(0, 0), new(1, 1), ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, alpha)));
-            drawEndPos += IconManager.AltitudeIconSize / 2;
+            drawEndPos += iconSize / 2;
             return true;
         }
 
-        private protected static bool DrawExtraInfoByMarker(string info, Vector4 colour, 
-            float fontSize, Vector2 markerScreenPos, Vector2 markerSize, float directionRotationFromUpward, out Vector2 drawEndPos)
+        private protected static bool DrawExtraInfoByMarker(string info, float scale, 
+            Vector4 colour, Vector2 markerScreenPos, Vector2 markerSizeRaw, 
+            float directionRotationFromUpward, out Vector2 drawEndPos)
         {
             drawEndPos = markerScreenPos;
             if (string.IsNullOrEmpty(info)) return false;
+            var fontsize = ImGui.GetFontSize() * scale;
+            drawEndPos.Y += 2;  // make it slighly lower
             if (directionRotationFromUpward > -.95f)
             {
                 // direction indicator would be on left side, so just draw text on right
-                drawEndPos.X += markerSize.X + 2;
-                ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize, drawEndPos, ImGui.ColorConvertFloat4ToU32(colour), info);
+                drawEndPos.X += markerSizeRaw.X * scale + 2;
+                ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontsize, drawEndPos, ImGui.ColorConvertFloat4ToU32(colour), info);
             }
             else
             {
                 // direction indicator would be on right side, so draw text on the left
-                var size = CompassUi.GetTextSize(info, fontSize);
+                var size = CompassUi.GetTextSize(info, fontsize);
                 drawEndPos.X -= size.X + 2;
-                ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontSize, drawEndPos, ImGui.ColorConvertFloat4ToU32(colour), info);
+                ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontsize, drawEndPos, ImGui.ColorConvertFloat4ToU32(colour), info);
             }
             return true;
         }

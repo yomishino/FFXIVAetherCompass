@@ -23,5 +23,11 @@ namespace AetherCompass.Configs
             NotifySeId = config.NotifySeId;
             NotifyToast = config.NotifyToast;
         }
+
+        public virtual void CheckValueValidity()
+        {
+            if (NotifySeId < 1) NotifySeId = 1;
+            if (NotifySeId > 16) NotifySeId = 16;
+        }
     }
 }

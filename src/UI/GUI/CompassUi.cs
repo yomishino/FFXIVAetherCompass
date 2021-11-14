@@ -1,5 +1,6 @@
 ﻿using AetherCompass.UI.SeFunctions;
 using Dalamud.Interface;
+using ImGuiNET;
 using System;
 using System.Numerics;
 
@@ -96,12 +97,18 @@ namespace AetherCompass.UI.GUI
                 float lineW = 0;
                 foreach (var c in s)
                     //ImFontPtr.FindGlyph(c).AdvanceX will not get the correct result, it usually gives larger result; idk why
-                    lineW += c < ImGuiNET.ImGui.GetFont().IndexAdvanceX.Size ? ImGuiNET.ImGui.GetFont().IndexAdvanceX[c] : ImGuiNET.ImGui.GetFont().FallbackAdvanceX;
+                    lineW += c < ImGui.GetFont().IndexAdvanceX.Size ? ImGui.GetFont().IndexAdvanceX[c] : ImGui.GetFont().FallbackAdvanceX;
                 maxLineW = MathF.Max(maxLineW, lineW);
             }
-            return new Vector2(maxLineW * fontsize / ImGuiNET.ImGui.GetFontSize(), fontsize);
+            return new Vector2(maxLineW * fontsize / ImGui.GetFontSize(), fontsize);
         }
 
 
+        public static void DrawCompassIconText()
+        {
+            ImGui.PushFont(UiBuilder.IconFont);
+            ImGui.Text(FontAwesomeExtensions.ToIconString(FontAwesomeIcon.Compass));
+            ImGui.PopFont();
+        }
     }
 }

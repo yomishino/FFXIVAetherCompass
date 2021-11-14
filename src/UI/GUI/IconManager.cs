@@ -11,16 +11,22 @@ namespace AetherCompass.UI.GUI
         private readonly PluginConfig config = null!;
 
         public const uint AltitudeHigherIconId = 60954;
-        internal TextureWrap? AltitudeHigherIcon { get; private set; }
+        internal static TextureWrap? AltitudeHigherIcon { get; private set; }
         public const uint AltitudeLowerIconId = 60955;
-        internal TextureWrap? AltitudeLowerIcon { get; private set; }
+        internal static TextureWrap? AltitudeLowerIcon { get; private set; }
         internal static readonly Vector2 AltitudeIconSize = new(45, 45);
 
         // NaviMap thing with those quests/fate etc. direction markers are in 10001400 but may be we use something else for simplicty?
         // 60541 up, 60545 down; there are also two sets that are smaller
         public const uint DirectionScreenIndicatorIconId = 60541;
-        internal TextureWrap? DirectionScreenIndicatorIcon { get; private set; }
+        internal static TextureWrap? DirectionScreenIndicatorIcon { get; private set; }
         internal static readonly Vector2 DirectionScreenIndicatorIconSize = new(45, 45);
+        internal static readonly uint DirectionScreenIndicatorIconColour = ImGuiNET.ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
+
+        internal static readonly Vector2 MarkerIconSize = new(30, 30);
+
+        public const uint ConfigDummyMarkerIconId = 25948;
+        internal static TextureWrap? ConfigDummyMarkerIcon { get; private set; }
 
         public const uint AetherCurrentMarkerIconId = 60033;
         internal TextureWrap? AetherCurrentMarkerIcon { get; private set; }
@@ -31,7 +37,6 @@ namespace AetherCompass.UI.GUI
         public const uint DebugMarkerIconId = 62110;
         internal TextureWrap? DebugMarkerIcon { get; private set; }
         internal static readonly Vector2 DebugMarkerIconSize = new(30, 30);
-        internal static readonly uint DebugMarkerIconColour = ImGuiNET.ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
 
 
         public IconManager(PluginConfig config)
@@ -54,25 +59,17 @@ namespace AetherCompass.UI.GUI
 #endif
         }
 
-        public void ReloadAllIcons()
-        {
-            DisposeAllIcons();
-
-            LoadCommonIcons();
-            LoadAetherCurrentCompassIcons();
-            LoadDebugCompassIcons();
-        }
-
         private void LoadCommonIcons()
         {
             AltitudeHigherIcon = GetIconAsImGuiTexture(AltitudeHigherIconId);
             AltitudeLowerIcon = GetIconAsImGuiTexture(AltitudeLowerIconId);
             DirectionScreenIndicatorIcon = GetIconAsImGuiTexture(DirectionScreenIndicatorIconId);
+            ConfigDummyMarkerIcon = GetIconAsImGuiTexture(ConfigDummyMarkerIconId);
 
             if (AltitudeHigherIcon == null) ShowLoadIconError(AltitudeHigherIconId);
             if (AltitudeLowerIcon == null) ShowLoadIconError(AltitudeLowerIconId);
             if (DirectionScreenIndicatorIcon == null) ShowLoadIconError(DirectionScreenIndicatorIconId);
-            
+            if (ConfigDummyMarkerIcon == null) ShowLoadIconError(ConfigDummyMarkerIconId);
         }
 
         private void LoadAetherCurrentCompassIcons()
@@ -105,6 +102,11 @@ namespace AetherCompass.UI.GUI
             {
                 DirectionScreenIndicatorIcon.Dispose();
                 DirectionScreenIndicatorIcon = null;
+            }
+            if (ConfigDummyMarkerIcon != null)
+            {
+                ConfigDummyMarkerIcon.Dispose();
+                ConfigDummyMarkerIcon = null;
             }
         }
 
@@ -148,6 +150,7 @@ namespace AetherCompass.UI.GUI
                 AltitudeHigherIconId => nameof(AltitudeHigherIcon),
                 AltitudeLowerIconId => nameof(AltitudeLowerIcon),
                 DirectionScreenIndicatorIconId => nameof(DirectionScreenIndicatorIcon),
+                ConfigDummyMarkerIconId => nameof(ConfigDummyMarkerIcon),
                 AetherCurrentMarkerIconId => nameof(AetherCurrentMarkerIcon),
                 DebugMarkerIconId => nameof(DebugMarkerIcon),
                 _ => "(UnknownIcon)"
