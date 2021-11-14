@@ -88,6 +88,17 @@ namespace AetherCompass.UI.GUI
         //public static Direction GetDirectionOnScreen(Vector2 point)
         //    => GetDirectionOnScreen(GetScreenCentre(), point);
 
+
+        public static Vector4 GenerateShadowColour(Vector4 colour, float lightness)
+        {
+            ImGui.ColorConvertRGBtoHSV(colour.X, colour.Y, colour.Z, out float h, out float _, out float _);
+            float s = -lightness * lightness + 1;
+            float v = lightness;
+            ImGui.ColorConvertHSVtoRGB(h, s, v, out float r, out float g, out float b);
+            return new Vector4(r, g, b, colour.W);
+        }
+
+
         public static Vector2 GetTextSize(string text, float fontsize)
         {
             var split = text.Split('\n');
@@ -101,6 +112,24 @@ namespace AetherCompass.UI.GUI
                 maxLineW = MathF.Max(maxLineW, lineW);
             }
             return new Vector2(maxLineW * fontsize / ImGui.GetFontSize(), fontsize);
+        }
+
+        public static void DrawTextWithShadow(ImDrawListPtr drawList, string text, Vector2 pos,
+            ImFontPtr font, float fontsizeRaw, float scale, Vector4 colour, float shadowLightness)
+        {
+            var fontsize = fontsizeRaw * scale;
+            var col_uint = ImGui.ColorConvertFloat4ToU32(colour);
+            var shadowCol_uint = ImGui.ColorConvertFloat4ToU32(GenerateShadowColour(colour, shadowLightness));
+            // showdow R
+            pos.X += scale;
+            drawList.AddText(font, fontsize, pos, shadowCol_uint, text);
+            // showdow D
+            pos.X -= scale;
+            pos.Y += scale;
+            drawList.AddText(font, fontsize, pos, shadowCol_uint, text);
+            // content
+            pos.Y -= scale;
+            drawList.AddText(font, fontsize, pos, col_uint, text);
         }
 
 

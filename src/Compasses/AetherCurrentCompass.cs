@@ -44,7 +44,8 @@ namespace AetherCompass.Compasses
             var icon = iconManager.AetherCurrentMarkerIcon;
             if (icon == null) return null;
             return new(() => DrawScreenMarkerDefault(obj, icon, IconManager.AetherCurrentMarkerIconSize,
-                .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0}", aetherCurrentInfoTextColour, out _));
+                .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0}", 
+                aetherCurrentInfoTextColour, .1f, out _));
         }
 
         private protected override unsafe bool IsObjective(GameObject* o)

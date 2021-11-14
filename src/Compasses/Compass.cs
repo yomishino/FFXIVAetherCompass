@@ -240,7 +240,7 @@ namespace AetherCompass.Compasses
             var drawPos = CompassUi.GetScreenCentre();
             if (DrawScreenMarkerIcon(icon.ImGuiHandle, drawPos, IconManager.MarkerIconSize, true, scale, 1, out drawPos))
             {
-                DrawExtraInfoByMarker(info, scale, new(1, 1, 1, 1), drawPos, IconManager.MarkerIconSize, 0, out _);
+                DrawExtraInfoByMarker(info, scale, new(1, 1, 1, 1), 0, drawPos, IconManager.MarkerIconSize, 0, out _);
                 return true;
             }
             return false;
@@ -248,7 +248,7 @@ namespace AetherCompass.Compasses
         
         private protected virtual unsafe bool DrawScreenMarkerDefault(GameObject* obj, 
             ImGuiScene.TextureWrap icon, Vector2 iconSizeRaw, float iconAlpha, string info,
-            Vector4 infoTextColour, out Vector2 lastDrawEndPos)
+            Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
         {
             lastDrawEndPos = new(0, 0);
             if (obj == null) return false;
@@ -275,8 +275,8 @@ namespace AetherCompass.Compasses
                 DrawAltitudeDiffIcon(altidueDiff, lastDrawEndPos, true, 
                     config.ScreenMarkSizeScale, iconAlpha, out _);
                 // Info
-                DrawExtraInfoByMarker(info, config.ScreenMarkSizeScale, infoTextColour, 
-                    lastDrawEndPos, iconSizeRaw, rotationFromUpward, out _);
+                DrawExtraInfoByMarker(info, config.ScreenMarkSizeScale, infoTextColour,
+                    textShadowLightness, lastDrawEndPos, iconSizeRaw, rotationFromUpward, out _);
             }
             return markerDrawn;
         }
@@ -335,8 +335,8 @@ namespace AetherCompass.Compasses
         }
 
         private protected static bool DrawExtraInfoByMarker(string info, float scale, 
-            Vector4 colour, Vector2 markerScreenPos, Vector2 markerSizeRaw, 
-            float directionRotationFromUpward, out Vector2 drawEndPos)
+            Vector4 colour, float shadowLightness, Vector2 markerScreenPos, 
+            Vector2 markerSizeRaw, float directionRotationFromUpward, out Vector2 drawEndPos)
         {
             drawEndPos = markerScreenPos;
             if (string.IsNullOrEmpty(info)) return false;
@@ -346,15 +346,15 @@ namespace AetherCompass.Compasses
             {
                 // direction indicator would be on left side, so just draw text on right
                 drawEndPos.X += markerSizeRaw.X * scale + 2;
-                ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontsize, drawEndPos, ImGui.ColorConvertFloat4ToU32(colour), info);
             }
             else
             {
                 // direction indicator would be on right side, so draw text on the left
                 var size = CompassUi.GetTextSize(info, fontsize);
                 drawEndPos.X -= size.X + 2;
-                ImGui.GetWindowDrawList().AddText(ImGui.GetFont(), fontsize, drawEndPos, ImGui.ColorConvertFloat4ToU32(colour), info);
             }
+            CompassUi.DrawTextWithShadow(ImGui.GetWindowDrawList(), info, drawEndPos,
+                ImGui.GetFont(), ImGui.GetFontSize(), scale, colour, shadowLightness);
             return true;
         }
 
