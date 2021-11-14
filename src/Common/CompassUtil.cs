@@ -48,6 +48,14 @@ namespace AetherCompass.Common
             return MathF.Abs(o->Position.Y - player.Position.Y);
         }
 
+        public static string DistanceToFormattedString(float dist, bool integer)
+            => (integer ? $"{dist:0}" : $"{dist:0.0}")
+            + (Plugin.ClientState.ClientLanguage == Dalamud.ClientLanguage.Japanese
+                ? "m" : "y");
+
+        public unsafe static string Get3DDistanceFromPlayerFormattedString(GameObject* o, bool integer)
+            => DistanceToFormattedString(Get3DDistanceFromPlayer(o), integer);
+
         public unsafe static float GetAltitudeDiffFromPlayer(GameObject* o)
         {
             if (o == null) return float.NaN;

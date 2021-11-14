@@ -31,7 +31,8 @@ namespace AetherCompass.Compasses
                 if (obj == null) return;
                 ImGui.Text($"{CompassUtil.GetName(obj)}");
                 ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(obj->Position)} (approx.)");
-                ImGui.BulletText(($"{CompassUtil.GetDirectionFromPlayer(obj)} {CompassUtil.Get3DDistanceFromPlayer(obj):0.0}; " +
+                ImGui.BulletText(($"{CompassUtil.GetDirectionFromPlayer(obj)} " +
+                    $"{CompassUtil.Get3DDistanceFromPlayerFormattedString(obj, false)}; " +
                     $"Altitude diff: {(int)CompassUtil.GetAltitudeDiffFromPlayer(obj)}"));
                 DrawFlagButton($"##{(long)obj}", CompassUtil.GetMapCoordInCurrentMap(obj->Position));
                 ImGui.Separator();
@@ -43,9 +44,10 @@ namespace AetherCompass.Compasses
             if (obj == null) return null;
             var icon = iconManager.AetherCurrentMarkerIcon;
             if (icon == null) return null;
-            return new(() => DrawScreenMarkerDefault(obj, icon, IconManager.AetherCurrentMarkerIconSize,
-                .9f, $"{CompassUtil.Get3DDistanceFromPlayer(obj):0}", 
-                aetherCurrentInfoTextColour, .1f, out _));
+            var name = CompassUtil.GetName(obj);
+            var dist = CompassUtil.DistanceToFormattedString(CompassUtil.Get3DDistanceFromPlayer(obj), true);
+            return new(() => DrawScreenMarkerDefault(obj, icon, IconManager.MarkerIconSize,
+                .9f, $"{name}\n{dist}", aetherCurrentInfoTextColour, .1f, out _));
         }
 
         private protected override unsafe bool IsObjective(GameObject* o)

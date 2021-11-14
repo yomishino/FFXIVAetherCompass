@@ -119,12 +119,14 @@ namespace AetherCompass.Compasses
                         {
                             var msg = Chat.CreateMapLink(Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), coord, false);   // TODO: showZ?
                             msg.PrependText($"Found {ClosestObjectDescription} at ");
-                            msg.AppendText($", on {dir}, {closestObj.Distance3D:0.0} yalms from you");
+                            msg.AppendText($", on {dir}, {CompassUtil.DistanceToFormattedString(closestObj.Distance3D, false)} from you");
                             Notifier.TryNotifyByChat(GetType().Name, msg, NotifySe, compassConfig.NotifySeId);
                         }
                         if (NotifyToast)
                         {
-                            var msg = $"Found {ClosestObjectDescription} on {dir}, {closestObj.Distance3D:0} yalms from you, at {CompassUtil.MapCoordToFormattedString(coord)}";
+                            var msg = $"Found {ClosestObjectDescription} on {dir}, " +
+                                $"{CompassUtil.DistanceToFormattedString(closestObj.Distance3D, true)} from you, " +
+                                $"at {CompassUtil.MapCoordToFormattedString(coord)}";
                             Notifier.TryNotifyByToast(msg);
                         }
                     }

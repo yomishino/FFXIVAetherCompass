@@ -16,7 +16,8 @@ namespace AetherCompass.UI.GUI
         internal static TextureWrap? AltitudeLowerIcon { get; private set; }
         internal static readonly Vector2 AltitudeIconSize = new(45, 45);
 
-        // NaviMap thing with those quests/fate etc. direction markers are in 10001400 but may be we use something else for simplicty?
+        // NaviMap thing with those quests/fate etc. direction markers are in 10001400
+        // but we'll use something else for easier work.
         // 60541 up, 60545 down; there are also two sets that are smaller
         public const uint DirectionScreenIndicatorIconId = 60541;
         internal static TextureWrap? DirectionScreenIndicatorIcon { get; private set; }
@@ -30,14 +31,11 @@ namespace AetherCompass.UI.GUI
 
         public const uint AetherCurrentMarkerIconId = 60033;
         internal TextureWrap? AetherCurrentMarkerIcon { get; private set; }
-        internal static readonly Vector2 AetherCurrentMarkerIconSize = new(30, 30);
-        internal static readonly Vector2 AetherCurrentMarkerIconSizeSmall = new(25, 25);
-
+        
         // Armorer job icon, just randomly picked a asymmetrical one for debug
         public const uint DebugMarkerIconId = 62110;
         internal TextureWrap? DebugMarkerIcon { get; private set; }
-        internal static readonly Vector2 DebugMarkerIconSize = new(30, 30);
-
+        
 
         public IconManager(PluginConfig config)
         {
