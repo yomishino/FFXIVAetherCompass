@@ -255,11 +255,9 @@ namespace AetherCompass.Compasses
             lastDrawEndPos = new(0, 0);
             if (obj == null) return false;
 
-            bool inFrontOfCamera = UiHelper.WorldToScreenPos(obj->Position, out var hitboxScrPos);
-
-            lastDrawEndPos = hitboxScrPos;
-            lastDrawEndPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos
-
+            // Make the marker drawn slightly higher than object's hitbox position
+            Vector3 hitboxPosAdjusted = new(obj->Position.X, obj->Position.Y + obj->GetHeight() + 1, obj->Position.Z);
+            bool inFrontOfCamera = UiHelper.WorldToScreenPos(hitboxPosAdjusted, out lastDrawEndPos);
             lastDrawEndPos = PushToSideOnXIfNeeded(lastDrawEndPos, inFrontOfCamera);
 
             var altidueDiff = CompassUtil.GetAltitudeDiffFromPlayer(obj);
