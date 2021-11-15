@@ -121,7 +121,7 @@ namespace AetherCompass.Compasses
                                 Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), coord, CompassUtil.CurrentHasZCoord());
                             msg.PrependText($"Found {ClosestObjectDescription} at ");
                             msg.AppendText($", on {dir}, {CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, false)} from you");
-                            Notifier.TryNotifyByChat(GetType().Name, msg, NotifySe, compassConfig.NotifySeId);
+                            Notifier.TryNotifyByChat(msg, NotifySe, compassConfig.NotifySeId);
                         }
                         if (NotifyToast)
                         {

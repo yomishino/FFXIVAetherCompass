@@ -10,9 +10,9 @@ namespace AetherCompass.UI
         private static DateTime lastSeNotifiedTime = DateTime.MinValue;
 
 
-        public static void TryNotifyByChat(string compassName, SeString msg, bool playSe, int macroSeId = 0)
+        public static void TryNotifyByChat(SeString msg, bool playSe, int macroSeId = 0)
         {
-            Chat.PrintChat(msg.PrependText($"{compassName}: "));
+            Chat.PrintChat(msg);
             if (playSe && CanNotifyBySe())
             {
                 Sound.PlaySoundEffect(macroSeId);
