@@ -159,7 +159,7 @@ namespace AetherCompass.Compasses
             if (compassConfig.Enabled != _compassEnabled) CompassEnabled = compassConfig.Enabled;
             ImGui.Indent();
             ImGui.Indent();
-            CompassUi.DrawCompassIconText();
+            UiHelper.DrawCompassIconText();
             ImGui.SameLine();
             ImGui.TextWrapped(Description);
             ImGui.Unindent();
@@ -239,7 +239,7 @@ namespace AetherCompass.Compasses
         {
             var icon = IconManager.ConfigDummyMarkerIcon;
             if (icon == null) return false;
-            var drawPos = CompassUi.GetScreenCentre();
+            var drawPos = UiHelper.GetScreenCentre();
             if (DrawScreenMarkerIcon(icon.ImGuiHandle, drawPos, IconManager.MarkerIconSize, true, scale, 1, out drawPos))
             {
                 DrawExtraInfoByMarker(info, scale, new(1, 1, 1, 1), 0, drawPos, IconManager.MarkerIconSize, 0, out _);
@@ -255,7 +255,7 @@ namespace AetherCompass.Compasses
             lastDrawEndPos = new(0, 0);
             if (obj == null) return false;
 
-            bool inFrontOfCamera = CompassUi.WorldToScreenPos(obj->Position, out var hitboxScrPos);
+            bool inFrontOfCamera = UiHelper.WorldToScreenPos(obj->Position, out var hitboxScrPos);
 
             lastDrawEndPos = hitboxScrPos;
             lastDrawEndPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos
@@ -291,13 +291,13 @@ namespace AetherCompass.Compasses
             var icon = IconManager.DirectionScreenIndicatorIcon;
             if (icon == null) return false;
             var iconSize = IconManager.DirectionScreenIndicatorIconSize * scale;
-            rotationFromUpward = CompassUi.GetAngleOnScreen(drawEndPos);
+            rotationFromUpward = UiHelper.GetAngleOnScreen(drawEndPos);
             // Flip the direction indicator along X when not inside viewport;
-            if (!CompassUi.IsScreenPosInsideMainViewport(drawEndPos))
+            if (!UiHelper.IsScreenPosInsideMainViewport(drawEndPos))
                 rotationFromUpward = -rotationFromUpward;
-            drawEndPos = CompassUi.GetConstrainedScreenPos(screenPosRaw, config.ScreenMarkConstraint, iconSize / 4);
+            drawEndPos = UiHelper.GetConstrainedScreenPos(screenPosRaw, config.ScreenMarkConstraint, iconSize / 4);
             drawEndPos -= iconSize / 2;
-            (var p1, var p2, var p3, var p4) = CompassUi.GetRotatedPointsOnScreen(drawEndPos, iconSize, rotationFromUpward);
+            (var p1, var p2, var p3, var p4) = UiHelper.GetRotatedPointsOnScreen(drawEndPos, iconSize, rotationFromUpward);
             ImGui.GetWindowDrawList().AddImageQuad(icon.ImGuiHandle, p1, p2, p3, p4, new(0, 0), new(1, 0), new(1, 1), new(0, 1), colour);
             var iconCentre = (p1 + p3) / 2;
             drawEndPos = new Vector2(iconCentre.X + iconSize.Y / 2 * MathF.Sin(rotationFromUpward), 
@@ -352,22 +352,22 @@ namespace AetherCompass.Compasses
             else
             {
                 // direction indicator would be on right side, so draw text on the left
-                var size = CompassUi.GetTextSize(info, fontsize);
+                var size = UiHelper.GetTextSize(info, fontsize);
                 drawEndPos.X -= size.X + 2;
             }
-            CompassUi.DrawTextWithShadow(ImGui.GetWindowDrawList(), info, drawEndPos,
+            UiHelper.DrawTextWithShadow(ImGui.GetWindowDrawList(), info, drawEndPos,
                 ImGui.GetFont(), ImGui.GetFontSize(), scale, colour, shadowLightness);
             return true;
         }
 
         private protected static Vector2 PushToSideOnXIfNeeded(Vector2 drawPos, bool posInFrontOfCamera)
         {
-            if (!posInFrontOfCamera && CompassUi.IsScreenPosInsideMainViewport(drawPos))
+            if (!posInFrontOfCamera && UiHelper.IsScreenPosInsideMainViewport(drawPos))
             {
                 var viewport = ImGui.GetMainViewport();
                 // Fix X-axis for some objs: push all those not in front of camera to side
                 //  so that they don't dangle in the middle of the screen
-                drawPos.X = drawPos.X - CompassUi.GetScreenCentre().X > 0
+                drawPos.X = drawPos.X - UiHelper.GetScreenCentre().X > 0
                     ? (viewport.Pos.X + viewport.Size.X) : viewport.Pos.X;
             }
             return drawPos;

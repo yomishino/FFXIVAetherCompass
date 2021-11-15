@@ -9,21 +9,21 @@ namespace AetherCompass.UI.GUI
 {
     public class CompassDetailsWindow
     {
-        private readonly Dictionary<Compass, Queue<Action>> drawActions = new();
+        private readonly Dictionary<Compass, ActionQueue> drawActions = new();
 
 
         public bool RegisterCompass(Compass c)
-            => drawActions.TryAdd(c, new());
+            => drawActions.TryAdd(c, new(50));
 
         public bool UnregisterCompass(Compass c)
             => drawActions.Remove(c);
 
-        public bool RegisterDrawAction(Compass c, Action? a)
+        public bool RegisterDrawAction(Compass c, Action? a, bool dequeueOldIfFull = false)
         {
             if (a == null) return false;
             if (!drawActions.TryGetValue(c, out var queue))
                 return false;
-            queue.Enqueue(a);
+            queue.QueueAction(a, dequeueOldIfFull);
             return true;
         }
 
@@ -66,8 +66,7 @@ namespace AetherCompass.UI.GUI
                             name = name.Substring(0, name.Length - "Compass".Length);
                             if (ImGui.BeginTabItem(name))
                             {
-                                while (drawActions[c].TryDequeue(out Action? a))
-                                    a?.Invoke();
+                                drawActions[c].DoAll();
                                 ImGui.EndTabItem();
                             }
                         }

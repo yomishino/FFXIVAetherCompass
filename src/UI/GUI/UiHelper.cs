@@ -7,7 +7,7 @@ using System.Numerics;
 
 namespace AetherCompass.UI.GUI
 {
-    public static class CompassUi
+    public static class UiHelper
     {
         public static Vector2 GetScreenCentre()
             => ImGuiHelpers.MainViewport.GetCenter();

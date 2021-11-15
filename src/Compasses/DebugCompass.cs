@@ -78,7 +78,7 @@ namespace AetherCompass.Compasses
             // These are already handled by the Draw...Default method,
             // here is just for debug record
             var markerSize = IconManager.MarkerIconSize;
-            CompassUi.WorldToScreenPos(obj->Position, out var screenPos, out var pCoordsRaw);
+            UiHelper.WorldToScreenPos(obj->Position, out var screenPos, out var pCoordsRaw);
             screenPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos
 
             return new Action(() =>

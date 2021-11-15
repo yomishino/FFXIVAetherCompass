@@ -1,14 +1,14 @@
-﻿using Dalamud.Interface;
+﻿using AetherCompass.Common;
+using Dalamud.Interface;
 using ImGuiNET;
 using System;
-using System.Collections.Generic;
 
 
 namespace AetherCompass.UI.GUI
 {
     public class CompassOverlay
     {
-        private readonly Queue<Action> drawActions = new();
+        private readonly ActionQueue drawActions = new(200);
 
         private static readonly ImGuiWindowFlags winFlags =
             ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoDocking 
@@ -22,24 +22,14 @@ namespace AetherCompass.UI.GUI
             ImGui.SetNextWindowPos(ImGuiHelpers.MainViewport.Pos);
             ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
             ImGui.Begin("AetherCompassOverlay", winFlags);
-            while (drawActions.TryDequeue(out Action? a))
-                a?.Invoke();
+            drawActions.DoAll();
             ImGui.End();
         }
 
-        public bool RegisterDrawAction(Action? a)
-        {
-            if (a == null) return false;
-            // TEMP:
-            while (drawActions.Count > 100) drawActions.Dequeue();
-            drawActions.Enqueue(a);
-            return true;
-        }
+        public bool RegisterDrawAction(Action? a, bool dequeueOldIfFull = false)
+            => a != null && drawActions.QueueAction(a, dequeueOldIfFull);
 
-        public void Clear()
-        {
-            drawActions.Clear();
-        }
+        public void Clear() => drawActions.Clear();
 
     }
 }
