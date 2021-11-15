@@ -49,6 +49,7 @@ namespace AetherCompass.Compasses
                 ImGui.BulletText($"Direction: {CompassUtil.GetDirectionFromPlayer(obj)}, {CompassUtil.GetRotationFromPlayer(obj):0.00}");
                 ImGui.BulletText($"Position: {(Vector3)obj->Position}");
                 ImGui.BulletText($"MapCoord: {CompassUtil.GetMapCoordInCurrentMapFormattedString(obj->Position)}");
+                ImGui.BulletText($"Z Offset: {CompassUtil.GetCurrentTerritoryZOffset()}");
 
                 //ImGui.BulletText($"MapInfo: MapId, IconId, Unk");
                 //ImGui.Indent();

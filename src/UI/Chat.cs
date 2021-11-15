@@ -30,15 +30,13 @@ namespace AetherCompass.UI
 
         public static SeString CreateMapLink(uint terrId, uint mapId, float xCoord, float yCoord)
         {
-            var maplink = SeString.CreateMapLink(
-                Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), xCoord, yCoord, .01f);
+            var maplink = SeString.CreateMapLink(terrId, mapId, xCoord, yCoord, .01f);
             return maplink;
         }
 
         public static SeString CreateMapLink(uint terrId, uint mapId, Vector3 coord, bool showZ = false)
         {
-            var maplink = SeString.CreateMapLink(
-                Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), coord.X, coord.Y, .01f);
+            var maplink = SeString.CreateMapLink(terrId, mapId, coord.X, coord.Y, .01f);
             if (showZ)
                 maplink.Append(new TextPayload($" Z:{coord.Z: 0.0}"));
             return maplink;

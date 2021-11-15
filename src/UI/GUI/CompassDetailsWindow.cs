@@ -38,11 +38,6 @@ namespace AetherCompass.UI.GUI
         {
             var map = CompassUtil.GetCurrentMap();
             if (map == null) return;
-            //{
-            //    foreach (var queue in drawActions.Values)
-            //        queue.Clear();
-            //    return;
-            //}
 
             if (ImGui.Begin("AetherCompass: Detected Objects' Details"))
             {

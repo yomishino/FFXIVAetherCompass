@@ -26,18 +26,17 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* obj)
         {
             if (obj == null) return null;
-            var dist = CompassUtil.Get3DDistanceFromPlayer(obj);
             return new(() =>
             {
                 if (obj == null) return;
                 ImGui.Text($"{CompassUtil.GetName(obj)}");
                 ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(obj->Position)} (approx.)");
-                ImGui.BulletText(($"{CompassUtil.GetDirectionFromPlayer(obj)} " +
-                    $"{CompassUtil.DistanceToFormattedString(dist, false)}; " +
-                    $"Altitude diff: {(int)CompassUtil.GetAltitudeDiffFromPlayer(obj)}"));
+                ImGui.BulletText($"{CompassUtil.GetDirectionFromPlayer(obj)},  " +
+                    $"{CompassUtil.Get3DDistanceFromPlayerDescriptive(obj, false)}");
+                ImGui.BulletText(CompassUtil.GetAltitudeDiffFromPlayerDescriptive(obj));
                 DrawFlagButton($"##{(long)obj}", CompassUtil.GetMapCoordInCurrentMap(obj->Position));
                 ImGui.Separator();
-            }, dist < 80);
+            });
         }
 
         public override unsafe DrawAction? CreateMarkScreenAction(GameObject* obj)
@@ -46,9 +45,12 @@ namespace AetherCompass.Compasses
             var icon = iconManager.AetherCurrentMarkerIcon;
             if (icon == null) return null;
             var name = CompassUtil.GetName(obj);
-            var dist = CompassUtil.DistanceToFormattedString(CompassUtil.Get3DDistanceFromPlayer(obj), true);
-            return new(() => DrawScreenMarkerDefault(obj, icon, IconManager.MarkerIconSize,
-                .9f, $"{name}\n{dist}", infoTextColour, infoTextShadowLightness, out _));
+            var dist = CompassUtil.Get3DDistanceFromPlayer(obj);
+            return new(
+                () => DrawScreenMarkerDefault(obj, icon, IconManager.MarkerIconSize,
+                    .9f, $"{name}\n{CompassUtil.DistanceToDescriptiveString(dist, true)}", 
+                    infoTextColour, infoTextShadowLightness, out _), 
+                dist < 80);
         }
 
         private protected override unsafe bool IsObjective(GameObject* o)

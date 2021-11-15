@@ -48,13 +48,13 @@ namespace AetherCompass.Common
             return MathF.Abs(o->Position.Y - player.Position.Y);
         }
 
-        public static string DistanceToFormattedString(float dist, bool integer)
+        public static string DistanceToDescriptiveString(float dist, bool integer)
             => (integer ? $"{dist:0}" : $"{dist:0.0}")
             + (Plugin.ClientState.ClientLanguage == Dalamud.ClientLanguage.Japanese
                 ? "m" : "y");
 
-        public unsafe static string Get3DDistanceFromPlayerFormattedString(GameObject* o, bool integer)
-            => DistanceToFormattedString(Get3DDistanceFromPlayer(o), integer);
+        public unsafe static string Get3DDistanceFromPlayerDescriptive(GameObject* o, bool integer)
+            => DistanceToDescriptiveString(Get3DDistanceFromPlayer(o), integer);
 
         public unsafe static float GetAltitudeDiffFromPlayer(GameObject* o)
         {
@@ -63,6 +63,18 @@ namespace AetherCompass.Common
             if (player == null) return float.NaN;
             return o->Position.Y - player.Position.Y;
         }
+
+        public static string AltitudeDiffToDescriptiveString(float diff)
+        {
+            var diffAbs = MathF.Abs(diff);
+            if (diffAbs < 1) return "At same altitude";
+            string s = DistanceToDescriptiveString(diffAbs, true);
+            if (diff > 0) return s + " higher than you";
+            else return s + " lower than you";
+        }
+
+        public unsafe static string GetAltitudeDiffFromPlayerDescriptive(GameObject* o)
+            => AltitudeDiffToDescriptiveString(GetAltitudeDiffFromPlayer(o));
 
         public unsafe static float GetRotationFromPlayer(GameObject* o)
         {
@@ -91,6 +103,12 @@ namespace AetherCompass.Common
         public static TerritoryType? GetCurrentTerritoryType()
             => GetTerritoryType(Plugin.ClientState.TerritoryType);
 
+        public static short GetTerritoryZOffset(uint terrId)
+            => Plugin.DataManager.GetExcelSheet<TerritoryTypeTransient>()?.GetRow(terrId)?.OffsetZ ?? 0;
+
+        public static short GetCurrentTerritoryZOffset()
+            => GetTerritoryZOffset(Plugin.ClientState.TerritoryType);
+
         public static uint GetCurrentMapId()
             => GetCurrentTerritoryType()?.Map.Row ?? 0;
 
@@ -107,39 +125,48 @@ namespace AetherCompass.Common
 
         // TODO: give wrong results for map such as residential subdivision,
         //  because territory id is the same with main division but they use different maps
-        public static Vector3 GetMapCoord(Vector3 worldPos, float scale, float offsetX, float offsetY)
+        public static Vector3 GetMapCoord(Vector3 worldPos, ushort scale, 
+            short offsetXCoord, short offsetYCoord, short offsetZCoord)
         {
             // Altitude is y in world position but z in map coord
-            // Not entierly accurate tho
-            float mx = WorldPositionToMapCoord(worldPos.X, scale, offsetX);
-            float my = WorldPositionToMapCoord(worldPos.Z, scale, offsetY);
-            // Altitude seems pos:coord=10:.1 for sizefactor=100 map, otherwise no idea;
-            // scaling seems fine as known map with Z all have sizefactor=100;
-            // TODO: but offset is different for different map and i can't find that in game rn
-            float mz = worldPos.Y / (scale / 100f) / 100f;
+            float mx = WorldPositionToMapCoord(worldPos.X, scale, offsetXCoord);
+            float my = WorldPositionToMapCoord(worldPos.Z, scale, offsetYCoord);
+            float mz = WorldPositionToMapCoordZ(worldPos.Y, scale, offsetZCoord);
             return new Vector3(mx, my, mz);
         }
 
-        public static float WorldPositionToMapCoord(float v, float scale, float offset = 0)
+        // Also truncate to one decimal place
+        private static float WorldPositionToMapCoord(float v, ushort scale, short offset = 0)
+            => MathF.Truncate(WorldPositionToMapCoordRaw(v, scale, offset) * 10) / 10f;
+
+        private static float WorldPositionToMapCoordRaw(float v, ushort scale, short offset)
             => 41f / (scale / 100f) * ((v + offset) * (scale / 100f) + 1024f) / 2048f + 1;
+
+        // Altitude seems pos:coord=10:.1 for sizefactor=100 map, otherwise no idea;
+        // scaling seems fine as known map with Z all have sizefactor=100;
+        // Z-coord offset seems coming from TerritoryTypeTransient sheet,
+        // and *subtract* it from worldPos.Y
+        // Will truncated (not rounded) to one decimal place
+        private static float WorldPositionToMapCoordZ(float worldY, ushort scale, short offset = 0)
+            => MathF.Truncate((worldY - offset) * (scale / 100f) / 10f) / 10f;
 
         public static Vector3 GetMapCoordInCurrentMap(Vector3 worldPos)
         {
             var map = GetCurrentMap();
             if (map == null) return new Vector3(float.NaN, float.NaN, float.NaN);
-            return GetMapCoord(worldPos, map.SizeFactor, map.OffsetX, map.OffsetY);
+            return GetMapCoord(worldPos, map.SizeFactor, map.OffsetX, map.OffsetY, GetCurrentTerritoryZOffset());
         }
 
-        // Unknown32 seems to do with mount flying, only flyable map has it > 0,
-        //  although new Diadem also has it being 0; 
+        // Among valid maps, all that officially has no Z coord has Z-offset of -10000
         public static bool HasZCoord(uint terrId)
-            => GetTerritoryType(terrId)?.Unknown32 > 0;
+            => GetTerritoryZOffset(terrId) > -10000;
 
         public static bool CurrentHasZCoord()
             => HasZCoord(Plugin.ClientState.TerritoryType);
 
         public static string MapCoordToFormattedString(Vector3 coord, bool showZ = true)
             => $"X:{coord.X:0.0}, Y:{coord.Y:0.0}{(showZ && CurrentHasZCoord() ? $", Z:{coord.Z:0.0}" : string.Empty)}";
+            //=> $"X:{coord.X}, Y:{coord.Y}{(showZ && CurrentHasZCoord() ? $", Z:{coord.Z}" : string.Empty)}";
 
         public static string GetMapCoordInCurrentMapFormattedString(Vector3 worldPos, bool showZ = true)
             => MapCoordToFormattedString(GetMapCoordInCurrentMap(worldPos), showZ);

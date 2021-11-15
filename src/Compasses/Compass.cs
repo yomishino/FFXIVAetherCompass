@@ -117,15 +117,16 @@ namespace AetherCompass.Compasses
                         var coord = CompassUtil.GetMapCoordInCurrentMap(obj->Position);
                         if (NotifyChat)
                         {
-                            var msg = Chat.CreateMapLink(Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), coord, false);   // TODO: showZ?
+                            var msg = Chat.CreateMapLink(
+                                Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), coord, CompassUtil.CurrentHasZCoord());
                             msg.PrependText($"Found {ClosestObjectDescription} at ");
-                            msg.AppendText($", on {dir}, {CompassUtil.DistanceToFormattedString(closestObj.Distance3D, false)} from you");
+                            msg.AppendText($", on {dir}, {CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, false)} from you");
                             Notifier.TryNotifyByChat(GetType().Name, msg, NotifySe, compassConfig.NotifySeId);
                         }
                         if (NotifyToast)
                         {
                             var msg = $"Found {ClosestObjectDescription} on {dir}, " +
-                                $"{CompassUtil.DistanceToFormattedString(closestObj.Distance3D, true)} from you, " +
+                                $"{CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, true)} from you, " +
                                 $"at {CompassUtil.MapCoordToFormattedString(coord)}";
                             Notifier.TryNotifyByToast(msg);
                         }
