@@ -131,24 +131,25 @@ namespace AetherCompass.Common
             // Altitude is y in world position but z in map coord
             float mx = WorldPositionToMapCoord(worldPos.X, scale, offsetXCoord);
             float my = WorldPositionToMapCoord(worldPos.Z, scale, offsetYCoord);
-            float mz = WorldPositionToMapCoordZ(worldPos.Y, scale, offsetZCoord);
+            float mz = WorldPositionToMapCoordZ(worldPos.Y, offsetZCoord);
+            // Also truncate coords to one decimal place seems give closer results
+            mx = TruncateToOneDecimalPlace(mx);
+            my = TruncateToOneDecimalPlace(my);
+            mz = TruncateToOneDecimalPlace(mz);
             return new Vector3(mx, my, mz);
         }
 
-        // Also truncate to one decimal place
-        private static float WorldPositionToMapCoord(float v, ushort scale, short offset = 0)
-            => MathF.Truncate(WorldPositionToMapCoordRaw(v, scale, offset) * 10) / 10f;
+        private static float WorldPositionToMapCoord(float v, ushort scale, short offset)
+            => 41f / (scale / 100f) * ((v + offset) * (scale / 100f) + 1024f) / 2048f + .99f;
 
-        private static float WorldPositionToMapCoordRaw(float v, ushort scale, short offset)
-            => 41f / (scale / 100f) * ((v + offset) * (scale / 100f) + 1024f) / 2048f + 1;
-
-        // Altitude seems pos:coord=10:.1 for sizefactor=100 map, otherwise no idea;
-        // scaling seems fine as known map with Z all have sizefactor=100;
+        // Altitude seems pos:coord=10:.1 and ignoring map's sizefactor.
         // Z-coord offset seems coming from TerritoryTypeTransient sheet,
         // and *subtract* it from worldPos.Y
-        // Will truncated (not rounded) to one decimal place
-        private static float WorldPositionToMapCoordZ(float worldY, ushort scale, short offset = 0)
-            => MathF.Truncate((worldY - offset) * (scale / 100f) / 10f) / 10f;
+        private static float WorldPositionToMapCoordZ(float worldY, short offset = 0)
+        => (worldY - offset) / 100f;
+
+        private static float TruncateToOneDecimalPlace(float v)
+            => MathF.Truncate(v * 10) / 10f;
 
         public static Vector3 GetMapCoordInCurrentMap(Vector3 worldPos)
         {

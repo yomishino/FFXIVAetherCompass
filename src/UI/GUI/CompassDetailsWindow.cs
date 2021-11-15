@@ -55,7 +55,7 @@ namespace AetherCompass.UI.GUI
                 ImGui.TextWrapped($"{mapName}");
 #if DEBUG
                 //ImGui.Text($"Territory: {Plugin.ClientState.TerritoryType}; LocalContentId: {Plugin.ClientState.LocalContentId}");
-                ImGui.BulletText($"Map data: SizeFactor={map.SizeFactor}, OffsetX={map.OffsetX}, OffsetY={map.OffsetY}");
+                ImGui.BulletText($"Map data: SizeFactor={map.SizeFactor}, OffsetX={map.OffsetX}, OffsetY={map.OffsetY}, OffsetZ={CompassUtil.GetCurrentTerritoryZOffset()}");
                 ImGui.BulletText($"Main Viewport: pos={Dalamud.Interface.ImGuiHelpers.MainViewport.Pos}, " +
                     $"size={Dalamud.Interface.ImGuiHelpers.MainViewport.Size}, dpi={Dalamud.Interface.ImGuiHelpers.MainViewport.DpiScale}");
 #endif
