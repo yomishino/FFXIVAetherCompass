@@ -3,7 +3,6 @@ using AetherCompass.Configs;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
-using System;
 
 namespace AetherCompass.Compasses
 {
@@ -24,23 +23,24 @@ namespace AetherCompass.Compasses
         public override bool IsEnabledTerritory(uint terr)
             => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1;
 
-        public override unsafe Action? CreateDrawDetailsAction(GameObject* obj)
+        public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* obj)
         {
             if (obj == null) return null;
+            var dist = CompassUtil.Get3DDistanceFromPlayer(obj);
             return new(() =>
             {
                 if (obj == null) return;
                 ImGui.Text($"{CompassUtil.GetName(obj)}");
                 ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(obj->Position)} (approx.)");
                 ImGui.BulletText(($"{CompassUtil.GetDirectionFromPlayer(obj)} " +
-                    $"{CompassUtil.Get3DDistanceFromPlayerFormattedString(obj, false)}; " +
+                    $"{CompassUtil.DistanceToFormattedString(dist, false)}; " +
                     $"Altitude diff: {(int)CompassUtil.GetAltitudeDiffFromPlayer(obj)}"));
                 DrawFlagButton($"##{(long)obj}", CompassUtil.GetMapCoordInCurrentMap(obj->Position));
                 ImGui.Separator();
-            });
+            }, dist < 80);
         }
 
-        public override unsafe Action? CreateMarkScreenAction(GameObject* obj)
+        public override unsafe DrawAction? CreateMarkScreenAction(GameObject* obj)
         {
             if (obj == null) return null;
             var icon = iconManager.AetherCurrentMarkerIcon;

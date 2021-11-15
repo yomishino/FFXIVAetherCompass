@@ -18,24 +18,31 @@ namespace AetherCompass.UI.GUI
         public bool UnregisterCompass(Compass c)
             => drawActions.Remove(c);
 
-        public bool RegisterDrawAction(Compass c, Action? a, bool dequeueOldIfFull = false)
+        public bool AddDrawAction(Compass c, Action? a, bool important = false)
         {
             if (a == null) return false;
             if (!drawActions.TryGetValue(c, out var queue))
                 return false;
-            queue.QueueAction(a, dequeueOldIfFull);
-            return true;
+            return queue.QueueAction(a, important);
+        }
+
+        public bool AddDrawAction(Compass c, DrawAction? a)
+        {
+            if (a == null) return false;
+            if (!drawActions.TryGetValue(c, out var queue))
+                return false;
+            return queue.QueueAction(a);
         }
 
         public void Draw()
         {
             var map = CompassUtil.GetCurrentMap();
-            if (map == null)
-            {
-                foreach (var queue in drawActions.Values)
-                    queue.Clear();
-                return;
-            }
+            if (map == null) return;
+            //{
+            //    foreach (var queue in drawActions.Values)
+            //        queue.Clear();
+            //    return;
+            //}
 
             if (ImGui.Begin("AetherCompass: Detected Objects' Details"))
             {
@@ -49,7 +56,8 @@ namespace AetherCompass.UI.GUI
                     mapName = placeName;
                 if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(subName))
                     mapName += " > " + subName;
-                ImGui.TextWrapped($"Current Map:  {mapName}");
+                UiHelper.DrawMapMarkerIconText(true);
+                ImGui.TextWrapped($"{mapName}");
 #if DEBUG
                 //ImGui.Text($"Territory: {Plugin.ClientState.TerritoryType}; LocalContentId: {Plugin.ClientState.LocalContentId}");
                 ImGui.BulletText($"Map data: SizeFactor={map.SizeFactor}, OffsetX={map.OffsetX}, OffsetY={map.OffsetY}");

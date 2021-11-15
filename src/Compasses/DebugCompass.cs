@@ -33,7 +33,7 @@ namespace AetherCompass.Compasses
             || o->ObjectKind == (byte)ObjectKind.AreaObject);
 
 
-        public override unsafe Action? CreateDrawDetailsAction(GameObject* obj)
+        public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* obj)
         {
             if (obj == null) return null;
             return new(() =>
@@ -69,7 +69,7 @@ namespace AetherCompass.Compasses
             });
         }
 
-        public override unsafe Action? CreateMarkScreenAction(GameObject* obj)
+        public override unsafe DrawAction? CreateMarkScreenAction(GameObject* obj)
         {
             if (obj == null) return null;
             var marker = iconManager.DebugMarkerIcon;
@@ -81,7 +81,7 @@ namespace AetherCompass.Compasses
             UiHelper.WorldToScreenPos(obj->Position, out var screenPos, out var pCoordsRaw);
             screenPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos
 
-            return new Action(() =>
+            return new(() =>
             {
                 if (obj == null) return;
                 string info = $"name={CompassUtil.GetName(obj)}\n" +

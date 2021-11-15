@@ -89,13 +89,13 @@ namespace AetherCompass.Compasses
                         {
                             var action = compass.CreateDrawDetailsAction(info->GameObject);
                             if (action != null)
-                                detailsWindow.RegisterDrawAction(compass, action);
+                                detailsWindow.AddDrawAction(compass, action);
                         }
                         if (compass.MarkScreen)
                         {
                             var action = compass.CreateMarkScreenAction(info->GameObject);
                             if (action != null)
-                                overlay.RegisterDrawAction(action);
+                                overlay.AddDrawAction(action);
                         }
                         if (compass.HasFlagToProcess)
                         {

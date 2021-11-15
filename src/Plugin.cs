@@ -150,6 +150,7 @@ namespace AetherCompass
                 if (config.Enabled != _enabled) Enabled = config.Enabled;   // Clear&Reload iff Enabled changed
                 if (config.Enabled)
                 {
+                    ImGui.Separator();
                     ImGui.NewLine();
                     ImGui.Text("Plugin Settings:");
                     ImGui.NewLine();
@@ -173,7 +174,7 @@ namespace AetherCompass
                         ImGui.SameLine();
                         ImGui.DragFloat("(?) ##screenmarkersizescale", ref config.ScreenMarkSizeScale, 
                             .01f, PluginConfig.ScreenMarkSizeScaleMin, PluginConfig.ScreenMarkSizeScaleMax);
-                        overlay.RegisterDrawAction(
+                        overlay.AddDrawAction(
                             () => Compass.DrawConfigDummyMarker($"Marker size scale: {config.ScreenMarkSizeScale:0.0}", config.ScreenMarkSizeScale));
                         ImGui.Text("Marker display area (Left/Bottom/Right/Top): ");
                         ImGui.Indent();
@@ -194,7 +195,7 @@ namespace AetherCompass
                             ImGui.SetTooltip("Set the display area for the markers.\n" +
                                 "The display area is shown as the red rectangle on the screen." +
                                 "Detected objects will be marked on screen within this area.");
-                        overlay.RegisterDrawAction(() => ImGui.GetWindowDrawList().AddRect(
+                        overlay.AddDrawAction(() => ImGui.GetWindowDrawList().AddRect(
                             new(displayArea.X, displayArea.W), new(displayArea.Z, displayArea.Y),
                             ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1)), 0,
                             ImDrawFlags.Closed, 4));

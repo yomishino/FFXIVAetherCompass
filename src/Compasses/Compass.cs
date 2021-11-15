@@ -69,8 +69,8 @@ namespace AetherCompass.Compasses
 
         public abstract bool IsEnabledTerritory(uint terr);
         private protected unsafe abstract bool IsObjective(GameObject* o);
-        public unsafe abstract Action? CreateDrawDetailsAction(GameObject* o);
-        public unsafe abstract Action? CreateMarkScreenAction(GameObject* o);
+        public unsafe abstract DrawAction? CreateDrawDetailsAction(GameObject* o);
+        public unsafe abstract DrawAction? CreateMarkScreenAction(GameObject* o);
 
         #region Maybe TODO
         //public abstract bool ProcessMinimapEnabled { get; private protected set; }
@@ -159,8 +159,7 @@ namespace AetherCompass.Compasses
             if (compassConfig.Enabled != _compassEnabled) CompassEnabled = compassConfig.Enabled;
             ImGui.Indent();
             ImGui.Indent();
-            UiHelper.DrawCompassIconText();
-            ImGui.SameLine();
+            UiHelper.DrawCompassIconText(nextSameLine: true);
             ImGui.TextWrapped(Description);
             ImGui.Unindent();
             if (compassConfig.Enabled)

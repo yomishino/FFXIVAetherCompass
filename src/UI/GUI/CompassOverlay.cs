@@ -26,8 +26,11 @@ namespace AetherCompass.UI.GUI
             ImGui.End();
         }
 
-        public bool RegisterDrawAction(Action? a, bool dequeueOldIfFull = false)
-            => a != null && drawActions.QueueAction(a, dequeueOldIfFull);
+        public bool AddDrawAction(Action? a, bool important = false)
+            => a != null && drawActions.QueueAction(a, important);
+
+        public bool AddDrawAction(DrawAction? a)
+            => a != null && drawActions.QueueAction(a);
 
         public void Clear() => drawActions.Clear();
 

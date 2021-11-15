@@ -84,7 +84,7 @@ namespace AetherCompass.UI.GUI
         }
 
 
-        private void DisposeCommonIcons()
+        private static void DisposeCommonIcons()
         {
             if (AltitudeHigherIcon != null)
             {

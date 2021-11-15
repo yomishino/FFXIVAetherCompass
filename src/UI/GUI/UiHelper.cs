@@ -1,5 +1,6 @@
 ﻿using AetherCompass.UI.SeFunctions;
 using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using ImGuiNET;
 using System;
 using System.Numerics;
@@ -133,11 +134,21 @@ namespace AetherCompass.UI.GUI
         }
 
 
-        public static void DrawCompassIconText()
+        public static void DrawCompassIconText(bool nextSameLine = false)
         {
             ImGui.PushFont(UiBuilder.IconFont);
             ImGui.Text(FontAwesomeExtensions.ToIconString(FontAwesomeIcon.Compass));
             ImGui.PopFont();
+            if (nextSameLine) ImGui.SameLine();
         }
+
+        public static void DrawMapMarkerIconText(bool nextSameLine = false)
+        {
+            ImGui.PushFont(UiBuilder.IconFont);
+            ImGui.Text(FontAwesomeExtensions.ToIconString(FontAwesomeIcon.MapMarkerAlt));
+            ImGui.PopFont();
+            if (nextSameLine) ImGui.SameLine();
+        }
+
     }
 }
