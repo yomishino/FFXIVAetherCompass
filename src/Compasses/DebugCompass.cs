@@ -21,8 +21,8 @@ namespace AetherCompass.Compasses
 
 
         public override bool IsEnabledTerritory(uint terr)
-            //=> true;
-            => terr != 129; // debug: disable it on limsa lower deck
+            => true;
+            //=> terr != 129; // debug: disable it on limsa lower deck
 
         private protected override unsafe bool IsObjective(GameObject* o)
             => o != null && (o->ObjectID == Plugin.ClientState.LocalPlayer?.ObjectId

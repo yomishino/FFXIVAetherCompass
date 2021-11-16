@@ -140,7 +140,7 @@ namespace AetherCompass.Common
         }
 
         private static float WorldPositionToMapCoord(float v, ushort scale, short offset)
-            => 41f / (scale / 100f) * ((v + offset) * (scale / 100f) + 1024f) / 2048f + .99f;
+            => 41f * ((MathF.Truncate(v) + offset - 100f/scale) * (scale / 100f) + 1024f) / 2048f / (scale / 100f) + 1;
 
         // Altitude seems pos:coord=10:.1 and ignoring map's sizefactor.
         // Z-coord offset seems coming from TerritoryTypeTransient sheet,
