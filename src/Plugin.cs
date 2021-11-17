@@ -309,17 +309,22 @@ namespace AetherCompass
 
         // Not in work zone if its invalid zone or pvp zone
         private static bool NotInCompassWorkZone()
-            => (DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
-                .GetRow(ClientState.TerritoryType)?.IsPvpZone) ?? true;
+        {
+            var terr = DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
+                .GetRow(ClientState.TerritoryType);
+            return terr == null || terr.IsPvpZone
+                || terr.BattalionMode > 1   // pvp contents or LoVM
+                || terr.TerritoryIntendedUse == 20  // chocobo race terr?
+                ;
+        }
 
         private static bool IsDetailWindowHideZone()
         {
             var terr = (DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
                 .GetRow(ClientState.TerritoryType));
-            if (terr == null) return true;
-            // BattalionMode > 1: pvp or LoVM
-            // Exclusive type == 2: all the nonsolo instanced contents 
-            return terr.BattalionMode > 1 || terr.ExclusiveType == 2;
+            // Exclusive type: 0 not instanced, 1 is solo instance, 2 is nonsolo instance.
+            // Not sure about 3, seems quite mixed up with solo battles, diadem and misc stuff like LoVM
+            return terr == null || terr.ExclusiveType == 1 || terr.ExclusiveType == 2;
         }
 
 
