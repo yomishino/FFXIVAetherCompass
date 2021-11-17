@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace AetherCompass.UI.SeFunctions
+namespace AetherCompass.Common.SeFunctions
 {
     internal static class Sound
     {

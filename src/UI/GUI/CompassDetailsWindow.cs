@@ -13,7 +13,7 @@ namespace AetherCompass.UI.GUI
 
 
         public bool RegisterCompass(Compass c)
-            => drawActions.TryAdd(c, new(50));
+            => drawActions.TryAdd(c, new(80));
 
         public bool UnregisterCompass(Compass c)
             => drawActions.Remove(c);
@@ -52,10 +52,12 @@ namespace AetherCompass.UI.GUI
                 if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(subName))
                     mapName += " > " + subName;
                 UiHelper.DrawMapMarkerIconText(true);
+
                 ImGui.TextWrapped($"{mapName}");
 #if DEBUG
                 //ImGui.Text($"Territory: {Plugin.ClientState.TerritoryType}; LocalContentId: {Plugin.ClientState.LocalContentId}");
-                ImGui.BulletText($"Map data: SizeFactor={map.SizeFactor}, OffsetX={map.OffsetX}, OffsetY={map.OffsetY}, OffsetZ={CompassUtil.GetCurrentTerritoryZOffset()}");
+                ImGui.BulletText($"Map data: RowId={map.RowId}, SizeFactor={map.SizeFactor}, " +
+                    $"OffsetX={map.OffsetX}, OffsetY={map.OffsetY}, OffsetZ={CompassUtil.GetCurrentTerritoryZOffset()}");
                 ImGui.BulletText($"Main Viewport: pos={Dalamud.Interface.ImGuiHelpers.MainViewport.Pos}, " +
                     $"size={Dalamud.Interface.ImGuiHelpers.MainViewport.Size}, dpi={Dalamud.Interface.ImGuiHelpers.MainViewport.DpiScale}");
 #endif

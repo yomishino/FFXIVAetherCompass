@@ -1,4 +1,4 @@
-﻿using AetherCompass.UI.SeFunctions;
+﻿using AetherCompass.Common.SeFunctions;
 using Dalamud.Game.Text.SeStringHandling;
 using System;
 

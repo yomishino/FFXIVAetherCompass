@@ -1,4 +1,5 @@
-﻿using Dalamud.Memory;
+﻿using AetherCompass.Common.SeFunctions;
+using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Lumina.Excel.GeneratedSheets;
 using System;
@@ -110,7 +111,11 @@ namespace AetherCompass.Common
             => GetTerritoryZOffset(Plugin.ClientState.TerritoryType);
 
         public static uint GetCurrentMapId()
-            => GetCurrentTerritoryType()?.Map.Row ?? 0;
+        {
+            var altMapId = ZoneMap.GetCurrentTerritoryAltMapId();
+            if (altMapId > 0) return altMapId;
+            return GetCurrentTerritoryType()?.Map.Row ?? 0;
+        }
 
         public static Map? GetCurrentMap()
             => Plugin.DataManager.GetExcelSheet<Map>()?.GetRow(GetCurrentMapId());
@@ -139,8 +144,9 @@ namespace AetherCompass.Common
             return new Vector3(mx, my, mz);
         }
 
+        // "-1" seems a more accurate result?
         private static float WorldPositionToMapCoord(float v, ushort scale, short offset)
-            => 41f * ((MathF.Truncate(v) + offset - 100f/scale) * (scale / 100f) + 1024f) / 2048f / (scale / 100f) + 1;
+            => 41f * ((MathF.Truncate(v) + offset) * (scale / 100f) + 1024f - 1) / 2048f / (scale / 100f) + 1;
 
         // Altitude seems pos:coord=10:.1 and ignoring map's sizefactor.
         // Z-coord offset seems coming from TerritoryTypeTransient sheet,
