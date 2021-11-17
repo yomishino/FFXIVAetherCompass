@@ -3,7 +3,6 @@ using AetherCompass.Configs;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
-using System;
 using System.Numerics;
 
 

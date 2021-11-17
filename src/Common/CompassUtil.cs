@@ -127,9 +127,6 @@ namespace AetherCompass.Common
             return name;
         }
 
-
-        // TODO: give wrong results for map such as residential subdivision,
-        //  because territory id is the same with main division but they use different maps
         public static Vector3 GetMapCoord(Vector3 worldPos, ushort scale, 
             short offsetXCoord, short offsetYCoord, short offsetZCoord)
         {
@@ -144,7 +141,7 @@ namespace AetherCompass.Common
             return new Vector3(mx, my, mz);
         }
 
-        // "-1" seems a more accurate result?
+        // "-1" before divided by 2048 seems a more accurate result?
         private static float WorldPositionToMapCoord(float v, ushort scale, short offset)
             => 41f * ((MathF.Truncate(v) + offset) * (scale / 100f) + 1024f - 1) / 2048f / (scale / 100f) + 1;
 
