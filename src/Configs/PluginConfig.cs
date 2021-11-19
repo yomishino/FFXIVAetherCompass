@@ -29,6 +29,7 @@ namespace AetherCompass.Configs
         public bool NotifyToast = false;
 
         public AetherCurrentCompassConfig AetherCurrentConfig { get; private set; } = new();
+        public QuestCompassConfig QuestConfig { get; private set; } = new();
 
 #if DEBUG
         [JsonIgnore]
@@ -60,6 +61,7 @@ namespace AetherCompass.Configs
                 ScreenMarkConstraint.W = screenSize.Y / 2 - 10;
 
             AetherCurrentConfig.CheckValueValidity();
+            QuestConfig.CheckValueValidity();
             DebugConfig.CheckValueValidity();
         }
 
@@ -84,6 +86,7 @@ namespace AetherCompass.Configs
                 NotifyToast = config.NotifyToast;
 
                 AetherCurrentConfig.Load(config.AetherCurrentConfig);
+                QuestConfig.Load(config.QuestConfig);
             }
             // TODO: config version
         }

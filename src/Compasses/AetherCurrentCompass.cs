@@ -21,7 +21,7 @@ namespace AetherCompass.Compasses
             base(config, compassConfig, iconManager) { }
 
         public override bool IsEnabledTerritory(uint terr)
-            => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1;
+            => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1; // mostly normal wild field
 
         public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* obj)
         {

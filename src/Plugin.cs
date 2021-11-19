@@ -87,6 +87,7 @@ namespace AetherCompass
             PluginCommands.AddCommands(this);
 
             compassMgr.AddCompass(new AetherCurrentCompass(config, config.AetherCurrentConfig, iconManager));
+            compassMgr.AddCompass(new QuestCompass(config, config.QuestConfig, iconManager));
 #if DEBUG
             compassMgr.AddCompass(new DebugCompass(config, config.DebugConfig, iconManager));
 #endif
@@ -324,7 +325,7 @@ namespace AetherCompass
                 .GetRow(ClientState.TerritoryType));
             // Exclusive type: 0 not instanced, 1 is solo instance, 2 is nonsolo instance.
             // Not sure about 3, seems quite mixed up with solo battles, diadem and misc stuff like LoVM
-            return terr == null || terr.ExclusiveType == 1 || terr.ExclusiveType == 2;
+            return terr == null || terr.ExclusiveType > 0;
         }
 
 

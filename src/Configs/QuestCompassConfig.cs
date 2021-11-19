@@ -1,0 +1,27 @@
+﻿using System;
+
+namespace AetherCompass.Configs
+{
+    [Serializable]
+    public class QuestCompassConfig : CompassConfig
+    {
+        public bool EnabledInSoloContents = true;
+        //public bool DetectEnemy = true;
+        public bool HideHidden = true;
+        public bool ShowQuestName = true;
+        public bool ShowObjName = true;
+        public bool ShowAllRelated = true;
+
+        public override void Load(CompassConfig config)
+        {
+            base.Load(config);
+            if (config is not QuestCompassConfig qc) return;
+            EnabledInSoloContents = qc.EnabledInSoloContents;
+            //DetectEnemy = qc.DetectEnemy;
+            HideHidden = qc.HideHidden;
+            ShowQuestName = qc.ShowQuestName;
+            ShowObjName = qc.ShowObjName;
+            ShowAllRelated = qc.ShowAllRelated;
+        }
+    }
+}

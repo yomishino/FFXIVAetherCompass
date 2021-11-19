@@ -31,7 +31,11 @@ namespace AetherCompass.UI.GUI
 
         public const uint AetherCurrentMarkerIconId = 60033;
         internal TextureWrap? AetherCurrentMarkerIcon { get; private set; }
-        
+
+        // 76352 is MSQ in-prog, 76355 side quest in-prog, 76358 blue-plus quest in-prog
+        public const uint QuestDefaultMarkerIconId = 76355;
+        internal TextureWrap? QuestDefaultMarkerIcon { get; private set; }
+
         // Armorer job icon, just randomly picked a asymmetrical one for debug
         public const uint DebugMarkerIconId = 62110;
         internal TextureWrap? DebugMarkerIcon { get; private set; }
@@ -51,6 +55,8 @@ namespace AetherCompass.UI.GUI
             LoadCommonIcons();
             if (config.AetherCurrentConfig.Enabled)
                 LoadAetherCurrentCompassIcons();
+            if (config.QuestConfig.Enabled)
+                LoadQuestCompassIcons();
 #if DEBUG
             if (config.DebugConfig.Enabled)
                 LoadDebugCompassIcons();
@@ -75,6 +81,13 @@ namespace AetherCompass.UI.GUI
             AetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
             
             if (AetherCurrentMarkerIcon == null) ShowLoadIconError(AetherCurrentMarkerIconId);
+        }
+
+        private void LoadQuestCompassIcons()
+        {
+            QuestDefaultMarkerIcon = GetIconAsImGuiTexture(QuestDefaultMarkerIconId);
+
+            if (QuestDefaultMarkerIcon == null) ShowLoadIconError(QuestDefaultMarkerIconId);
         }
 
         private void LoadDebugCompassIcons()
@@ -117,6 +130,15 @@ namespace AetherCompass.UI.GUI
             }
         }
 
+        private void DisposeQuestCompassIcons()
+        {
+            if (QuestDefaultMarkerIcon != null)
+            {
+                QuestDefaultMarkerIcon.Dispose();
+                QuestDefaultMarkerIcon = null;
+            }
+        }
+
         private void DisposeDebugIcons()
         {
             if (DebugMarkerIcon != null) 
@@ -130,6 +152,7 @@ namespace AetherCompass.UI.GUI
         {
             DisposeCommonIcons();
             DisposeAetherCurrentCompassIcons();
+            DisposeQuestCompassIcons();
             DisposeDebugIcons();
         }
 
@@ -150,6 +173,7 @@ namespace AetherCompass.UI.GUI
                 DirectionScreenIndicatorIconId => nameof(DirectionScreenIndicatorIcon),
                 ConfigDummyMarkerIconId => nameof(ConfigDummyMarkerIcon),
                 AetherCurrentMarkerIconId => nameof(AetherCurrentMarkerIcon),
+                QuestDefaultMarkerIconId => nameof(QuestDefaultMarkerIcon),
                 DebugMarkerIconId => nameof(DebugMarkerIcon),
                 _ => "(UnknownIcon)"
             };

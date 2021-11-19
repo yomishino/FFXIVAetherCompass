@@ -97,6 +97,9 @@ namespace AetherCompass.Compasses
             return false;
         }
 
+        public unsafe virtual void OnLoopStart()
+        {  }
+
         public unsafe virtual void OnLoopEnd()
         {
             HasFlagToProcess = false;

@@ -58,6 +58,9 @@ namespace AetherCompass.Compasses
 
         public void OnTick()
         {
+            foreach (var compass in workingCompasses)
+                compass.OnLoopStart();
+
             var map = CompassUtil.GetCurrentMap();
             if (map == null) return;
 

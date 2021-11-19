@@ -6,7 +6,7 @@ namespace AetherCompass.Configs
     {
         public DebugCompassConfig()
         {
-            Enabled = true;
+            Enabled = false;
             ShowDetail = true;
             NotifySeId = 4;
         }
