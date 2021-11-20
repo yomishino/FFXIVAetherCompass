@@ -61,16 +61,17 @@ namespace AetherCompass
         public bool Enabled 
         {
             get => _enabled;
-            private set 
+            internal set 
             {
                 _enabled = false;
                 overlay.Clear();
                 detailsWindow.Clear();
                 if (!value) IconManager.DisposeAllIcons();
                 _enabled = value;
+                if (config != null) config.Enabled = value;
             }
         }
-        private bool inConfig = false;
+        internal bool InConfig { get; set; }
         
 
         public Plugin()
@@ -106,7 +107,6 @@ namespace AetherCompass
         {
             Chat.PrintErrorChat(chatMsg);
             LogError(logMsg);
-        
         }
 
         private void OnDrawUi()
@@ -128,7 +128,8 @@ namespace AetherCompass
                     }
                     catch(Exception e)
                     {
-                        ShowError("Plugin encountered an error.", e.ToString());
+                        //ShowError("Plugin encountered an error.", e.ToString());
+                        LogError(e.ToString());
                     }
                 }
                 else
@@ -141,7 +142,7 @@ namespace AetherCompass
                 }
             }
 
-            if (inConfig)
+            if (InConfig)
             {
                 ImGui.Begin("AetherCompass: Configuration");
                 ImGui.Checkbox("Enable plugin", ref config.Enabled);
@@ -252,13 +253,13 @@ namespace AetherCompass
                 if (ImGui.Button("Save & Close"))
                 {
                     config.Save();
-                    inConfig = false;
+                    InConfig = false;
                     Reload();
                 }
                 ImGui.NewLine();
                 if (ImGui.Button("Close & Discard All Changes"))
                 {
-                    inConfig = false;
+                    InConfig = false;
                     config.Load(PluginConfig.GetSavedPluginConfig());
                     Reload();
                 }
@@ -287,14 +288,15 @@ namespace AetherCompass
                 }
                 catch(Exception e)
                 {
-                    ShowError("Plugin encountered an error.", e.ToString());
+                    //ShowError("Plugin encountered an error.", e.ToString());
+                    LogError(e.ToString());
                 }
             }
         }
 
         private void OnOpenConfigUi()
         {
-            inConfig = true;
+            InConfig = true;
         }
 
         private void OnZoneChange(object? _, ushort terr)

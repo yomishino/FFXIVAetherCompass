@@ -21,8 +21,7 @@ namespace AetherCompass.Compasses
         private readonly PluginConfig config = null!;
 
 
-        // TODO: better error handling
-        private unsafe static readonly UI3DModule* UI3DModule = ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
+        private unsafe static UI3DModule* UI3DModule => ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
 
         // Those that would be rendered on screen
         private unsafe static ObjectInfo** SortedObjectInfoPointerArray
@@ -59,83 +58,76 @@ namespace AetherCompass.Compasses
 
         public void OnTick()
         {
-            try
-            {
-                foreach (var compass in workingCompasses)
-                    compass.OnLoopStart();
+            foreach (var compass in workingCompasses)
+                compass.OnLoopStart();
 
-                var map = CompassUtil.GetCurrentMap();
-                if (map == null) return;
+            var map = CompassUtil.GetCurrentMap();
+            if (map == null) return;
 
-                void* array;
-                int count;
+            void* array;
+            int count;
 #if DEBUG
-                if (gameObjMgr == null) return;
-                array = config.DebugTestAllGameObjects ? gameObjMgr->ObjectListFiltered : SortedObjectInfoPointerArray;
-                count = config.DebugTestAllGameObjects ? gameObjMgr->ObjectListFilteredCount : SortedObjectInfoCount;
+            if (gameObjMgr == null) return;
+            array = config.DebugTestAllGameObjects ? gameObjMgr->ObjectListFiltered : SortedObjectInfoPointerArray;
+            count = config.DebugTestAllGameObjects ? gameObjMgr->ObjectListFilteredCount : SortedObjectInfoCount;
 #else
                 array = SortedObjectInfoPointerArray;
                 count = SortedObjectInfoCount;
 #endif
-                if (array == null) return;
-                for (int i = 0; i < count; i++)
-                {
-                    GameObject* obj;
-                    var info = ((ObjectInfo**)array)[i];
+            if (array == null) return;
+            for (int i = 0; i < count; i++)
+            {
+                GameObject* obj;
+                var info = ((ObjectInfo**)array)[i];
 #if DEBUG
-                    if (config.DebugTestAllGameObjects)
-                        obj = ((GameObject**)array)[i];
-                    else
-                    
+                if (config.DebugTestAllGameObjects)
+                    obj = ((GameObject**)array)[i];
+                else
+
 #endif
-                        obj = info != null ? info->GameObject : null;
-                    if (obj == null) continue;
-                    if (obj->ObjectKind == (byte)ObjectKind.Pc
+                    obj = info != null ? info->GameObject : null;
+                if (obj == null) continue;
+                if (obj->ObjectKind == (byte)ObjectKind.Pc
 #if DEBUG
                         && !config.DebugTestAllGameObjects
 #endif
                         ) continue;
 
-                    foreach (var compass in workingCompasses)
+                foreach (var compass in workingCompasses)
+                {
+                    if (!compass.CompassEnabled) continue;
+                    if (!compass.CheckObject(obj)) continue;
+                    if (compass.ShowDetail)
                     {
-                        if (!compass.CompassEnabled) continue;
-                        if (!compass.CheckObject(obj)) continue;
-                        if (compass.ShowDetail)
-                        {
-                            var action = compass.CreateDrawDetailsAction(obj);
-                            if (action != null)
-                                detailsWindow.AddDrawAction(compass, action);
-                        }
-                        if (compass.MarkScreen)
-                        {
-                            var action = compass.CreateMarkScreenAction(obj);
-                            if (action != null)
-                                overlay.AddDrawAction(action);
-                        }
-                        if (compass.HasFlagToProcess)
-                        {
-                            var terrId = CompassUtil.GetCurrentTerritoryType()!.RowId;
-                            var maplink = new MapLinkPayload(terrId, map.RowId,
-                                compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, fudgeFactor: 0.01f);
+                        var action = compass.CreateDrawDetailsAction(obj);
+                        if (action != null)
+                            detailsWindow.AddDrawAction(compass, action);
+                    }
+                    if (compass.MarkScreen)
+                    {
+                        var action = compass.CreateMarkScreenAction(obj);
+                        if (action != null)
+                            overlay.AddDrawAction(action);
+                    }
+                    if (compass.HasFlagToProcess)
+                    {
+                        var terrId = CompassUtil.GetCurrentTerritoryType()!.RowId;
+                        var maplink = new MapLinkPayload(terrId, map.RowId,
+                            compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, fudgeFactor: 0.01f);
 #if DEBUG
-                            Plugin.LogDebug($"Create MapLinkPayload from {compass.FlaggedMapCoord}: {maplink}");
+                        Plugin.LogDebug($"Create MapLinkPayload from {compass.FlaggedMapCoord}: {maplink}");
 #endif
-                            if (Plugin.GameGui.OpenMapWithMapLink(maplink))
-                            {
-                                var msg = Chat.CreateMapLink(terrId, map.RowId, maplink.XCoord, maplink.YCoord).PrependText("Flag set: ");
-                                Chat.PrintChat(msg);
-                                compass.HasFlagToProcess = false;
-                            }
+                        if (Plugin.GameGui.OpenMapWithMapLink(maplink))
+                        {
+                            var msg = Chat.CreateMapLink(terrId, map.RowId, maplink.XCoord, maplink.YCoord).PrependText("Flag set: ");
+                            Chat.PrintChat(msg);
+                            compass.HasFlagToProcess = false;
                         }
                     }
                 }
-                foreach (var compass in workingCompasses)
-                    compass.OnLoopEnd();
             }
-            catch (Exception e)
-            {
-                Plugin.ShowError("Plugin encountered an error", e.ToString());
-            }
+            foreach (var compass in workingCompasses)
+                compass.OnLoopEnd();
         }
 
         public void OnZoneChange()

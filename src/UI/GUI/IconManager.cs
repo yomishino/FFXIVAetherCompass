@@ -124,17 +124,6 @@ namespace AetherCompass.UI.GUI
                 _defaultQuestMarkerIcon = value;
             }
         }
-        public const uint DefaultQuestEndMarkerIconId = 71225;
-        private static TextureWrap? _defaultQuestMarkerEndIcon;
-        public const uint MainQuestMarkerIconId = 71203;
-        private static TextureWrap? _mainQuestMarkerIcon;
-        public const uint MainQuestEndMarkerIconId = 71205;
-        private static TextureWrap? _mainQuestMarkerEndIcon;
-        public const uint FuncQuestMarkerIconId = 71343;
-        private static TextureWrap? _funcQuestMarkerIcon;
-        public const uint FuncQuestEndMarkerIconId = 71345;
-        private static TextureWrap? _funcQuestMarkerEndIcon;
-
 
         private static readonly Dictionary<uint, TextureWrap?> _questMarkerIconMap = new();
         
@@ -234,8 +223,9 @@ namespace AetherCompass.UI.GUI
                 //DebugMarkerIconId => nameof(DebugMarkerIcon),
                 _ => _questMarkerIconMap.ContainsKey(iconId) ? $"QuestMarkerIcon_{iconId}" : "(UnknownIcon)",
             };
-            Plugin.ShowError($"Plugin encountered an error: Failed to load icon",
-                $"Failed to load icon: {name}, IconId = {iconId}");
+            //Plugin.ShowError($"Plugin encountered an error: Failed to load icon",
+            //    $"Failed to load icon: {name}, IconId = {iconId}");
+            Plugin.LogError($"Failed to load icon: {name}, IconId = {iconId}");
         }
     }
 }
