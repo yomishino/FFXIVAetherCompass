@@ -5,7 +5,6 @@ using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using Lumina.Excel;
-using System.Linq;
 using System.Collections.Generic;
 
 using Sheets = Lumina.Excel.GeneratedSheets;
@@ -18,7 +17,7 @@ namespace AetherCompass.Compasses
         public override string CompassName => "Quest Compass";
         public override string Description => "Compass that detects NPC/objects nearby relevant to your in-progress quests.\n" +
             "** Due to some limitations, Battle NPCs (that is, NPCs that can fight, whether by your side or against you)" +
-            "will not be detected by the compass.";
+            " will not be detected by the compass.";
         private protected override string ClosestObjectDescription => "Quest NPC/Object";
 
         private QuestCompassConfig QuestConfig => (QuestCompassConfig)compassConfig;
@@ -60,7 +59,7 @@ namespace AetherCompass.Compasses
 
         public override void DrawConfigUiExtra()
         {
-            ImGui.Checkbox("Also enable this compass in solo instanced contents", ref QuestConfig.EnabledInSoloContents);
+            ImGui.Checkbox("Also enable this compass in solo instanced contents (?)", ref QuestConfig.EnabledInSoloContents);
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("By default, this compass will not work in any type of instanced contents.\n" +
                     "You can enable it in solo instanced contents if needed.");
@@ -69,11 +68,11 @@ namespace AetherCompass.Compasses
             //    ImGui.SetTooltip("By default, this compass will only detect event NPCs or objects," +
             //        "that is, NPCs/Objects that don't fight.\n" +
             //        "You can enable this option to have the compass detect also quest related enemies.");
-            ImGui.Checkbox("Don't detect hidden quests", ref QuestConfig.HideHidden);
+            ImGui.Checkbox("Don't detect hidden quests (?)", ref QuestConfig.HideHidden);
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Hidden quests are those that you've marked ignored in Journal.\n" +
+                ImGui.SetTooltip("Hidden quests are those that you've marked as ignored in Journal.\n" +
                     "If this option is enabled, will not detect NPC/Objects related to these hidden quests.");
-            ImGui.Checkbox("Detect all NPCs and objects relevant to in-progress quests", ref QuestConfig.ShowAllRelated);
+            ImGui.Checkbox("Detect all NPCs and objects relevant to in-progress quests (?)", ref QuestConfig.ShowAllRelated);
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip("By default, this compass only detects NPC/objects that are objectives of the quests " +
                     "as shown in the quest Todos and on the Minimap.\n" +

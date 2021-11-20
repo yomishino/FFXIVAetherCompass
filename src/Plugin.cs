@@ -114,9 +114,9 @@ namespace AetherCompass
 
         private void OnDrawUi()
         {
-            if (ClientState.LocalContentId == 0 || NotInCompassWorkZone()) return;
+            if (ClientState.LocalContentId == 0) return;
 
-            if (Enabled)
+            if (Enabled && InCompassWorkZone())
             {
                 if (ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
                 {
@@ -149,6 +149,10 @@ namespace AetherCompass
                 ImGui.Begin("AetherCompass: Configuration");
                 ImGui.Checkbox("Enable plugin", ref config.Enabled);
                 if (config.Enabled != _enabled) Enabled = config.Enabled;   // Clear&Reload iff Enabled changed
+                if (ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Enable/Disable this plugin. \n" +
+                        "All compasses will auto pause in certain zones such as PvP zones regardless of this setting.");
+                ImGui.NewLine();
                 if (config.Enabled)
                 {
                     ImGui.Separator();
@@ -201,7 +205,7 @@ namespace AetherCompass
                             ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1)), 0,
                             ImDrawFlags.Closed, 4));
                         ImGui.Text($"(Screen display area is: " +
-                            $"{viewport.X:0.0}, {viewport.Y + vsize.Y:0.0}, {viewport.X + vsize.X:0.0}, {viewport.Y:0.0} )");
+                            $"<{viewport.X:0.0}, {viewport.Y + vsize.Y:0.0}, {viewport.X + vsize.X:0.0}, {viewport.Y:0.0}> )");
                         ImGui.Unindent();
                         ImGui.TreePop();
                     }
@@ -215,7 +219,7 @@ namespace AetherCompass
                         ImGui.Checkbox("Don't show in instanced contents (?)", ref config.HideDetailInContents);
                         if (ImGui.IsItemHovered())
                             ImGui.SetTooltip("If enabled, will auto hide the detail window in instanced contents" +
-                                "such as dungeons, trials and raids.");
+                                " such as dungeons, trials and raids.");
                         ImGui.TreePop();
                     }
                     ImGui.Checkbox("Enable chat notification (?)", ref config.NotifyChat);
@@ -239,8 +243,9 @@ namespace AetherCompass
                             "on screen when detected an object.\n\n" +
                             "You can configure this for each compass separately below.");
 #if DEBUG
-                    ImGui.Checkbox("[DEBUG] Use full ObjectInfoArray", ref config.DebugUseFullArray);
+                    ImGui.Checkbox("[DEBUG] Test all GameObjects", ref config.DebugTestAllGameObjects);
 #endif
+                    ImGui.NewLine();
                     ImGui.Separator();
                     ImGui.NewLine();
                     ImGui.Text("Compass Settings:");
@@ -308,14 +313,14 @@ namespace AetherCompass
                 compassMgr.OnZoneChange();
         }
 
-        // Not in work zone if its invalid zone or pvp zone
-        private static bool NotInCompassWorkZone()
+        // Work only in PvE zone, also excl LoVM / chocobo race etc.
+        private static bool InCompassWorkZone()
         {
             var terr = DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
                 .GetRow(ClientState.TerritoryType);
-            return terr == null || terr.IsPvpZone
-                || terr.BattalionMode > 1   // pvp contents or LoVM
-                || terr.TerritoryIntendedUse == 20  // chocobo race terr?
+            return terr != null && !terr.IsPvpZone
+                && terr.BattalionMode <= 1   // > 1 are pvp contents or LoVM
+                && terr.TerritoryIntendedUse != 20  // chocobo race terr?
                 ;
         }
 

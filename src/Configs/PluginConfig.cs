@@ -33,7 +33,7 @@ namespace AetherCompass.Configs
 
 #if DEBUG
         [JsonIgnore]
-        public bool DebugUseFullArray = false;    // TEMP: for debug
+        public bool DebugTestAllGameObjects = false;
         [JsonIgnore]
         public DebugCompassConfig DebugConfig { get; private set; } = new();
 #endif

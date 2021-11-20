@@ -3,6 +3,7 @@ using AetherCompass.Common;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using System;
 using System.Collections.Generic;
@@ -19,18 +20,18 @@ namespace AetherCompass.Compasses
         private readonly CompassDetailsWindow detailsWindow = null!;
         private readonly PluginConfig config = null!;
 
+
+        // TODO: better error handling
         private unsafe static readonly UI3DModule* UI3DModule = ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
 
-#if DEBUG
-        public unsafe static ObjectInfo* ObjectInfoArray => UI3DModule != null ? (ObjectInfo*)UI3DModule->ObjectInfoArray : null;
-        public const int ObjectInfoArraySize = 424;
-#endif
-
-        // Gives only the ones that would be on screen, so ruling out non-interactable ones
-        private unsafe static ObjectInfo** SortedObjectInfoPointerArray 
+        // Those that would be rendered on screen
+        private unsafe static ObjectInfo** SortedObjectInfoPointerArray
             => UI3DModule != null ? (ObjectInfo**)UI3DModule->SortedObjectInfoPointerArray : null;
         private unsafe static int SortedObjectInfoCount => UI3DModule != null ? UI3DModule->SortedObjectInfoCount : 0;
 
+#if DEBUG
+        private unsafe static readonly GameObjectManager* gameObjMgr = GameObjectManager.Instance();
+#endif
 
         public CompassManager(CompassOverlay overlay, CompassDetailsWindow window, PluginConfig config)
         {
@@ -58,19 +59,20 @@ namespace AetherCompass.Compasses
 
         public void OnTick()
         {
-            foreach (var compass in workingCompasses)
-                compass.OnLoopStart();
-
-            var map = CompassUtil.GetCurrentMap();
-            if (map == null) return;
-
             try
             {
+                foreach (var compass in workingCompasses)
+                    compass.OnLoopStart();
+
+                var map = CompassUtil.GetCurrentMap();
+                if (map == null) return;
+
                 void* array;
                 int count;
 #if DEBUG
-                array = config.DebugUseFullArray ? ObjectInfoArray : SortedObjectInfoPointerArray;
-                count = config.DebugUseFullArray ? ObjectInfoArraySize : SortedObjectInfoCount;
+                if (gameObjMgr == null) return;
+                array = config.DebugTestAllGameObjects ? gameObjMgr->ObjectListFiltered : SortedObjectInfoPointerArray;
+                count = config.DebugTestAllGameObjects ? gameObjMgr->ObjectListFilteredCount : SortedObjectInfoCount;
 #else
                 array = SortedObjectInfoPointerArray;
                 count = SortedObjectInfoCount;
@@ -78,25 +80,35 @@ namespace AetherCompass.Compasses
                 if (array == null) return;
                 for (int i = 0; i < count; i++)
                 {
-                    var info =
+                    GameObject* obj;
+                    var info = ((ObjectInfo**)array)[i];
 #if DEBUG
-                        config.DebugUseFullArray ? &((ObjectInfo*)array)[i] :
+                    if (config.DebugTestAllGameObjects)
+                        obj = ((GameObject**)array)[i];
+                    else
+                    
 #endif
-                        ((ObjectInfo**)array)[i];
-                    if (info == null) continue;
+                        obj = info != null ? info->GameObject : null;
+                    if (obj == null) continue;
+                    if (obj->ObjectKind == (byte)ObjectKind.Pc
+#if DEBUG
+                        && !config.DebugTestAllGameObjects
+#endif
+                        ) continue;
+
                     foreach (var compass in workingCompasses)
                     {
                         if (!compass.CompassEnabled) continue;
-                        if (!compass.CheckObject(info->GameObject)) continue;
+                        if (!compass.CheckObject(obj)) continue;
                         if (compass.ShowDetail)
                         {
-                            var action = compass.CreateDrawDetailsAction(info->GameObject);
+                            var action = compass.CreateDrawDetailsAction(obj);
                             if (action != null)
                                 detailsWindow.AddDrawAction(compass, action);
                         }
                         if (compass.MarkScreen)
                         {
-                            var action = compass.CreateMarkScreenAction(info->GameObject);
+                            var action = compass.CreateMarkScreenAction(obj);
                             if (action != null)
                                 overlay.AddDrawAction(action);
                         }
@@ -117,13 +129,13 @@ namespace AetherCompass.Compasses
                         }
                     }
                 }
+                foreach (var compass in workingCompasses)
+                    compass.OnLoopEnd();
             }
             catch (Exception e)
             {
                 Plugin.ShowError("Plugin encountered an error", e.ToString());
             }
-            foreach (var compass in workingCompasses)
-                compass.OnLoopEnd();
         }
 
         public void OnZoneChange()
@@ -141,7 +153,10 @@ namespace AetherCompass.Compasses
         public void DrawCompassConfigUi()
         {
             foreach (var compass in compasses)
+            {
                 compass.DrawConfigUi();
+                ImGuiNET.ImGui.NewLine();
+            }
         }
     }
 }
