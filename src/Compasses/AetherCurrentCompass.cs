@@ -17,11 +17,14 @@ namespace AetherCompass.Compasses
         private const float infoTextShadowLightness = .1f;
 
 
-        public AetherCurrentCompass(PluginConfig config, AetherCurrentCompassConfig compassConfig, IconManager iconManager) : 
-            base(config, compassConfig, iconManager) { }
+        public AetherCurrentCompass(PluginConfig config, AetherCurrentCompassConfig compassConfig)
+            : base(config, compassConfig) { }
 
         public override bool IsEnabledTerritory(uint terr)
             => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1; // mostly normal wild field
+
+        private protected override void DisposeCompassUsedIcons()
+            => IconManager.DisposeAetherCurrentCompassIcons();
 
         public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* obj)
         {
@@ -42,7 +45,7 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(GameObject* obj)
         {
             if (obj == null) return null;
-            var icon = iconManager.AetherCurrentMarkerIcon;
+            var icon = IconManager.AetherCurrentMarkerIcon;
             if (icon == null) return null;
             var name = CompassUtil.GetName(obj);
             var dist = CompassUtil.Get3DDistanceFromPlayer(obj);
@@ -59,8 +62,7 @@ namespace AetherCompass.Compasses
             if (o->ObjectKind != (byte)ObjectKind.EventObj) return false;
             //var eObjNames = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.EObjName>();
             //if (eObjNames == null) return false;
-            //return IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Singular.RawString)
-            //    || IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Plural.RawString);
+            //return IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Singular.RawString);
             return IsNameOfAetherCurrent(CompassUtil.GetName(o));
         }
 
@@ -68,10 +70,10 @@ namespace AetherCompass.Compasses
         {
             if (name == null) return false;
             name = name.ToLower();
-            return name == "aether current" || name == "aether currents"
+            return name == "aether current"
                 || name == "風脈の泉"
-                || name == "windätherquelle" || name == "windätherquellen"
-                || name == "vent éthéré" || name == "vents éthérés"
+                || name == "windätherquelle"
+                || name == "vent éthéré"
                 ;
         }
     }

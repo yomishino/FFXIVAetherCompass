@@ -53,7 +53,6 @@ namespace AetherCompass
 #endif
 
         private readonly PluginConfig config;
-        private readonly IconManager iconManager;
         private readonly CompassManager compassMgr;
         private readonly CompassOverlay overlay;
         private readonly CompassDetailsWindow detailsWindow;
@@ -67,11 +66,10 @@ namespace AetherCompass
                 _enabled = false;
                 overlay.Clear();
                 detailsWindow.Clear();
-                iconManager?.ReloadIcons();
+                if (!value) IconManager.DisposeAllIcons();
                 _enabled = value;
             }
         }
-        private bool useHqIcon = false;
         private bool inConfig = false;
         
 
@@ -80,16 +78,15 @@ namespace AetherCompass
             config = PluginInterface.GetPluginConfig() as PluginConfig ?? new();
             overlay = new();
             detailsWindow = new();
-
-            iconManager = new(config);
+            
             compassMgr = new(overlay, detailsWindow, config);
 
             PluginCommands.AddCommands(this);
 
-            compassMgr.AddCompass(new AetherCurrentCompass(config, config.AetherCurrentConfig, iconManager));
-            compassMgr.AddCompass(new QuestCompass(config, config.QuestConfig, iconManager));
+            compassMgr.AddCompass(new AetherCurrentCompass(config, config.AetherCurrentConfig));
+            compassMgr.AddCompass(new QuestCompass(config, config.QuestConfig));
 #if DEBUG
-            compassMgr.AddCompass(new DebugCompass(config, config.DebugConfig, iconManager));
+            compassMgr.AddCompass(new DebugCompass(config, config.DebugConfig));
 #endif
             
             Framework.Update += OnFrameworkUpdate;
@@ -152,6 +149,9 @@ namespace AetherCompass
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip("Enable/Disable this plugin. \n" +
                         "All compasses will auto pause in certain zones such as PvP zones regardless of this setting.");
+//#if DEBUG
+//                ImGui.Text($"LocalContentId: {Plugin.ClientState.LocalContentId}");
+//#endif
                 ImGui.NewLine();
                 if (config.Enabled)
                 {
@@ -167,20 +167,13 @@ namespace AetherCompass
                     if (config.ShowScreenMark)
                     {
                         ImGui.TreePush();
-                        ImGui.Checkbox("Use HQ icons for marker (?)", ref config.HqIcon);
-                        if (useHqIcon != config.HqIcon) // reload icon iff changed
-                        {
-                            useHqIcon = config.HqIcon;
-                            iconManager.ReloadIcons();
-                        }
                         if (ImGui.IsItemHovered())
                             ImGui.SetTooltip("If enabled, will use HQ icons when marking detected objects.");
                         ImGui.Text("Marker size scale: ");
                         ImGui.SameLine();
                         ImGui.DragFloat("(?) ##screenmarkersizescale", ref config.ScreenMarkSizeScale, 
                             .01f, PluginConfig.ScreenMarkSizeScaleMin, PluginConfig.ScreenMarkSizeScaleMax);
-                        overlay.AddDrawAction(
-                            () => Compass.DrawConfigDummyMarker($"Marker size scale: {config.ScreenMarkSizeScale:0.0}", config.ScreenMarkSizeScale));
+                        overlay.AddDrawAction(() => Compass.DrawConfigDummyMarker($"Marker size scale: {config.ScreenMarkSizeScale:0.0}", config.ScreenMarkSizeScale));
                         ImGui.Text("Marker display area (Left/Bottom/Right/Top): ");
                         ImGui.Indent();
                         var viewport = ImGui.GetMainViewport().Pos;
@@ -280,8 +273,7 @@ namespace AetherCompass
 
         private void Reload()
         {
-            useHqIcon = config.HqIcon;
-            // Will clear prev drawings & reload icons
+            // Will clear prev drawings & dispose old icons
             Enabled = config.Enabled;
         }
 
@@ -343,7 +335,7 @@ namespace AetherCompass
             //config.Save();
 
             PluginCommands.RemoveCommands();
-            iconManager.Dispose();
+            IconManager.DisposeAllIcons();
 
             ClientState.TerritoryChanged -= OnZoneChange;
 

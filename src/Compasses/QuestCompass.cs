@@ -23,14 +23,12 @@ namespace AetherCompass.Compasses
         private QuestCompassConfig QuestConfig => (QuestCompassConfig)compassConfig;
 
         private static readonly System.Reflection.PropertyInfo?[,] cachedQuestSheetToDoChildLocationMap = new System.Reflection.PropertyInfo[24, 7];
-        // caching TodoRevealed is redundant rn but maybe we will need it one day?
         private readonly Dictionary<uint, (Quest RelatedQuest, bool TodoRevealed)> objQuestMap = new();
         private static readonly System.Numerics.Vector4 infoTextColour = new(.98f, .77f, .35f, 1);
         private static readonly float infoTextShadowLightness = .1f;
 
 
-        public QuestCompass(PluginConfig config, QuestCompassConfig compassConfig, IconManager iconManager)
-            : base(config, compassConfig, iconManager) 
+        public QuestCompass(PluginConfig config, QuestCompassConfig compassConfig) : base(config, compassConfig) 
         {
             InitQuestSheetToDoChildLocationMap();
         }
@@ -43,6 +41,9 @@ namespace AetherCompass.Compasses
                 || ((QuestConfig?.EnabledInSoloContents ?? false) && terrItem?.ExclusiveType == 1)
                 ;
         }
+
+        private protected override void DisposeCompassUsedIcons()
+            => IconManager.DisposeQuestCompassIcons();
 
         public override void OnLoopStart()
         {
@@ -79,7 +80,8 @@ namespace AetherCompass.Compasses
                     "If this option is enabled, NPC/objects that are spawned due to the quests will also " +
                     "be detected by this compass, even if they may not be the objectives of the quests.\n" +
                     "Additionally, for quests that require looking for NPC/objects in a certain area, " +
-                    "enabling this option may reveal the objectives' locations.");
+                    "enabling this option may reveal the objectives' locations.\n\n" +
+                    "In either case, NPC/objects that are known to be quest objectives will have a \"★\" mark by their names");
             if (config.ShowScreenMark)
             {
                 ImGui.Checkbox("Show quest name by screen marker", ref QuestConfig.ShowQuestName);
@@ -95,10 +97,10 @@ namespace AetherCompass.Compasses
             return new(() =>
             {
                 if (o == null) return;
-                ImGui.Text($"{CompassUtil.GetName(o)}");
+                ImGui.Text($"{CompassUtil.GetName(o)} {(mappedInfo.TodoRevealed ? "★" : "")}");
                 ImGui.BulletText($"Quest: {GetQuestName(questId)}");
 #if DEBUG
-                var qItem = QuestSheet?.GetRow(QuestIdToQuestRowId(questId));
+                var qItem = GetQuestRow(questId);
                 if (qItem != null)
                 {
                     ImGui.BulletText(
@@ -118,14 +120,18 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(GameObject* o)
         {
             if (o == null) return null;
-            // TODO: may use icon accord to quest type
-            var icon = iconManager.QuestDefaultMarkerIcon;
+            if (!objQuestMap.TryGetValue(o->DataID, out var mappedInfo)) return null;
+            var qRow = GetQuestRow(mappedInfo.RelatedQuest.QuestID);
+            var icon = qRow == null || qRow.EventIconType.Value == null
+                ? IconManager.DefaultQuestMarkerIcon
+                : IconManager.GetQuestMarkerIcon(qRow.EventIconType.Value.NpcIconAvailable, qRow.EventIconType.Value.IconRange, mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
+            
             if (icon == null) return null;
             var dist = CompassUtil.Get3DDistanceFromPlayer(o);
             var descr = 
-                (QuestConfig.ShowObjName ? $"{CompassUtil.GetName(o)}, " : "")
+                (mappedInfo.TodoRevealed ? "★ " : "")
+                + (QuestConfig.ShowObjName ? $"{CompassUtil.GetName(o)}, " : "")
                 + CompassUtil.DistanceToDescriptiveString(dist, true);
-            if (!objQuestMap.TryGetValue(o->DataID, out var mappedInfo)) return null;
             if (QuestConfig.ShowQuestName)
             {
                 var questName = GetQuestName(mappedInfo.RelatedQuest.QuestID);
@@ -172,8 +178,10 @@ namespace AetherCompass.Compasses
         private static ExcelSheet<Sheets.Level>? LevelSheet
             => Plugin.DataManager.GetExcelSheet<Sheets.Level>();
 
+        private static Sheets.Quest? GetQuestRow(ushort questId)
+            => QuestSheet?.GetRow(QuestIdToQuestRowId(questId));
         private static string? GetQuestName(ushort questId)
-            => QuestSheet?.GetRow(QuestIdToQuestRowId(questId))?.Name!;
+            => GetQuestRow(questId)?.Name?.ToString();
 
 
         // ActorSpawn, ActorDespawn, Listener, etc.
@@ -190,7 +198,7 @@ namespace AetherCompass.Compasses
                 Plugin.LogError("Failed to get QuestListArray");
                 return;
             }
-
+            
             static bool ShouldExitActorArrayLoop(Sheets.Quest q, int idx)
                 => (idx >= 0 && idx < questSheetActorArrayLength / 2 && q.QuestUInt8A[idx] == 0)
                 || (idx >= questSheetActorArrayLength / 2 && idx < questSheetActorArrayLength
@@ -201,7 +209,7 @@ namespace AetherCompass.Compasses
                 var quest = questlist[i];
                 if (quest.QuestID == 0) continue;
                 if (quest.IsHidden && QuestConfig.HideHidden) continue;
-                var questRow = QuestSheet?.GetRow(QuestIdToQuestRowId(quest.QuestID));
+                var questRow = GetQuestRow(quest.QuestID);
                 if (questRow == null) continue;
 
                 // ToDos: find out objective gameobjs revealed by ToDos, if any

@@ -1,5 +1,5 @@
-﻿using AetherCompass.Configs;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 using TextureWrap = ImGuiScene.TextureWrap;
@@ -8,152 +8,201 @@ namespace AetherCompass.UI.GUI
 {
     public sealed class IconManager : IDisposable
     {
-        private readonly PluginConfig config = null!;
-
         public const uint AltitudeHigherIconId = 60954;
-        internal static TextureWrap? AltitudeHigherIcon { get; private set; }
+        private static TextureWrap? _altitudeHigherIcon;
+        internal static TextureWrap? AltitudeHigherIcon
+        {
+            get
+            {
+                if (_altitudeHigherIcon == null)
+                    _altitudeHigherIcon = GetIconAsImGuiTexture(AltitudeHigherIconId);
+                return _altitudeHigherIcon;
+            }
+            private set
+            {
+                _altitudeHigherIcon?.Dispose();
+                _altitudeHigherIcon = value;
+            }
+        }
         public const uint AltitudeLowerIconId = 60955;
-        internal static TextureWrap? AltitudeLowerIcon { get; private set; }
-        internal static readonly Vector2 AltitudeIconSize = new(45, 45);
+        private static TextureWrap? _altitudeLowerIcon;
+        internal static TextureWrap? AltitudeLowerIcon
+        {
+            get
+            {
+                if (_altitudeLowerIcon == null)
+                    _altitudeLowerIcon = GetIconAsImGuiTexture(AltitudeLowerIconId);
+                return _altitudeLowerIcon;
+            }
+            private set
+            {
+                _altitudeLowerIcon?.Dispose();
+                _altitudeLowerIcon = value;
+            }
+        }
+        public static readonly Vector2 AltitudeIconSize = new(45, 45);
 
         // NaviMap thing with those quests/fate etc. direction markers are in 10001400
         // but we'll use something else for easier work.
         // 60541 up, 60545 down; there are also two sets that are smaller
         public const uint DirectionScreenIndicatorIconId = 60541;
-        internal static TextureWrap? DirectionScreenIndicatorIcon { get; private set; }
+        private static TextureWrap? _directionScreenIndicatorIcon;
+        internal static TextureWrap? DirectionScreenIndicatorIcon
+        {
+            get
+            {
+                if (_directionScreenIndicatorIcon == null)
+                    _directionScreenIndicatorIcon = GetIconAsImGuiTexture(DirectionScreenIndicatorIconId);
+                return _directionScreenIndicatorIcon;
+            }
+            private set
+            {
+                _directionScreenIndicatorIcon?.Dispose();
+                _directionScreenIndicatorIcon = value;
+            }
+        }
         internal static readonly Vector2 DirectionScreenIndicatorIconSize = new(45, 45);
         internal static readonly uint DirectionScreenIndicatorIconColour = ImGuiNET.ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
+
 
         internal static readonly Vector2 MarkerIconSize = new(30, 30);
 
         public const uint ConfigDummyMarkerIconId = 25948;
-        internal static TextureWrap? ConfigDummyMarkerIcon { get; private set; }
+        private static TextureWrap? _configDummyMarkerIcon;
+        internal static TextureWrap? ConfigDummyMarkerIcon
+        { 
+            get 
+            {
+                if (_configDummyMarkerIcon == null)
+                    _configDummyMarkerIcon = GetIconAsImGuiTexture(ConfigDummyMarkerIconId);
+                return _configDummyMarkerIcon;
+            } 
+            private set
+            {
+                _configDummyMarkerIcon?.Dispose();
+                _configDummyMarkerIcon = value;
+            }
+        }
+        //// Armorer job icon, just randomly picked a asymmetrical one for debug
+        //public const uint DebugMarkerIconId = 62110;
+        internal static TextureWrap? DebugMarkerIcon => ConfigDummyMarkerIcon;
 
         public const uint AetherCurrentMarkerIconId = 60033;
-        internal TextureWrap? AetherCurrentMarkerIcon { get; private set; }
+        private static TextureWrap? _aetherCurrentMarkerIcon;
+        internal static TextureWrap? AetherCurrentMarkerIcon
+        {
+            get
+            {
+                if (_aetherCurrentMarkerIcon == null)
+                    _aetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
+                return _aetherCurrentMarkerIcon;
+            }
+            private set
+            {
+                _aetherCurrentMarkerIcon?.Dispose();
+                _aetherCurrentMarkerIcon = value;
+            }
+        }
 
-        // 76352 is MSQ in-prog, 76355 side quest in-prog, 76358 blue-plus quest in-prog
-        public const uint QuestDefaultMarkerIconId = 76355;
-        internal TextureWrap? QuestDefaultMarkerIcon { get; private set; }
+        // NPC AnnounceIcon starts from 71200; see lumina sheet EventIconType
+        // For types whose IconRange is 6, the 3rd is in-progress and 5th is last seq (checkmark icon),
+        // because +0 is the dummy, so 1st icon in the range would start from +1.
+        // Each type has availabled and locked ver, but rn idk how to accurately tell if a quest is avail or locked
+        public const uint DefaultQuestMarkerIconId = 71223;
+        private static TextureWrap? _defaultQuestMarkerIcon;
+        internal static TextureWrap? DefaultQuestMarkerIcon
+        {
+            get
+            {
+                if (_defaultQuestMarkerIcon == null)
+                    _defaultQuestMarkerIcon = GetIconAsImGuiTexture(DefaultQuestMarkerIconId);
+                return _defaultQuestMarkerIcon;
+            }
+            private set
+            {
+                _defaultQuestMarkerIcon?.Dispose();
+                _defaultQuestMarkerIcon = value;
+            }
+        }
+        public const uint DefaultQuestEndMarkerIconId = 71225;
+        private static TextureWrap? _defaultQuestMarkerEndIcon;
+        public const uint MainQuestMarkerIconId = 71203;
+        private static TextureWrap? _mainQuestMarkerIcon;
+        public const uint MainQuestEndMarkerIconId = 71205;
+        private static TextureWrap? _mainQuestMarkerEndIcon;
+        public const uint FuncQuestMarkerIconId = 71343;
+        private static TextureWrap? _funcQuestMarkerIcon;
+        public const uint FuncQuestEndMarkerIconId = 71345;
+        private static TextureWrap? _funcQuestMarkerEndIcon;
 
-        // Armorer job icon, just randomly picked a asymmetrical one for debug
-        public const uint DebugMarkerIconId = 62110;
-        internal TextureWrap? DebugMarkerIcon { get; private set; }
+
+        private static readonly Dictionary<uint, TextureWrap?> _questMarkerIconMap = new();
         
-
-        public IconManager(PluginConfig config)
+        internal static TextureWrap? GetQuestMarkerIcon(uint iconId)
         {
-            this.config = config;
+            if (!_questMarkerIconMap.TryGetValue(iconId, out var tex) || tex == null)
+                SetQuestMarkerIcon(iconId, GetIconAsImGuiTexture(iconId));
+            return _questMarkerIconMap[iconId];
         }
 
-        public void ReloadIcons()
+        internal static TextureWrap? GetQuestMarkerIcon(uint baseIconId, byte iconRange, bool questLastSeq = false)
+            => GetQuestMarkerIcon(GetQuestMarkerIconId(baseIconId, iconRange, questLastSeq));
+
+        private static void SetQuestMarkerIcon(uint iconId, TextureWrap? icon)
         {
-            DisposeAllIcons();
-
-            if (!config.Enabled) return;
-
-            LoadCommonIcons();
-            if (config.AetherCurrentConfig.Enabled)
-                LoadAetherCurrentCompassIcons();
-            if (config.QuestConfig.Enabled)
-                LoadQuestCompassIcons();
-#if DEBUG
-            if (config.DebugConfig.Enabled)
-                LoadDebugCompassIcons();
-#endif
+            if (!_questMarkerIconMap.TryGetValue(iconId, out var tex))
+                _questMarkerIconMap[iconId] = icon;
+            else
+            {
+                tex?.Dispose();
+                _questMarkerIconMap[iconId] = icon;
+            }
         }
 
-        private void LoadCommonIcons()
-        {
-            AltitudeHigherIcon = GetIconAsImGuiTexture(AltitudeHigherIconId);
-            AltitudeLowerIcon = GetIconAsImGuiTexture(AltitudeLowerIconId);
-            DirectionScreenIndicatorIcon = GetIconAsImGuiTexture(DirectionScreenIndicatorIconId);
-            ConfigDummyMarkerIcon = GetIconAsImGuiTexture(ConfigDummyMarkerIconId);
+        private static uint GetQuestMarkerIconId(uint baseIconId, byte iconRange, bool questLastSeq = false)
+            => baseIconId + iconRange switch
+            {
+                6 => questLastSeq ? 5u : 3u,
+                1 => 0,
+                _ => 1,
+            };
 
-            if (AltitudeHigherIcon == null) ShowLoadIconError(AltitudeHigherIconId);
-            if (AltitudeLowerIcon == null) ShowLoadIconError(AltitudeLowerIconId);
-            if (DirectionScreenIndicatorIcon == null) ShowLoadIconError(DirectionScreenIndicatorIconId);
-            if (ConfigDummyMarkerIcon == null) ShowLoadIconError(ConfigDummyMarkerIconId);
-        }
 
-        private void LoadAetherCurrentCompassIcons()
-        {
-            AetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
-            
-            if (AetherCurrentMarkerIcon == null) ShowLoadIconError(AetherCurrentMarkerIconId);
-        }
+        #region Dispose
 
-        private void LoadQuestCompassIcons()
-        {
-            QuestDefaultMarkerIcon = GetIconAsImGuiTexture(QuestDefaultMarkerIconId);
-
-            if (QuestDefaultMarkerIcon == null) ShowLoadIconError(QuestDefaultMarkerIconId);
-        }
-
-        private void LoadDebugCompassIcons()
-        {
-            DebugMarkerIcon = GetIconAsImGuiTexture(DebugMarkerIconId);
-            if (DebugMarkerIcon == null) ShowLoadIconError(DebugMarkerIconId);
-        }
-
+        // Disposing each icon is handled by setter
 
         private static void DisposeCommonIcons()
         {
-            if (AltitudeHigherIcon != null)
-            {
-                AltitudeHigherIcon.Dispose();
-                AltitudeHigherIcon = null;
-            }
-            if (AltitudeLowerIcon != null)
-            {
-                AltitudeLowerIcon.Dispose();
-                AltitudeLowerIcon = null;
-            }
-            if (DirectionScreenIndicatorIcon != null)
-            {
-                DirectionScreenIndicatorIcon.Dispose();
-                DirectionScreenIndicatorIcon = null;
-            }
-            if (ConfigDummyMarkerIcon != null)
-            {
-                ConfigDummyMarkerIcon.Dispose();
-                ConfigDummyMarkerIcon = null;
-            }
+            AltitudeHigherIcon = null;
+            AltitudeLowerIcon = null;
+            DirectionScreenIndicatorIcon = null;
+            ConfigDummyMarkerIcon = null;
         }
 
-        private void DisposeAetherCurrentCompassIcons()
+        internal static void DisposeAetherCurrentCompassIcons()
         {
-            if (AetherCurrentMarkerIcon != null) 
-            {
-                AetherCurrentMarkerIcon.Dispose();
-                AetherCurrentMarkerIcon = null;
-            }
+            AetherCurrentMarkerIcon = null;
         }
 
-        private void DisposeQuestCompassIcons()
+        internal static void DisposeQuestCompassIcons()
         {
-            if (QuestDefaultMarkerIcon != null)
-            {
-                QuestDefaultMarkerIcon.Dispose();
-                QuestDefaultMarkerIcon = null;
-            }
+            DefaultQuestMarkerIcon = null;
+            foreach (uint id in _questMarkerIconMap.Keys)
+                SetQuestMarkerIcon(id, null);
         }
 
-        private void DisposeDebugIcons()
-        {
-            if (DebugMarkerIcon != null) 
-            {
-                DebugMarkerIcon.Dispose();
-                DebugMarkerIcon = null;
-            }
-        }
+        //private void DisposeDebugIcons()
+        //{
+        //    DebugMarkerIcon = null;
+        //}
 
-        private void DisposeAllIcons()
+        public static void DisposeAllIcons()
         {
             DisposeCommonIcons();
             DisposeAetherCurrentCompassIcons();
             DisposeQuestCompassIcons();
-            DisposeDebugIcons();
+            //DisposeDebugIcons();
         }
 
         public void Dispose()
@@ -161,8 +210,15 @@ namespace AetherCompass.UI.GUI
             DisposeAllIcons();
         }
 
-        private TextureWrap? GetIconAsImGuiTexture(uint iconId)
-            => config.HqIcon ? Plugin.DataManager.GetImGuiTextureHqIcon(iconId) : Plugin.DataManager.GetImGuiTextureIcon(iconId);
+        #endregion
+
+
+        private static TextureWrap? GetIconAsImGuiTexture(uint iconId)
+        { 
+            var icon = Plugin.DataManager.GetImGuiTextureIcon(iconId);
+            if (icon == null) ShowLoadIconError(iconId);
+            return icon;
+        }
 
         private static void ShowLoadIconError(uint iconId)
         {
@@ -173,9 +229,10 @@ namespace AetherCompass.UI.GUI
                 DirectionScreenIndicatorIconId => nameof(DirectionScreenIndicatorIcon),
                 ConfigDummyMarkerIconId => nameof(ConfigDummyMarkerIcon),
                 AetherCurrentMarkerIconId => nameof(AetherCurrentMarkerIcon),
-                QuestDefaultMarkerIconId => nameof(QuestDefaultMarkerIcon),
-                DebugMarkerIconId => nameof(DebugMarkerIcon),
-                _ => "(UnknownIcon)"
+                DefaultQuestMarkerIconId => nameof(DefaultQuestMarkerIcon),
+                //QuestDefaultMarkerIconId => nameof(QuestDefaultMarkerIcon),
+                //DebugMarkerIconId => nameof(DebugMarkerIcon),
+                _ => _questMarkerIconMap.ContainsKey(iconId) ? $"QuestMarkerIcon_{iconId}" : "(UnknownIcon)",
             };
             Plugin.ShowError($"Plugin encountered an error: Failed to load icon",
                 $"Failed to load icon: {name}, IconId = {iconId}");

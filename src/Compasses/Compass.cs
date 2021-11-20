@@ -13,8 +13,6 @@ namespace AetherCompass.Compasses
 {
     public abstract class Compass
     {
-        private protected readonly IconManager iconManager = null!;
-        //private protected readonly Notifier notifier = new();
         private protected readonly PluginConfig config = null!;
         private protected readonly CompassConfig compassConfig = null!;
 
@@ -41,12 +39,8 @@ namespace AetherCompass.Compasses
             get => _compassEnabled;
             set 
             {
-                if (value != _compassEnabled)
-                {
-                    _compassEnabled = false;
-                    iconManager.ReloadIcons();
-                    _compassEnabled = value;
-                }
+                if (!value) DisposeCompassUsedIcons();
+                _compassEnabled = value;
             }
         }
 
@@ -57,11 +51,10 @@ namespace AetherCompass.Compasses
         public bool NotifyToast => config.NotifyToast && compassConfig.NotifyToast;
         
 
-        public Compass(PluginConfig config, CompassConfig compassConfig, IconManager iconManager)
+        public Compass(PluginConfig config, CompassConfig compassConfig)
         {
             this.config = config;
             this.compassConfig = compassConfig;
-            this.iconManager = iconManager;
             _compassEnabled = compassConfig.Enabled;   // assign to field to avoid reloading icons again when init
             ready = true;
         }
@@ -71,6 +64,8 @@ namespace AetherCompass.Compasses
         private protected unsafe abstract bool IsObjective(GameObject* o);
         public unsafe abstract DrawAction? CreateDrawDetailsAction(GameObject* o);
         public unsafe abstract DrawAction? CreateMarkScreenAction(GameObject* o);
+
+        private protected abstract void DisposeCompassUsedIcons();
 
         #region Maybe TODO
         //public abstract bool ProcessMinimapEnabled { get; private protected set; }
@@ -324,6 +319,7 @@ namespace AetherCompass.Compasses
             bool posIsRaw, float scale, float alpha, out Vector2 drawEndPos)
         {
             drawEndPos = screenPos;
+            
             ImGuiScene.TextureWrap? icon = null;
             if (altDiff > 10) icon = IconManager.AltitudeHigherIcon;
             if (altDiff < -10) icon = IconManager.AltitudeLowerIcon;

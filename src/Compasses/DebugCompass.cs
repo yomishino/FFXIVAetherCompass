@@ -15,13 +15,14 @@ namespace AetherCompass.Compasses
         private protected override string ClosestObjectDescription => "DebugCompass Objective";
 
 
-        public DebugCompass(PluginConfig config, CompassConfig compassConfig, IconManager iconManager) 
-            : base(config, compassConfig, iconManager) { }
+        public DebugCompass(PluginConfig config, CompassConfig compassConfig) 
+            : base(config, compassConfig) { }
 
 
         public override bool IsEnabledTerritory(uint terr)
             => true;
-            //=> terr != 129; // debug: disable it on limsa lower deck
+
+        private protected override void DisposeCompassUsedIcons() { }
 
         private protected override unsafe bool IsObjective(GameObject* o)
             => o != null && (o->ObjectID == Plugin.ClientState.LocalPlayer?.ObjectId
@@ -71,7 +72,7 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(GameObject* obj)
         {
             if (obj == null) return null;
-            var marker = iconManager.DebugMarkerIcon;
+            var marker = IconManager.DebugMarkerIcon;
             if (marker == null) return null;
 
             // These are already handled by the Draw...Default method,

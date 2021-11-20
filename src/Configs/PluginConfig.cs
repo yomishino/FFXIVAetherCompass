@@ -12,7 +12,6 @@ namespace AetherCompass.Configs
 
         public bool Enabled = false;
         public bool ShowScreenMark = false;
-        public bool HqIcon = true;
         public float ScreenMarkSizeScale = 1;
         [JsonIgnore]
         public const float ScreenMarkSizeScaleMin = .1f;
@@ -76,7 +75,6 @@ namespace AetherCompass.Configs
             {
                 Enabled = config.Enabled;
                 ShowScreenMark = config.ShowScreenMark;
-                HqIcon = config.HqIcon;
                 ScreenMarkSizeScale = config.ScreenMarkSizeScale;
                 ScreenMarkConstraint = config.ScreenMarkConstraint;
                 ShowDetailWindow = config.ShowDetailWindow;

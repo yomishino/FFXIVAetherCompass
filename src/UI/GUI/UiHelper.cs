@@ -42,15 +42,22 @@ namespace AetherCompass.UI.GUI
         public static float GetAngleOnScreen(Vector2 point, bool upwards = true)
             => GetAngleOnScreen(GetScreenCentre(), point, upwards);
 
-        // rotation = 0 points upwards to make things intuitive
         public static (Vector2 P1, Vector2 P2, Vector2 P3, Vector2 P4)
-            GetRotatedPointsOnScreen(Vector2 screenPosUL, Vector2 size, float rotation)
+            GetRectCornerPointsOnScreen(Vector2 screenPosUL, Vector2 size)
         {
             // p1~p4 is UL, DL, DR, DU of the image
             Vector2 p1 = screenPosUL;
             Vector2 p2 = new(screenPosUL.X + size.X, screenPosUL.Y);
             Vector2 p3 = screenPosUL + size;
             Vector2 p4 = new(screenPosUL.X, screenPosUL.Y + size.Y);
+            return (p1, p2, p3, p4);
+        }
+
+        // rotation = 0 points upwards to make things intuitive
+        public static (Vector2 P1, Vector2 P2, Vector2 P3, Vector2 P4)
+            GetRotatedPointsOnScreen(Vector2 screenPosUL, Vector2 size, float rotation)
+        {
+            var (p1, p2, p3, p4) = GetRectCornerPointsOnScreen(screenPosUL, size);
 
             Vector2 p0 = screenPosUL + size / 2;
 
