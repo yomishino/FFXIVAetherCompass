@@ -9,7 +9,6 @@ namespace AetherCompass
 
         public static void AddCommands(Plugin host)
         {
-            // TODO: commands
             Plugin.CommandManager.AddHandler(
                 MainCommand, new CommandInfo((cmd, args) => ProcessMainCommand(host, cmd, args))
                 {
@@ -20,6 +19,7 @@ namespace AetherCompass
                     $"\t\tconfig: Open the Configuration window",
                     ShowInHelp = true
                 });
+            // TODO: commands
         }
 
         public static void RemoveCommands()

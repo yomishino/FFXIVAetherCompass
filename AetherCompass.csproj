@@ -21,7 +21,7 @@
 
   <PropertyGroup>
     <DalamudLibPath>$(AppData)\XIVLauncher\addon\Hooks\dev</DalamudLibPath>
-    <RepositoryUrl>https://github.com/yomishino/AetherCompass</RepositoryUrl>
+    <RepositoryUrl>https://github.com/yomishino/FFXIVAetherCompass</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestRelease|x64'">

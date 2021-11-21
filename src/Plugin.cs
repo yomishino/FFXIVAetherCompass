@@ -85,7 +85,9 @@ namespace AetherCompass
             PluginCommands.AddCommands(this);
 
             compassMgr.AddCompass(new AetherCurrentCompass(config, config.AetherCurrentConfig));
+#if !RELEASE
             compassMgr.AddCompass(new QuestCompass(config, config.QuestConfig));
+#endif
 #if DEBUG
             compassMgr.AddCompass(new DebugCompass(config, config.DebugConfig));
 #endif
@@ -328,7 +330,7 @@ namespace AetherCompass
         }
 
 
-        #region IDisposable Support
+#region IDisposable Support
 
         protected virtual void Dispose(bool disposing)
         {
@@ -352,6 +354,6 @@ namespace AetherCompass
             Dispose(true);
             GC.SuppressFinalize(this);
         }
-        #endregion
+#endregion
     }
 }
