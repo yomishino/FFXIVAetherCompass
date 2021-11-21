@@ -9,7 +9,7 @@ namespace AetherCompass.Compasses
     public class AetherCurrentCompass : Compass
     {
         public override string CompassName => "Aether Current Compass";
-        public override string Description => "Compass that detects Aether Currents nearby.";
+        public override string Description => "Detecting Aether Currents nearby.";
         
         private protected override string ClosestObjectDescription => "Aether Current";
 
@@ -45,13 +45,12 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(GameObject* obj)
         {
             if (obj == null) return null;
-            var icon = IconManager.AetherCurrentMarkerIcon;
-            if (icon == null) return null;
             var name = CompassUtil.GetName(obj);
             var dist = CompassUtil.Get3DDistanceFromPlayer(obj);
             return new(
-                () => DrawScreenMarkerDefault(obj, icon, IconManager.MarkerIconSize,
-                    .9f, $"{name}\n{CompassUtil.DistanceToDescriptiveString(dist, true)}", 
+                () => DrawScreenMarkerDefault(obj, IconManager.AetherCurrentMarkerIcon, 
+                    IconManager.MarkerIconSize, .9f, 
+                    $"{name}\n{CompassUtil.DistanceToDescriptiveString(dist, true)}", 
                     infoTextColour, infoTextShadowLightness, out _), 
                 dist < 80);
         }

@@ -15,7 +15,7 @@ namespace AetherCompass.Compasses
     public class QuestCompass : Compass
     {
         public override string CompassName => "Quest Compass";
-        public override string Description => "Compass that detects NPC/objects nearby relevant to your in-progress quests.\n" +
+        public override string Description => "Detecting NPC/objects nearby relevant to your in-progress quests.\n" +
             "** Due to some limitations, Battle NPCs (that is, NPCs that can fight, whether by your side or against you)" +
             " will not be detected by the compass.";
         private protected override string ClosestObjectDescription => "Quest NPC/Object";
@@ -125,8 +125,6 @@ namespace AetherCompass.Compasses
             var icon = qRow == null || qRow.EventIconType.Value == null
                 ? IconManager.DefaultQuestMarkerIcon
                 : IconManager.GetQuestMarkerIcon(qRow.EventIconType.Value.NpcIconAvailable, qRow.EventIconType.Value.IconRange, mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
-            
-            if (icon == null) return null;
             var dist = CompassUtil.Get3DDistanceFromPlayer(o);
             var descr = 
                 (mappedInfo.TodoRevealed ? "★ " : "")

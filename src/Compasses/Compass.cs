@@ -247,7 +247,7 @@ namespace AetherCompass.Compasses
         }
         
         private protected virtual unsafe bool DrawScreenMarkerDefault(GameObject* obj, 
-            ImGuiScene.TextureWrap icon, Vector2 iconSizeRaw, float iconAlpha, string info,
+            ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
             Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
         {
             lastDrawEndPos = new(0, 0);
@@ -265,8 +265,9 @@ namespace AetherCompass.Compasses
                 IconManager.DirectionScreenIndicatorIconColour, 
                 out float rotationFromUpward, out lastDrawEndPos);
             // Marker
-            bool markerDrawn = DrawScreenMarkerIcon(icon.ImGuiHandle, lastDrawEndPos, 
-                iconSizeRaw, true, config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
+            bool markerDrawn = icon != null 
+                && DrawScreenMarkerIcon(icon.ImGuiHandle, lastDrawEndPos, iconSizeRaw, true,
+                config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
             if (markerDrawn)
             {
                 // Altitude
