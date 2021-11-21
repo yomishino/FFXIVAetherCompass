@@ -37,7 +37,8 @@ namespace AetherCompass.Compasses
             => o != null && NMDataMap.TryGetValue(o->DataID, out var data) && data.IsValid
             && ((data.Rank == NMRank.S && MobHuntConfig.DetectS)
                 || (data.Rank == NMRank.A && MobHuntConfig.DetectA)
-                || (data.Rank == NMRank.B && MobHuntConfig.DetectB));
+                || (data.Rank == NMRank.B && MobHuntConfig.DetectB))
+            && CompassUtil.IsCharacterAlive(o);
 
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeMobHuntCompassIcons();

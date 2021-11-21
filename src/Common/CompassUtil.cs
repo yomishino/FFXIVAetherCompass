@@ -5,6 +5,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 
 namespace AetherCompass.Common
@@ -17,7 +18,12 @@ namespace AetherCompass.Common
 
         public unsafe static byte GetCharacterLevel(GameObject* o)
             => o != null && o->IsCharacter() ? ((Character*)o)->Level : byte.MinValue;
-        
+
+        // Character struct offset +0x197C byte flag: 0x2 is Dead
+        // Better than checking hp; hp>0 seems still true when bnpc dead but not removed 
+        public unsafe static bool IsCharacterAlive(GameObject* o)
+            => o != null && o->IsCharacter() && (Marshal.ReadByte((IntPtr)o + 0x197C) & 2) == 0;
+
         public unsafe static float Get3DDistance(GameObject* o1, GameObject* o2)
         {
             if (o1 == null || o2 == null) return float.NaN;
