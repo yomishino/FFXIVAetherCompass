@@ -22,7 +22,7 @@ namespace AetherCompass.Compasses
         private (IntPtr Ptr, float Distance3D, IntPtr LastClosest, IntPtr SecondLast) closestObj 
             = (IntPtr.Zero, float.MaxValue, IntPtr.Zero, IntPtr.Zero);
         private DateTime closestObjLastChangedTime = DateTime.MinValue;
-        private const int closestObjResetDelayInSec = 10;
+        private const int closestObjResetDelayInSec = 15;
         
         internal bool HasFlagToProcess = false; // For notifying CompassManager
         internal Vector2 FlaggedMapCoord;
@@ -44,12 +44,13 @@ namespace AetherCompass.Compasses
             }
         }
 
-        public bool MarkScreen => config.ShowScreenMark && compassConfig.MarkScreen;
-        public bool ShowDetail => config.ShowDetailWindow && compassConfig.ShowDetail;
-        public bool NotifyChat => config.NotifyChat && compassConfig.NotifyChat;
-        public bool NotifySe => config.NotifySe && compassConfig.NotifySe;
-        public bool NotifyToast => config.NotifyToast && compassConfig.NotifyToast;
-        
+        public virtual bool MarkScreen => config.ShowScreenMark && compassConfig.MarkScreen;
+        public virtual bool ShowDetail => config.ShowDetailWindow && compassConfig.ShowDetail;
+
+        public virtual bool NotifyChat => config.NotifyChat && compassConfig.NotifyChat;
+        public virtual bool NotifySe => config.NotifySe && compassConfig.NotifySe;
+        public virtual bool NotifyToast => config.NotifyToast && compassConfig.NotifyToast;
+
 
         public Compass(PluginConfig config, CompassConfig compassConfig)
         {
@@ -130,7 +131,7 @@ namespace AetherCompass.Compasses
                         }
                     }
                     //Plugin.LogDebug($"{GetType().Name}:reset1:BEFORE: {closestObj.LastClosest}, {closestObj.SecondLast}");
-                    // Set new SecondLast two old LastClosest; then reset LastClosest
+                    // Set new SecondLast to old LastClosest; then reset LastClosest
                     closestObj.SecondLast = closestObj.LastClosest;
                     closestObj.LastClosest = closestObj.Ptr;
                     closestObjLastChangedTime = DateTime.UtcNow;
@@ -140,6 +141,7 @@ namespace AetherCompass.Compasses
             closestObj.Ptr = IntPtr.Zero;
             closestObj.Distance3D = float.MaxValue;
         }
+
 
         public async void OnZoneChange()
         {

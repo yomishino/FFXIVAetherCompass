@@ -104,6 +104,23 @@ namespace AetherCompass.UI.GUI
             }
         }
 
+        public const uint MobHuntMarkerIconId = 61710;
+        private static TextureWrap? _mobHuntMarkerIcon;
+        internal static TextureWrap? MobHuntMarkerIcon
+        {
+            get
+            {
+                if (_mobHuntMarkerIcon == null)
+                    _mobHuntMarkerIcon = GetIconAsImGuiTexture(MobHuntMarkerIconId);
+                return _mobHuntMarkerIcon;
+            }
+            private set
+            {
+                _mobHuntMarkerIcon?.Dispose();
+                _mobHuntMarkerIcon = null;
+            }
+        }
+
         // NPC AnnounceIcon starts from 71200; see lumina sheet EventIconType
         // For types whose IconRange is 6, the 3rd is in-progress and 5th is last seq (checkmark icon),
         // because +0 is the dummy, so 1st icon in the range would start from +1.
@@ -174,6 +191,11 @@ namespace AetherCompass.UI.GUI
             AetherCurrentMarkerIcon = null;
         }
 
+        internal static void DisposeMobHuntCompassIcons()
+        {
+            MobHuntMarkerIcon = null;
+        }
+
         internal static void DisposeQuestCompassIcons()
         {
             DefaultQuestMarkerIcon = null;
@@ -190,6 +212,7 @@ namespace AetherCompass.UI.GUI
         {
             DisposeCommonIcons();
             DisposeAetherCurrentCompassIcons();
+            DisposeMobHuntCompassIcons();
             DisposeQuestCompassIcons();
             //DisposeDebugIcons();
         }
@@ -218,6 +241,7 @@ namespace AetherCompass.UI.GUI
                 DirectionScreenIndicatorIconId => nameof(DirectionScreenIndicatorIcon),
                 ConfigDummyMarkerIconId => nameof(ConfigDummyMarkerIcon),
                 AetherCurrentMarkerIconId => nameof(AetherCurrentMarkerIcon),
+                MobHuntMarkerIconId => nameof(MobHuntMarkerIcon),
                 DefaultQuestMarkerIconId => nameof(DefaultQuestMarkerIcon),
                 //QuestDefaultMarkerIconId => nameof(QuestDefaultMarkerIcon),
                 //DebugMarkerIconId => nameof(DebugMarkerIcon),

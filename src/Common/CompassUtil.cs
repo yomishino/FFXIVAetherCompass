@@ -1,6 +1,7 @@
 ﻿using AetherCompass.Common.SeFunctions;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Numerics;
@@ -14,6 +15,9 @@ namespace AetherCompass.Common
             => o == null ? string.Empty
             : MemoryHelper.ReadSeStringNullTerminated((IntPtr)o->Name).TextValue;
 
+        public unsafe static byte GetCharacterLevel(GameObject* o)
+            => o != null && o->IsCharacter() ? ((Character*)o)->Level : byte.MinValue;
+        
         public unsafe static float Get3DDistance(GameObject* o1, GameObject* o2)
         {
             if (o1 == null || o2 == null) return float.NaN;
