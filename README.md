@@ -1,8 +1,6 @@
 # Aether Compass
 
-"""
-Have you ever run into something when looking at your compass ... oooops!
-"""
+> Have you ever run into something when looking at your compass ... oooops!
 
 _Aether Compass_ is an FFXIV Dalamud plugin that has a compass (a set of compasses, actually) 
 that automatically detects certain objects/NPCs such as Aether Currents nearby and shows where they are.
@@ -16,3 +14,15 @@ Currently supports detecting:
 - Mob Hunt Elite Marks (Notorious Monsters)
 
 ... and more are on the way.
+
+
+## Installation
+
+[XIVLauncher](https://github.com/goatcorp/FFXIVQuickLauncher) is required to install and run the plugin.
+
+Add my [Dalamud plugin repo](https://github.com/yomishino/DalamudPlugins) to Dalamud's Custom Plugin Repositories.
+See [here](https://github.com/yomishino/DalamudPlugins#readme) for details.
+
+Once added, look for the plugin "Aether Compass" in Plugin Installer's available plugins.
+
+
