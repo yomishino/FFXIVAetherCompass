@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>yomishino</Authors>
     <Version>1.0.0.0</Version>
-    <Description>A FFXIV Dalamud plugin as an aether compass that automatically tells you where the nearby aether currents are.</Description>
+    <Description>An FFXIV Dalamud plugin: An Aether compass that auto detects nearby Aether Currents --- and more.</Description>
     <PackageProjectUrl></PackageProjectUrl>
     <Configurations>Debug;Release;TestRelease</Configurations>
   </PropertyGroup>

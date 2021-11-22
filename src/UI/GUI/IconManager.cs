@@ -43,7 +43,7 @@ namespace AetherCompass.UI.GUI
         public static readonly Vector2 AltitudeIconSize = new(45, 45);
 
         // NaviMap thing with those quests/fate etc. direction markers are in 10001400
-        // but we'll use something else for easier work.
+        // but use something else for easier work:
         // 60541 up, 60545 down; there are also two sets that are smaller
         public const uint DirectionScreenIndicatorIconId = 60541;
         private static TextureWrap? _directionScreenIndicatorIcon;
@@ -83,8 +83,6 @@ namespace AetherCompass.UI.GUI
                 _configDummyMarkerIcon = value;
             }
         }
-        //// Armorer job icon, just randomly picked a asymmetrical one for debug
-        //public const uint DebugMarkerIconId = 62110;
         internal static TextureWrap? DebugMarkerIcon => ConfigDummyMarkerIcon;
 
         public const uint AetherCurrentMarkerIconId = 60033;
@@ -203,18 +201,12 @@ namespace AetherCompass.UI.GUI
                 SetQuestMarkerIcon(id, null);
         }
 
-        //private void DisposeDebugIcons()
-        //{
-        //    DebugMarkerIcon = null;
-        //}
-
         public static void DisposeAllIcons()
         {
             DisposeCommonIcons();
             DisposeAetherCurrentCompassIcons();
             DisposeMobHuntCompassIcons();
             DisposeQuestCompassIcons();
-            //DisposeDebugIcons();
         }
 
         public void Dispose()
@@ -243,8 +235,6 @@ namespace AetherCompass.UI.GUI
                 AetherCurrentMarkerIconId => nameof(AetherCurrentMarkerIcon),
                 MobHuntMarkerIconId => nameof(MobHuntMarkerIcon),
                 DefaultQuestMarkerIconId => nameof(DefaultQuestMarkerIcon),
-                //QuestDefaultMarkerIconId => nameof(QuestDefaultMarkerIcon),
-                //DebugMarkerIconId => nameof(DebugMarkerIcon),
                 _ => _questMarkerIconMap.ContainsKey(iconId) ? $"QuestMarkerIcon_{iconId}" : "(UnknownIcon)",
             };
             //Plugin.ShowError($"Plugin encountered an error: Failed to load icon",

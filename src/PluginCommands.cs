@@ -9,20 +9,17 @@ namespace AetherCompass
 
         public static void AddCommands(Plugin host)
         {
-            Plugin.CommandManager.AddHandler(
-                MainCommand, new CommandInfo((cmd, args) => ProcessMainCommand(host, cmd, args))
-                {
-                    HelpMessage = "Toggle the plugin between enabled/disabled when no options provided\n" +
+            Plugin.CommandManager.AddHandler(MainCommand, new CommandInfo((cmd, args) => ProcessMainCommand(host, cmd, args))
+            {
+                HelpMessage = "Toggle the plugin between enabled/disabled when no options provided\n" +
                     "\tOptions:\n" +
                     $"\t\ton: Enable the plugin\n" +
                     $"\t\toff: Disable the plugin\n" +
                     $"\t\tmark: Toggle enabled/disabled for marking detected objects on screen\n" +
                     $"\t\tdetail: Toggle enabled/disabled for showing Object Detail Window\n" +
                     $"\t\tconfig: Open the Configuration window",
-                    ShowInHelp = true
-                });
-
-            // TODO: commands
+                ShowInHelp = true
+            });
         }
 
         public static void RemoveCommands()

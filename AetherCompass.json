@@ -1,16 +1,17 @@
 ﻿{
   "Name": "Aether Compass",
   "Author": "yomishino",
-  "Punchline": "Have you ever run into something when looking at your compass ... oooops!",
-  "Description": "An aether compass that automatically tells you where the nearby aether currents are.",
+  "Punchline": "An Aether compass that auto detects nearby Aether Currents --- and more",
+  "Description": "This plugin auto detects certain objects/NPCs such as Aether Currents nearby and shows where they are by various ways, such as pointing to their locations on screen and notifying you in Chat.\n\nCurrently detects:\n\t- Aether Currents\n\t- Mob Hunt Elite Marks\nand more on the way.",
   "RepoUrl": "https://github.com/yomishino/FFXIVAetherCompass",
   "Tags": [
     "UI",
     "map",
-    "aether-compass",
-    "aether-currents"
+    "compass",
+    "aether-currents",
+    "mob-hunt"
   ],
   "ImageUrls": "",
-  "IconUrl": "",
+  "IconUrl": "https://github.com/yomishino/FFXIVAetherCompass/res/img/icon.png",
   "Changelog": ""
 }

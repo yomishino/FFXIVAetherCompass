@@ -145,8 +145,7 @@ namespace AetherCompass
                 else
                 {
                     // Clear when should not draw to avoid any action remaining in queue be drawn later
-                    // which would cause game crash due to accessing invalid address and so on
-                    // (Mostly I think is due to invalid access when calling WorldToScreen related things)
+                    // which would cause game crash due to access violation etc.
                     if (Config.ShowScreenMark) overlay.Clear();
                     if (Config.ShowDetailWindow) detailsWindow.Clear();
                 }

@@ -93,7 +93,7 @@ namespace AetherCompass.Configs
                 MobHuntConfig.Load(config.MobHuntConfig);
                 QuestConfig.Load(config.QuestConfig);
             }
-            // TODO: config version
+            // NOTE: config ver conversion if needed
         }
 
         public static PluginConfig GetSavedPluginConfig()
