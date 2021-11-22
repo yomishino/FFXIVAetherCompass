@@ -51,7 +51,7 @@ namespace AetherCompass.UI.GUI
                     mapName = placeName;
                 if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(subName))
                     mapName += " > " + subName;
-                UiHelper.DrawMapMarkerIconText(true);
+                ImGuiEx.IconTextMapMarker(true);
 
                 ImGui.TextWrapped($"{mapName}");
 #if DEBUG

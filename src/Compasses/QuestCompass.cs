@@ -62,28 +62,24 @@ namespace AetherCompass.Compasses
 
         public override void DrawConfigUiExtra()
         {
-            ImGui.Checkbox("Also enable this compass in solo instanced contents (?)", ref QuestConfig.EnabledInSoloContents);
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("By default, this compass will not work in any type of instanced contents.\n" +
-                    "You can enable it in solo instanced contents if needed.");
-            //ImGui.Checkbox("Also detect quest related enemies", ref QuestConfig.DetectEnemy);
-            //if (ImGui.IsItemHovered())
-            //    ImGui.SetTooltip("By default, this compass will only detect event NPCs or objects," +
-            //        "that is, NPCs/Objects that don't fight.\n" +
-            //        "You can enable this option to have the compass detect also quest related enemies.");
-            ImGui.Checkbox("Don't detect hidden quests (?)", ref QuestConfig.HideHidden);
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Hidden quests are those that you've marked as ignored in Journal.\n" +
-                    "If this option is enabled, will not detect NPC/Objects related to these hidden quests.");
-            ImGui.Checkbox("Detect all NPCs and objects relevant to in-progress quests (?)", ref QuestConfig.ShowAllRelated);
-            if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("By default, this compass only detects NPC/objects that are objectives of the quests " +
-                    "as shown in the quest Todos and on the Minimap.\n" +
-                    "If this option is enabled, NPC/objects that are spawned due to the quests will also " +
-                    "be detected by this compass, even if they may not be the objectives of the quests.\n" +
-                    "Additionally, for quests that require looking for NPC/objects in a certain area, " +
-                    "enabling this option may reveal the objectives' locations.\n\n" +
-                    "In either case, NPC/objects that are known to be quest objectives will have a \"★\" mark by their names");
+            ImGui.NewLine();
+            ImGuiEx.Checkbox("Also enable this compass in solo instanced contents", ref QuestConfig.EnabledInSoloContents,
+                "By default, this compass will not work in any type of instanced contents.\n" +
+                "You can enable it in solo instanced contents if needed.");
+            //ImGuiEx.Checkbox("Also detect quest related enemies", ref QuestConfig.DetectEnemy,
+            //    "By default, this compass will only detect event NPCs or objects, that is, NPCs/Objects that don't fight.\n" +
+            //    "You can enable this option to have the compass detect also quest related enemies.");
+            ImGuiEx.Checkbox("Don't detect hidden quests", ref QuestConfig.HideHidden,
+                "Hidden quests are those that you've marked as ignored in Journal.\n" +
+                "If this option is enabled, will not detect NPC/Objects related to these hidden quests.");
+            ImGuiEx.Checkbox("Detect all NPCs and objects relevant to in-progress quests", ref QuestConfig.ShowAllRelated,
+                "By default, this compass only detects NPC/objects that are objectives of the quests " +
+                "as shown in the quest Todos and on the Minimap.\n\n" +
+                "If this option is enabled, NPC/objects that are spawned due to the quests will also " +
+                "be detected by this compass, even if they may not be the objectives of the quests.\n" +
+                "Additionally, for quests that require looking for NPC/objects in a certain area, " +
+                "enabling this option may reveal the objectives' locations.\n\n" +
+                "In either case, NPC/objects that are known to be quest objectives will have a \"★\" mark by their names");
             if (config.ShowScreenMark)
             {
                 ImGui.Checkbox("Show quest name by screen marker", ref QuestConfig.ShowQuestName);

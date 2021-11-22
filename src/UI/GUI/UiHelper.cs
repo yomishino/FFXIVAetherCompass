@@ -138,23 +138,6 @@ namespace AetherCompass.UI.GUI
             pos.Y -= scale;
             drawList.AddText(font, fontsize, pos, col_uint, text);
         }
-
-
-        public static void DrawCompassIconText(bool nextSameLine = false)
-        {
-            ImGui.PushFont(UiBuilder.IconFont);
-            ImGui.Text(FontAwesomeExtensions.ToIconString(FontAwesomeIcon.Compass));
-            ImGui.PopFont();
-            if (nextSameLine) ImGui.SameLine();
-        }
-
-        public static void DrawMapMarkerIconText(bool nextSameLine = false)
-        {
-            ImGui.PushFont(UiBuilder.IconFont);
-            ImGui.Text(FontAwesomeExtensions.ToIconString(FontAwesomeIcon.MapMarkerAlt));
-            ImGui.PopFont();
-            if (nextSameLine) ImGui.SameLine();
-        }
-
     }
+
 }

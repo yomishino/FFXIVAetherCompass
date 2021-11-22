@@ -153,38 +153,29 @@ namespace AetherCompass
             if (InConfig)
             {
                 ImGui.Begin("AetherCompass: Configuration");
-                ImGui.Checkbox("Enable plugin", ref config.Enabled);
+                ImGuiEx.Checkbox("Enable plugin", ref config.Enabled,
+                    "Enable/Disable this plugin. \n" +
+                    "All compasses will auto pause in certain zones such as PvP zones regardless of this setting.");
                 if (config.Enabled != _enabled) Enabled = config.Enabled;   // Clear&Reload iff Enabled changed
-                if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Enable/Disable this plugin. \n" +
-                        "All compasses will auto pause in certain zones such as PvP zones regardless of this setting.");
 //#if DEBUG
 //                ImGui.Text($"LocalContentId: {Plugin.ClientState.LocalContentId}");
 //#endif
-                ImGui.NewLine();
                 if (config.Enabled)
                 {
-                    ImGui.Separator();
-                    ImGui.NewLine();
+                    ImGuiEx.Separator(true, true);
                     ImGui.Text("Plugin Settings:");
                     ImGui.NewLine();
-                    ImGui.Checkbox("Enable marking detected objects on screen (?)", ref config.ShowScreenMark);
-                    if (ImGui.IsItemHovered())
-                        ImGui.SetTooltip("If enabled, will allow Compasses to mark objects detected by them on screen," +
-                            "showing the direction and distance.\n\n" +
-                            "You can configure this for each compass separately below.");
+                    ImGuiEx.Checkbox(
+                        "Enable marking detected objects on screen", ref config.ShowScreenMark,
+                        "If enabled, will allow Compasses to mark objects detected by them on screen," +
+                        "showing the direction and distance.\n\n" +
+                        "You can configure this for each compass separately below.");
                     if (config.ShowScreenMark)
                     {
                         ImGui.TreePush();
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("If enabled, will use HQ icons when marking detected objects.");
-                        ImGui.Text("Marker size scale: ");
-                        ImGui.SameLine();
-                        ImGui.DragFloat("(?) ##screenmarkersizescale", ref config.ScreenMarkSizeScale, 
+                        ImGuiEx.DragFloat("Marker size scale", ref config.ScreenMarkSizeScale,
                             .01f, PluginConfig.ScreenMarkSizeScaleMin, PluginConfig.ScreenMarkSizeScaleMax);
-                        overlay.AddDrawAction(() => Compass.DrawConfigDummyMarker($"Marker size scale: {config.ScreenMarkSizeScale:0.0}", config.ScreenMarkSizeScale));
-                        ImGui.Text("Marker display area (Left/Bottom/Right/Top): ");
-                        ImGui.Indent();
+                        overlay.AddDrawAction(() => Compass.DrawConfigDummyMarker($"Marker size scale: {config.ScreenMarkSizeScale:0.00}", config.ScreenMarkSizeScale));
                         var viewport = ImGui.GetMainViewport().Pos;
                         var vsize = ImGui.GetMainViewport().Size;
                         System.Numerics.Vector4 displayArea = new(
@@ -192,75 +183,64 @@ namespace AetherCompass
                             viewport.Y + vsize.Y - config.ScreenMarkConstraint.Y, // D
                             viewport.X + vsize.X - config.ScreenMarkConstraint.Z, // R
                             viewport.Y + config.ScreenMarkConstraint.W); // U
-                        ImGui.DragFloat4("(?)##markerdisplayarea", ref displayArea, 1, PluginConfig.ScreenMarkConstraintMin);
+                        ImGuiEx.DragFloat4("Marker display area (Left/Bottom/Right/Top)", ref displayArea,
+                            1, PluginConfig.ScreenMarkConstraintMin, 9999,
+                            tooltip: "Set the display area for the markers.\n" +
+                                "The display area is shown as the red rectangle on the screen. " +
+                                "Detected objects will be marked on screen within this area.");
                         config.ScreenMarkConstraint = new(
                             displayArea.X - viewport.X, // L
                             viewport.Y + vsize.Y - displayArea.Y, // D
                             viewport.X + vsize.X - displayArea.Z, // R
                             displayArea.W - viewport.Y); // U
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("Set the display area for the markers.\n" +
-                                "The display area is shown as the red rectangle on the screen." +
-                                "Detected objects will be marked on screen within this area.");
                         overlay.AddDrawAction(() => ImGui.GetWindowDrawList().AddRect(
                             new(displayArea.X, displayArea.W), new(displayArea.Z, displayArea.Y),
-                            ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1)), 0,
-                            ImDrawFlags.Closed, 4));
+                            ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1)), 0, ImDrawFlags.Closed, 4));
+                        ImGui.Indent();
                         ImGui.Text($"(Screen display area is: " +
                             $"<{viewport.X:0.0}, {viewport.Y + vsize.Y:0.0}, {viewport.X + vsize.X:0.0}, {viewport.Y:0.0}> )");
                         ImGui.Unindent();
                         ImGui.TreePop();
                     }
-                    ImGui.Checkbox("Show detected objects' details (?)", ref config.ShowDetailWindow);
-                    if (ImGui.IsItemHovered())
-                        ImGui.SetTooltip("If enabled, will show a window listing details of detected objects.\n\n" +
-                            "You can configure this for each compass separately below.");
+                    ImGuiEx.Checkbox("Show detected objects' details", ref config.ShowDetailWindow,
+                        "If enabled, will show a window listing details of detected objects.\n\n" +
+                        "You can configure this for each compass separately below.");
                     if (config.ShowDetailWindow)
                     {
                         ImGui.TreePush();
-                        ImGui.Checkbox("Don't show in instanced contents (?)", ref config.HideDetailInContents);
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("If enabled, will auto hide the detail window in instanced contents" +
-                                " such as dungeons, trials and raids.");
+                        ImGuiEx.Checkbox("Don't show in instanced contents", ref config.HideDetailInContents,
+                            "If enabled, will auto hide the detail window in instance contents such as dungeons, trials and raids.");
                         ImGui.TreePop();
                     }
                     if (config.ShowScreenMark || config.ShowDetailWindow)
                     {
-                        ImGui.Checkbox("Hide compass UI when in event", ref config.HideInEvent);
-                        ImGui.Checkbox("Hide compass UI when crafting/gathering/fishing", ref config.HideWhenCraftGather);
+                        ImGuiEx.Checkbox("Hide compass UI when in event", ref config.HideInEvent);
+                        ImGuiEx.Checkbox("Hide compass UI when crafting/gathering/fishing", ref config.HideWhenCraftGather);
                     }
-                    ImGui.Checkbox("Enable chat notification (?)", ref config.NotifyChat);
-                    if (ImGui.IsItemHovered())
-                        ImGui.SetTooltip("If enabled, will allow compasses to send notifications " +
-                            "in game chat when detected an object.\n\n" +
-                            "You can configure this for each compass separately below. ");
+                    ImGui.NewLine();
+                    ImGuiEx.Checkbox("Enable chat notification", ref config.NotifyChat,
+                        "If enabled, will allow compasses to send notifications in game chat when detected an object.\n\n" +
+                        "You can configure this for each compass separately below. ");
                     if (config.NotifyChat)
                     {
                         ImGui.TreePush();
-                        ImGui.Checkbox("Also enable sound notification (?)", ref config.NotifySe);
-                        if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("If enabled, will allow compasses to make sound notification " +
-                                "alongside chat notification.\n\n" +
-                                "You can configure this for each compass separately below.");
+                        ImGuiEx.Checkbox("Also enable sound notification", ref config.NotifySe,
+                            "If enabled, will allow compasses to make sound notification alongside chat notification.\n\n" +
+                            "You can configure this for each compass separately below.");
                         ImGui.TreePop();
                     }
-                    ImGui.Checkbox("Enable Toast notification (?)", ref config.NotifyToast);
-                    if (ImGui.IsItemHovered())
-                        ImGui.SetTooltip("If enabled, will allow compasses to make Toast notifications " +
-                            "on screen when detected an object.\n\n" +
-                            "You can configure this for each compass separately below.");
+                    ImGuiEx.Checkbox("Enable Toast notification", ref config.NotifyToast, 
+                        "If enabled, will allow compasses to make Toast notifications on screen when detected an object.\n\n" +
+                        "You can configure this for each compass separately below.");
 #if DEBUG
-                    ImGui.Checkbox("[DEBUG] Test all GameObjects", ref config.DebugTestAllGameObjects);
+                    ImGuiEx.Checkbox("[DEBUG] Test all GameObjects", ref config.DebugTestAllGameObjects);
 #endif
-                    ImGui.NewLine();
-                    ImGui.Separator();
-                    ImGui.NewLine();
+                    ImGuiEx.Separator(true, true);
                     ImGui.Text("Compass Settings:");
                     ImGui.NewLine();
                     compassMgr.DrawCompassConfigUi();
                 }
-                ImGui.Separator();
-                ImGui.NewLine();
+                ImGuiEx.Separator(false, true);
                 if (ImGui.Button("Save"))
                     config.Save();
                 if (ImGui.Button("Save & Close"))
