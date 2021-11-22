@@ -91,8 +91,8 @@ namespace AetherCompass
             PluginCommands.AddCommands(this);
 
             compassMgr.AddCompass(new AetherCurrentCompass(Config, Config.AetherCurrentConfig));
-#if !RELEASE
             compassMgr.AddCompass(new MobHuntCompass(Config, Config.MobHuntConfig));
+#if !RELEASE
             compassMgr.AddCompass(new QuestCompass(Config, Config.QuestConfig));
 #endif
 #if DEBUG
