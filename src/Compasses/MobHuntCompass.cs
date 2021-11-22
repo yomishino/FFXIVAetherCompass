@@ -14,9 +14,8 @@ namespace AetherCompass.Compasses
     {
         public override string CompassName => "Mob Hunt Compass";
         public override string Description => "Detecting Elite Marks (Notorious Monsters) nearby.";
-        private protected override string ClosestObjectDescription => "Elite Mark (NM)";
-
-        private readonly Dictionary<uint, NMData> NMDataMap = new(); // BnpcDataId => NMData
+        
+        private readonly Dictionary<uint, NMData> nmDataMap = new(); // BnpcDataId => NMData
         private static readonly System.Numerics.Vector4 infoTextColour = new(1, .6f, .6f, 1);
         private static readonly float infoTextShadowLightness = .1f;
 
@@ -34,11 +33,15 @@ namespace AetherCompass.Compasses
             => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1;
 
         private protected override unsafe bool IsObjective(GameObject* o)
-            => o != null && NMDataMap.TryGetValue(o->DataID, out var data) && data.IsValid
+            => o != null && nmDataMap.TryGetValue(o->DataID, out var data) && data.IsValid
             && ((data.Rank == NMRank.S && MobHuntConfig.DetectS)
                 || (data.Rank == NMRank.A && MobHuntConfig.DetectA)
                 || (data.Rank == NMRank.B && MobHuntConfig.DetectB))
             && CompassUtil.IsCharacterAlive(o);
+
+        private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
+            => o == null || !nmDataMap.TryGetValue(o->DataID, out var data)
+            ? string.Empty : data.GetNMName();
 
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeMobHuntCompassIcons();
@@ -48,8 +51,8 @@ namespace AetherCompass.Compasses
             return new(() =>
             {
                 if (o == null) return;
-                if (!NMDataMap.TryGetValue(o->DataID, out var nmData)) return;
-                ImGui.Text($"{nmData.Name} (Rank: {nmData.Rank})");
+                if (!nmDataMap.TryGetValue(o->DataID, out var nmData)) return;
+                ImGui.Text(nmData.GetNMName());
                 ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(o->Position)} (approx.)");
                 ImGui.BulletText($"{CompassUtil.GetDirectionFromPlayer(o)},  " +
                     $"{CompassUtil.Get3DDistanceFromPlayerDescriptive(o, false)}");
@@ -61,11 +64,11 @@ namespace AetherCompass.Compasses
 
         public override unsafe DrawAction? CreateMarkScreenAction(GameObject* o)
         {
-            if (o == null || !NMDataMap.TryGetValue(o->DataID, out var nmData)) return null;
+            if (o == null || !nmDataMap.TryGetValue(o->DataID, out var nmData)) return null;
             return new(() =>
             {
                 if (o == null) return;
-                if (!NMDataMap.TryGetValue(o->DataID, out var nmData)) return;
+                if (!nmDataMap.TryGetValue(o->DataID, out var nmData)) return;
                 string descr = $"{nmData.Name}\nRank: {nmData.Rank}, {CompassUtil.Get3DDistanceFromPlayerDescriptive(o, true)}";
                 DrawScreenMarkerDefault(o, IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
                     .9f, descr, infoTextColour, infoTextShadowLightness, out _);
@@ -90,7 +93,7 @@ namespace AetherCompass.Compasses
                 foreach (var row in NMSheet)
                 {
                     if (row.BNpcBase.Row != 0)
-                        NMDataMap.TryAdd(row.BNpcBase.Row, new(row.RowId));
+                        nmDataMap.TryAdd(row.BNpcBase.Row, new(row.RowId));
                 }
             }
         }
@@ -115,6 +118,9 @@ namespace AetherCompass.Compasses
                 Name = row.BNpcName.Value?.Singular ?? string.Empty;
                 IsValid = true;
             }
+
+            public string GetNMName(bool showRank = true)
+                => Name + (showRank ? $"(Rank: {Rank})" : string.Empty);
         }
 
         enum NMRank : byte

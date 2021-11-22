@@ -18,8 +18,7 @@ namespace AetherCompass.Compasses
         public override string Description => "Detecting NPC/objects nearby relevant to your in-progress quests.\n" +
             "** Due to some limitations, Battle NPCs (that is, NPCs that can fight, whether by your side or against you)" +
             " will not be detected by the compass.";
-        private protected override string ClosestObjectDescription => "Quest NPC/Object";
-
+        
         private QuestCompassConfig QuestConfig => (QuestCompassConfig)compassConfig;
 
         private static readonly System.Reflection.PropertyInfo?[,] cachedQuestSheetToDoChildLocationMap = new System.Reflection.PropertyInfo[24, 7];
@@ -41,6 +40,9 @@ namespace AetherCompass.Compasses
                 || ((QuestConfig?.EnabledInSoloContents ?? false) && terrItem?.ExclusiveType == 1)
                 ;
         }
+
+        private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
+            => o == null ? string.Empty : CompassUtil.GetName(o) + " (Quest)";
 
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeQuestCompassIcons();

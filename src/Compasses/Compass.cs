@@ -31,7 +31,6 @@ namespace AetherCompass.Compasses
         public abstract string CompassName { get; }
         public abstract string Description { get; }
         
-        private protected abstract string ClosestObjectDescription { get; }
 
         private bool _compassEnabled = false;
         public bool CompassEnabled
@@ -63,6 +62,7 @@ namespace AetherCompass.Compasses
 
         public abstract bool IsEnabledTerritory(uint terr);
         private protected unsafe abstract bool IsObjective(GameObject* o);
+        private protected unsafe abstract string GetClosestObjectiveDescription(GameObject* o);
         public unsafe abstract DrawAction? CreateDrawDetailsAction(GameObject* o);
         public unsafe abstract DrawAction? CreateMarkScreenAction(GameObject* o);
 
@@ -118,13 +118,13 @@ namespace AetherCompass.Compasses
                         {
                             var msg = Chat.CreateMapLink(
                                 Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), coord, CompassUtil.CurrentHasZCoord());
-                            msg.PrependText($"Found {ClosestObjectDescription} at ");
+                            msg.PrependText($"Found {GetClosestObjectiveDescription(obj)} at ");
                             msg.AppendText($", on {dir}, {CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, false)} from you");
                             Notifier.TryNotifyByChat(msg, NotifySe, compassConfig.NotifySeId);
                         }
                         if (NotifyToast)
                         {
-                            var msg = $"Found {ClosestObjectDescription} on {dir}, " +
+                            var msg = $"Found {GetClosestObjectiveDescription(obj)} on {dir}, " +
                                 $"{CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, true)} from you, " +
                                 $"at {CompassUtil.MapCoordToFormattedString(coord)}";
                             Notifier.TryNotifyByToast(msg);

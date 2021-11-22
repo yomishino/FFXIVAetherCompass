@@ -11,8 +11,6 @@ namespace AetherCompass.Compasses
         public override string CompassName => "Aether Current Compass";
         public override string Description => "Detecting Aether Currents nearby.";
         
-        private protected override string ClosestObjectDescription => "Aether Current";
-
         private static System.Numerics.Vector4 infoTextColour = new(.8f, .95f, .75f, 1);
         private const float infoTextShadowLightness = .1f;
 
@@ -25,6 +23,9 @@ namespace AetherCompass.Compasses
 
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeAetherCurrentCompassIcons();
+
+        private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
+            => "Aether Current";
 
         public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* obj)
         {

@@ -12,8 +12,7 @@ namespace AetherCompass.Compasses
     {
         public override string CompassName => "Debug Compass"; 
         public override string Description => "For Debug";
-        private protected override string ClosestObjectDescription => "DebugCompass Objective";
-
+        
 
         public DebugCompass(PluginConfig config, CompassConfig compassConfig) 
             : base(config, compassConfig) { }
@@ -32,6 +31,8 @@ namespace AetherCompass.Compasses
             || o->ObjectKind == (byte)ObjectKind.Aetheryte
             || o->ObjectKind == (byte)ObjectKind.AreaObject);
 
+        private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
+            => "Debug Obj";
 
         public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* obj)
         {
