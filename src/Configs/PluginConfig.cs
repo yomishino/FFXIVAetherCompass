@@ -65,7 +65,9 @@ namespace AetherCompass.Configs
             AetherCurrentConfig.CheckValueValidity();
             MobHuntConfig.CheckValueValidity();
             QuestConfig.CheckValueValidity();
+#if DEBUG
             DebugConfig.CheckValueValidity();
+#endif
         }
 
         public void Save()
