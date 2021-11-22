@@ -3,6 +3,7 @@ using AetherCompass.Configs;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
 using Dalamud.Game;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.IoC;
 using Dalamud.Logging;
 using Dalamud.Plugin;
@@ -32,6 +33,9 @@ namespace AetherCompass
         [PluginService]
         [RequiredVersion("1.0")]
         internal static Dalamud.Game.ClientState.ClientState ClientState { get; private set; } = null!;
+        [PluginService]
+        [RequiredVersion("1.0")]
+        internal static Condition ClientCondition { get; private set; } = null!;
         [PluginService]
         [RequiredVersion("1.0")]
         internal static Dalamud.Game.Gui.GameGui GameGui { get; private set; } = null!;
@@ -118,7 +122,7 @@ namespace AetherCompass
 
             if (Enabled && InCompassWorkZone())
             {
-                if (ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
+                if (ClientState.LocalPlayer != null)
                 {
                     try
                     {
@@ -127,9 +131,10 @@ namespace AetherCompass
                         {
                             if (!(config.HideDetailInContents && IsDetailWindowHideZone()))
                                 detailsWindow.Draw();
+                            else detailsWindow.Clear();
                         }
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         //ShowError("Plugin encountered an error.", e.ToString());
                         LogError(e.ToString());
@@ -219,6 +224,11 @@ namespace AetherCompass
                                 " such as dungeons, trials and raids.");
                         ImGui.TreePop();
                     }
+                    if (config.ShowScreenMark || config.ShowDetailWindow)
+                    {
+                        ImGui.Checkbox("Hide compass UI when in event", ref config.HideInEvent);
+                        ImGui.Checkbox("Hide compass UI when crafting/gathering/fishing", ref config.HideWhenCraftGather);
+                    }
                     ImGui.Checkbox("Enable chat notification (?)", ref config.NotifyChat);
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip("If enabled, will allow compasses to send notifications " +
@@ -283,7 +293,7 @@ namespace AetherCompass
 
         private void OnFrameworkUpdate(Framework framework)
         {
-            if (Enabled && ClientState.LocalContentId != 0 && ClientState.LocalPlayer != null)
+            if (Enabled && ClientState.LocalContentId != 0 && InCompassWorkZone())
             {
                 try
                 {
@@ -311,15 +321,39 @@ namespace AetherCompass
         }
 
         // Work only in PvE zone, also excl LoVM / chocobo race etc.
-        private static bool InCompassWorkZone()
+        private bool InCompassWorkZone()
         {
             var terr = DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
                 .GetRow(ClientState.TerritoryType);
             return terr != null && !terr.IsPvpZone
                 && terr.BattalionMode <= 1   // > 1 are pvp contents or LoVM
                 && terr.TerritoryIntendedUse != 20  // chocobo race terr?
+                && !InNotDrawingConditions()
                 ;
         }
+
+        private bool InNotDrawingConditions()
+            => config.HideInEvent &&
+            (  ClientCondition[ConditionFlag.ChocoboRacing]
+            || ClientCondition[ConditionFlag.CreatingCharacter]
+            || ClientCondition[ConditionFlag.DutyRecorderPlayback]
+            || ClientCondition[ConditionFlag.OccupiedInCutSceneEvent]
+            || ClientCondition[ConditionFlag.OccupiedInEvent]
+            || ClientCondition[ConditionFlag.OccupiedInQuestEvent]
+            || ClientCondition[ConditionFlag.OccupiedSummoningBell]
+            || ClientCondition[ConditionFlag.Performing]
+            || ClientCondition[ConditionFlag.PlayingLordOfVerminion]
+            || ClientCondition[ConditionFlag.PlayingMiniGame]
+            || ClientCondition[ConditionFlag.WatchingCutscene]
+            || ClientCondition[ConditionFlag.WatchingCutscene78]
+            ) || config.HideWhenCraftGather &&
+            (  ClientCondition[ConditionFlag.Crafting]
+            || ClientCondition[ConditionFlag.Crafting40]
+            || ClientCondition[ConditionFlag.Fishing]
+            || ClientCondition[ConditionFlag.Gathering]
+            || ClientCondition[ConditionFlag.Gathering42]
+            || ClientCondition[ConditionFlag.PreparingToCraft]
+            );
 
         private static bool IsDetailWindowHideZone()
         {

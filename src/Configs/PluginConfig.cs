@@ -23,6 +23,8 @@ namespace AetherCompass.Configs
         public const float ScreenMarkConstraintMin = 2;
         public bool ShowDetailWindow = false;
         public bool HideDetailInContents = false;
+        public bool HideInEvent = false;
+        public bool HideWhenCraftGather = false;
         public bool NotifyChat = false;
         public bool NotifySe = false;
         public bool NotifyToast = false;
@@ -81,6 +83,8 @@ namespace AetherCompass.Configs
                 ScreenMarkConstraint = config.ScreenMarkConstraint;
                 ShowDetailWindow = config.ShowDetailWindow;
                 HideDetailInContents = config.HideDetailInContents;
+                HideInEvent = config.HideInEvent;
+                HideWhenCraftGather = config.HideWhenCraftGather;
                 NotifyChat = config.NotifyChat;
                 NotifySe = config.NotifySe;
                 NotifyToast = config.NotifyToast;
