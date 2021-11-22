@@ -51,19 +51,6 @@ namespace AetherCompass.Compasses
                 ImGui.BulletText($"Position: {(Vector3)obj->Position}");
                 ImGui.BulletText($"MapCoord: {CompassUtil.GetMapCoordInCurrentMapFormattedString(obj->Position)}");
 
-                //ImGui.BulletText($"MapInfo: MapId, IconId, Unk");
-                //ImGui.Indent();
-                //ImGui.Indent();
-                //ImGui.Columns(3);
-                //ImGui.Text($"{detail.ObjectInfo.MapInfo.MapId}");
-                //ImGui.NextColumn();
-                //ImGui.Text($"{detail.ObjectInfo.MapInfo.IconId}");
-                //ImGui.NextColumn();
-                //ImGui.Text($"{detail.ObjectInfo.MapInfo.Unk_12}");
-                //ImGui.Columns(1);
-                //ImGui.Unindent();
-                //ImGui.Unindent();
-
                 DrawFlagButton(((long)obj).ToString(), CompassUtil.GetMapCoordInCurrentMap(obj->Position));
 
                 ImGui.NewLine();

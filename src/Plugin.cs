@@ -56,10 +56,11 @@ namespace AetherCompass
             "Aether Compass";
 #endif
 
-        private readonly PluginConfig config;
         private readonly CompassManager compassMgr;
         private readonly CompassOverlay overlay;
         private readonly CompassDetailsWindow detailsWindow;
+
+        internal readonly PluginConfig Config;
 
         private bool _enabled = false;
         public bool Enabled 
@@ -72,29 +73,30 @@ namespace AetherCompass
                 detailsWindow.Clear();
                 if (!value) IconManager.DisposeAllIcons();
                 _enabled = value;
-                if (config != null) config.Enabled = value;
+                if (Config != null) Config.Enabled = value;
             }
         }
         internal bool InConfig { get; set; }
+
         
 
         public Plugin()
         {
-            config = PluginInterface.GetPluginConfig() as PluginConfig ?? new();
+            Config = PluginInterface.GetPluginConfig() as PluginConfig ?? new();
             overlay = new();
             detailsWindow = new();
             
-            compassMgr = new(overlay, detailsWindow, config);
+            compassMgr = new(overlay, detailsWindow, Config);
 
             PluginCommands.AddCommands(this);
 
-            compassMgr.AddCompass(new AetherCurrentCompass(config, config.AetherCurrentConfig));
+            compassMgr.AddCompass(new AetherCurrentCompass(Config, Config.AetherCurrentConfig));
 #if !RELEASE
-            compassMgr.AddCompass(new MobHuntCompass(config, config.MobHuntConfig));
-            compassMgr.AddCompass(new QuestCompass(config, config.QuestConfig));
+            compassMgr.AddCompass(new MobHuntCompass(Config, Config.MobHuntConfig));
+            compassMgr.AddCompass(new QuestCompass(Config, Config.QuestConfig));
 #endif
 #if DEBUG
-            compassMgr.AddCompass(new DebugCompass(config, config.DebugConfig));
+            compassMgr.AddCompass(new DebugCompass(Config, Config.DebugConfig));
 #endif
             
             Framework.Update += OnFrameworkUpdate;
@@ -126,10 +128,10 @@ namespace AetherCompass
                 {
                     try
                     {
-                        if (config.ShowScreenMark) overlay.Draw();
-                        if (config.ShowDetailWindow)
+                        if (Config.ShowScreenMark) overlay.Draw();
+                        if (Config.ShowDetailWindow)
                         {
-                            if (!(config.HideDetailInContents && IsDetailWindowHideZone()))
+                            if (!(Config.HideDetailInContents && IsDetailWindowHideZone()))
                                 detailsWindow.Draw();
                             else detailsWindow.Clear();
                         }
@@ -145,50 +147,50 @@ namespace AetherCompass
                     // Clear when should not draw to avoid any action remaining in queue be drawn later
                     // which would cause game crash due to accessing invalid address and so on
                     // (Mostly I think is due to invalid access when calling WorldToScreen related things)
-                    if (config.ShowScreenMark) overlay.Clear();
-                    if (config.ShowDetailWindow) detailsWindow.Clear();
+                    if (Config.ShowScreenMark) overlay.Clear();
+                    if (Config.ShowDetailWindow) detailsWindow.Clear();
                 }
             }
 
             if (InConfig)
             {
                 ImGui.Begin("AetherCompass: Configuration");
-                ImGuiEx.Checkbox("Enable plugin", ref config.Enabled,
+                ImGuiEx.Checkbox("Enable plugin", ref Config.Enabled,
                     "Enable/Disable this plugin. \n" +
                     "All compasses will auto pause in certain zones such as PvP zones regardless of this setting.");
-                if (config.Enabled != _enabled) Enabled = config.Enabled;   // Clear&Reload iff Enabled changed
+                if (Config.Enabled != _enabled) Enabled = Config.Enabled;   // Clear&Reload iff Enabled changed
 //#if DEBUG
 //                ImGui.Text($"LocalContentId: {Plugin.ClientState.LocalContentId}");
 //#endif
-                if (config.Enabled)
+                if (Config.Enabled)
                 {
                     ImGuiEx.Separator(true, true);
                     ImGui.Text("Plugin Settings:");
                     ImGui.NewLine();
                     ImGuiEx.Checkbox(
-                        "Enable marking detected objects on screen", ref config.ShowScreenMark,
+                        "Enable marking detected objects on screen", ref Config.ShowScreenMark,
                         "If enabled, will allow Compasses to mark objects detected by them on screen," +
                         "showing the direction and distance.\n\n" +
                         "You can configure this for each compass separately below.");
-                    if (config.ShowScreenMark)
+                    if (Config.ShowScreenMark)
                     {
                         ImGui.TreePush();
-                        ImGuiEx.DragFloat("Marker size scale", ref config.ScreenMarkSizeScale,
+                        ImGuiEx.DragFloat("Marker size scale", ref Config.ScreenMarkSizeScale,
                             .01f, PluginConfig.ScreenMarkSizeScaleMin, PluginConfig.ScreenMarkSizeScaleMax);
-                        overlay.AddDrawAction(() => Compass.DrawConfigDummyMarker($"Marker size scale: {config.ScreenMarkSizeScale:0.00}", config.ScreenMarkSizeScale));
+                        overlay.AddDrawAction(() => Compass.DrawConfigDummyMarker($"Marker size scale: {Config.ScreenMarkSizeScale:0.00}", Config.ScreenMarkSizeScale));
                         var viewport = ImGui.GetMainViewport().Pos;
                         var vsize = ImGui.GetMainViewport().Size;
                         System.Numerics.Vector4 displayArea = new(
-                            viewport.X + config.ScreenMarkConstraint.X, // L
-                            viewport.Y + vsize.Y - config.ScreenMarkConstraint.Y, // D
-                            viewport.X + vsize.X - config.ScreenMarkConstraint.Z, // R
-                            viewport.Y + config.ScreenMarkConstraint.W); // U
+                            viewport.X + Config.ScreenMarkConstraint.X, // L
+                            viewport.Y + vsize.Y - Config.ScreenMarkConstraint.Y, // D
+                            viewport.X + vsize.X - Config.ScreenMarkConstraint.Z, // R
+                            viewport.Y + Config.ScreenMarkConstraint.W); // U
                         ImGuiEx.DragFloat4("Marker display area (Left/Bottom/Right/Top)", ref displayArea,
                             1, PluginConfig.ScreenMarkConstraintMin, 9999,
                             tooltip: "Set the display area for the markers.\n" +
                                 "The display area is shown as the red rectangle on the screen. " +
                                 "Detected objects will be marked on screen within this area.");
-                        config.ScreenMarkConstraint = new(
+                        Config.ScreenMarkConstraint = new(
                             displayArea.X - viewport.X, // L
                             viewport.Y + vsize.Y - displayArea.Y, // D
                             viewport.X + vsize.X - displayArea.Z, // R
@@ -202,38 +204,38 @@ namespace AetherCompass
                         ImGui.Unindent();
                         ImGui.TreePop();
                     }
-                    ImGuiEx.Checkbox("Show detected objects' details", ref config.ShowDetailWindow,
+                    ImGuiEx.Checkbox("Show detected objects' details", ref Config.ShowDetailWindow,
                         "If enabled, will show a window listing details of detected objects.\n\n" +
                         "You can configure this for each compass separately below.");
-                    if (config.ShowDetailWindow)
+                    if (Config.ShowDetailWindow)
                     {
                         ImGui.TreePush();
-                        ImGuiEx.Checkbox("Don't show in instanced contents", ref config.HideDetailInContents,
+                        ImGuiEx.Checkbox("Don't show in instanced contents", ref Config.HideDetailInContents,
                             "If enabled, will auto hide the detail window in instance contents such as dungeons, trials and raids.");
                         ImGui.TreePop();
                     }
-                    if (config.ShowScreenMark || config.ShowDetailWindow)
+                    if (Config.ShowScreenMark || Config.ShowDetailWindow)
                     {
-                        ImGuiEx.Checkbox("Hide compass UI when in event", ref config.HideInEvent);
-                        ImGuiEx.Checkbox("Hide compass UI when crafting/gathering/fishing", ref config.HideWhenCraftGather);
+                        ImGuiEx.Checkbox("Hide compass UI when in event", ref Config.HideInEvent);
+                        ImGuiEx.Checkbox("Hide compass UI when crafting/gathering/fishing", ref Config.HideWhenCraftGather);
                     }
                     ImGui.NewLine();
-                    ImGuiEx.Checkbox("Enable chat notification", ref config.NotifyChat,
+                    ImGuiEx.Checkbox("Enable chat notification", ref Config.NotifyChat,
                         "If enabled, will allow compasses to send notifications in game chat when detected an object.\n\n" +
                         "You can configure this for each compass separately below. ");
-                    if (config.NotifyChat)
+                    if (Config.NotifyChat)
                     {
                         ImGui.TreePush();
-                        ImGuiEx.Checkbox("Also enable sound notification", ref config.NotifySe,
+                        ImGuiEx.Checkbox("Also enable sound notification", ref Config.NotifySe,
                             "If enabled, will allow compasses to make sound notification alongside chat notification.\n\n" +
                             "You can configure this for each compass separately below.");
                         ImGui.TreePop();
                     }
-                    ImGuiEx.Checkbox("Enable Toast notification", ref config.NotifyToast, 
+                    ImGuiEx.Checkbox("Enable Toast notification", ref Config.NotifyToast, 
                         "If enabled, will allow compasses to make Toast notifications on screen when detected an object.\n\n" +
                         "You can configure this for each compass separately below.");
 #if DEBUG
-                    ImGuiEx.Checkbox("[DEBUG] Test all GameObjects", ref config.DebugTestAllGameObjects);
+                    ImGuiEx.Checkbox("[DEBUG] Test all GameObjects", ref Config.DebugTestAllGameObjects);
 #endif
                     ImGuiEx.Separator(true, true);
                     ImGui.Text("Compass Settings:");
@@ -242,10 +244,10 @@ namespace AetherCompass
                 }
                 ImGuiEx.Separator(false, true);
                 if (ImGui.Button("Save"))
-                    config.Save();
+                    Config.Save();
                 if (ImGui.Button("Save & Close"))
                 {
-                    config.Save();
+                    Config.Save();
                     InConfig = false;
                     Reload();
                 }
@@ -253,22 +255,22 @@ namespace AetherCompass
                 if (ImGui.Button("Close & Discard All Changes"))
                 {
                     InConfig = false;
-                    config.Load(PluginConfig.GetSavedPluginConfig());
+                    Config.Load(PluginConfig.GetSavedPluginConfig());
                     Reload();
                 }
                 ImGui.End();
 
-                config.CheckValueValidity(ImGui.GetMainViewport().Size);
+                Config.CheckValueValidity(ImGui.GetMainViewport().Size);
 
                 // for drawing the marker display area
-                if (config.ShowScreenMark) overlay.Draw();
+                if (Config.ShowScreenMark) overlay.Draw();
             }
         }
 
         private void Reload()
         {
             // Will clear prev drawings & dispose old icons
-            Enabled = config.Enabled;
+            Enabled = Config.Enabled;
         }
 
         private void OnFrameworkUpdate(Framework framework)
@@ -313,7 +315,7 @@ namespace AetherCompass
         }
 
         private bool InNotDrawingConditions()
-            => config.HideInEvent &&
+            => Config.HideInEvent &&
             (  ClientCondition[ConditionFlag.ChocoboRacing]
             || ClientCondition[ConditionFlag.CreatingCharacter]
             || ClientCondition[ConditionFlag.DutyRecorderPlayback]
@@ -326,7 +328,7 @@ namespace AetherCompass
             || ClientCondition[ConditionFlag.PlayingMiniGame]
             || ClientCondition[ConditionFlag.WatchingCutscene]
             || ClientCondition[ConditionFlag.WatchingCutscene78]
-            ) || config.HideWhenCraftGather &&
+            ) || Config.HideWhenCraftGather &&
             (  ClientCondition[ConditionFlag.Crafting]
             || ClientCondition[ConditionFlag.Crafting40]
             || ClientCondition[ConditionFlag.Fishing]

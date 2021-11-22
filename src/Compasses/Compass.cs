@@ -22,7 +22,7 @@ namespace AetherCompass.Compasses
         private (IntPtr Ptr, float Distance3D, IntPtr LastClosest, IntPtr SecondLast) closestObj 
             = (IntPtr.Zero, float.MaxValue, IntPtr.Zero, IntPtr.Zero);
         private DateTime closestObjLastChangedTime = DateTime.MinValue;
-        private const int closestObjResetDelayInSec = 15;
+        private const int closestObjResetDelayInSec = 60;
         
         internal bool HasFlagToProcess = false; // For notifying CompassManager
         internal Vector2 FlaggedMapCoord;
@@ -55,7 +55,7 @@ namespace AetherCompass.Compasses
         {
             this.config = config;
             this.compassConfig = compassConfig;
-            _compassEnabled = compassConfig.Enabled;   // assign to field to avoid reloading icons again when init
+            _compassEnabled = compassConfig.Enabled;   // assign to field to void trigger Icon manager when init
             ready = true;
         }
 
@@ -68,14 +68,6 @@ namespace AetherCompass.Compasses
 
         private protected abstract void DisposeCompassUsedIcons();
 
-        #region Maybe TODO
-        //public abstract bool ProcessMinimapEnabled { get; private protected set; }
-        //public abstract bool ProcessMapEnabled { get; private protected set; }
-
-        //private protected unsafe abstract void ProcessObjectiveOnMinimap(ObjectInfo* info);
-        //private protected unsafe abstract void ProcessObjectiveOnMap(ObjectInfo* o);
-
-        #endregion
 
         public unsafe virtual bool CheckObject(GameObject* o)
         {
@@ -105,9 +97,8 @@ namespace AetherCompass.Compasses
                 {
                     closestObj.SecondLast = IntPtr.Zero;
                     closestObjLastChangedTime = DateTime.UtcNow;
-                    //Plugin.LogDebug($"{GetType().Name}:reset2");
                 }
-                if (closestObj.Ptr != IntPtr.Zero && closestObj.Ptr != closestObj.LastClosest && closestObj.Ptr != closestObj.SecondLast)
+                else if (closestObj.Ptr != IntPtr.Zero && closestObj.Ptr != closestObj.LastClosest && closestObj.Ptr != closestObj.SecondLast)
                 {
                     var obj = (GameObject*)closestObj.Ptr;
                     if (obj != null)
@@ -130,12 +121,9 @@ namespace AetherCompass.Compasses
                             Notifier.TryNotifyByToast(msg);
                         }
                     }
-                    //Plugin.LogDebug($"{GetType().Name}:reset1:BEFORE: {closestObj.LastClosest}, {closestObj.SecondLast}");
-                    // Set new SecondLast to old LastClosest; then reset LastClosest
                     closestObj.SecondLast = closestObj.LastClosest;
                     closestObj.LastClosest = closestObj.Ptr;
                     closestObjLastChangedTime = DateTime.UtcNow;
-                    //Plugin.LogDebug($"{GetType().Name}:reset1:AFTER: {closestObj.LastClosest}, {closestObj.SecondLast}");
                 }
             }
             closestObj.Ptr = IntPtr.Zero;
