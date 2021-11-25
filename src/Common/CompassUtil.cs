@@ -25,22 +25,16 @@ namespace AetherCompass.Common
             => o != null && o->IsCharacter() && (Marshal.ReadByte((IntPtr)o + 0x197C) & 2) == 0;
 
         public unsafe static float Get3DDistance(GameObject* o1, GameObject* o2)
-        {
-            if (o1 == null || o2 == null) return float.NaN;
-            return MathF.Sqrt(MathF.Pow(o1->Position.X - o2->Position.X, 2)
-                + MathF.Pow(o1->Position.Y - o2->Position.Y, 2)
-                + MathF.Pow(o1->Position.Z - o2->Position.Z, 2));
-        }
+            => o1 == null || o2 == null ? float.NaN : Get3DDistance(o1->Position, o2->Position);
+
+        public static float Get3DDistance(Vector3 pos1, Vector3 pos2)
+            => MathF.Sqrt(MathF.Pow(pos1.X - pos2.X, 2) + MathF.Pow(pos1.Y - pos2.Y, 2) + MathF.Pow(pos1.Z - pos2.Z, 2));
 
         public unsafe static float Get3DDistanceFromPlayer(GameObject* o)
-        {
-            if (o == null) return float.NaN;
-            var player = Plugin.ClientState.LocalPlayer;
-            if (player == null) return float.NaN;
-            return MathF.Sqrt(MathF.Pow(o->Position.X - player.Position.X, 2)
-                + MathF.Pow(o->Position.Y - player.Position.Y, 2)
-                + MathF.Pow(o->Position.Z - player.Position.Z, 2));
-        }
+            => o == null ? float.NaN : Get3DDistanceFromPlayer(o->Position);
+
+        public unsafe static float Get3DDistanceFromPlayer(Vector3 gameObjPos)
+            => Plugin.ClientState.LocalPlayer == null ? float.NaN : Get3DDistance(gameObjPos, Plugin.ClientState.LocalPlayer.Position);
 
         public unsafe static float Get2DDistanceFromPlayer(GameObject* o)
         {
@@ -64,16 +58,17 @@ namespace AetherCompass.Common
             + (Plugin.ClientState.ClientLanguage == Dalamud.ClientLanguage.Japanese
                 ? "m" : "y");
 
+        public static string Get3DDistanceFromPlayerDescriptive(Vector3 gameObjPos, bool integer)
+            => DistanceToDescriptiveString(Get3DDistanceFromPlayer(gameObjPos), integer);
+
         public unsafe static string Get3DDistanceFromPlayerDescriptive(GameObject* o, bool integer)
             => DistanceToDescriptiveString(Get3DDistanceFromPlayer(o), integer);
 
         public unsafe static float GetAltitudeDiffFromPlayer(GameObject* o)
-        {
-            if (o == null) return float.NaN;
-            var player = Plugin.ClientState.LocalPlayer;
-            if (player == null) return float.NaN;
-            return o->Position.Y - player.Position.Y;
-        }
+            => o == null ? float.NaN : GetAltitudeDiffFromPlayer(o->Position);
+
+        public static float GetAltitudeDiffFromPlayer(Vector3 gameObjPos)
+            => Plugin.ClientState.LocalPlayer == null ? float.NaN : (gameObjPos.Y - Plugin.ClientState.LocalPlayer.Position.Y);
 
         public static string AltitudeDiffToDescriptiveString(float diff)
         {
@@ -87,17 +82,25 @@ namespace AetherCompass.Common
         public unsafe static string GetAltitudeDiffFromPlayerDescriptive(GameObject* o)
             => AltitudeDiffToDescriptiveString(GetAltitudeDiffFromPlayer(o));
 
+        public static string GetAltitudeDiffFromPlayerDescriptive(Vector3 gameObjPos)
+            => AltitudeDiffToDescriptiveString(GetAltitudeDiffFromPlayer(gameObjPos));
+
         public unsafe static float GetRotationFromPlayer(GameObject* o)
+            => o == null ? float.NaN : GetRotationFromPlayer(o->Position);
+
+        public static float GetRotationFromPlayer(Vector3 gameObjPos)
         {
-            if (o == null) return float.NaN;
             var player = Plugin.ClientState.LocalPlayer;
             if (player == null) return float.NaN;
-            return MathF.Atan2(o->Position.X - player.Position.X, o->Position.Z - player.Position.Z);
+            return MathF.Atan2(gameObjPos.X - player.Position.X, gameObjPos.Z - player.Position.Z);
         }
 
         public unsafe static CompassDirection GetDirectionFromPlayer(GameObject* o)
+            => o == null ? CompassDirection.NaN : GetDirectionFromPlayer(o->Position);
+
+        public static CompassDirection GetDirectionFromPlayer(Vector3 gameObjPos)
         {
-            var r = GetRotationFromPlayer(o);
+            var r = GetRotationFromPlayer(gameObjPos);
             if (float.IsNaN(r)) return CompassDirection.NaN;
             CompassDirection d = 0;
             if (MathF.Abs(r) <= 3 * MathF.PI / 8) d |= CompassDirection.South;
@@ -184,5 +187,24 @@ namespace AetherCompass.Common
 
         public static string GetMapCoordInCurrentMapFormattedString(Vector3 worldPos, bool showZ = true)
             => MapCoordToFormattedString(GetMapCoordInCurrentMap(worldPos), showZ);
+
+        public static Vector3 GetWorldPosition(Vector3 mapCoord, ushort scale,
+            short offsetXCoord, short offsetYCoord, short offsetZCoord)
+            => new(MapCoordToWorldPosition(mapCoord.X, scale, offsetXCoord),
+                    MapCoordToWorldPositionY(mapCoord.Z, offsetZCoord),
+                    MapCoordToWorldPosition(mapCoord.Y, scale, offsetYCoord));
+
+        private static float MapCoordToWorldPosition(float v, ushort scale, short offset)
+            => ((v - 1) * (scale / 100f) * 2048f / 41f + 1 - 1024f) / (scale / 100f) - offset;
+        
+        private static float MapCoordToWorldPositionY(float coordZ, short offset = 0)
+        => coordZ * 100f + offset;
+
+        public static Vector3 GetWorldPositionFromMapCoordInCurrentMap(Vector3 mapCoord)
+        {
+            var map = GetCurrentMap();
+            if (map == null) return new Vector3(float.NaN, float.NaN, float.NaN);
+            return GetWorldPosition(mapCoord, map.SizeFactor, map.OffsetX, map.OffsetY, GetCurrentTerritoryZOffset());
+        }
     }
 }

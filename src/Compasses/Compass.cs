@@ -16,6 +16,9 @@ namespace AetherCompass.Compasses
         private protected readonly PluginConfig config = null!;
         private protected readonly CompassConfig compassConfig = null!;
 
+        private protected readonly CompassDetailsWindow detailsWindow = null!;
+        private protected readonly CompassOverlay overlay = null!;
+
         private bool ready = false;
 
         // Record last and 2nd last closest to prevent frequent notification when player is at a pos close to two objs
@@ -51,10 +54,12 @@ namespace AetherCompass.Compasses
         public virtual bool NotifyToast => config.NotifyToast && compassConfig.NotifyToast;
 
 
-        public Compass(PluginConfig config, CompassConfig compassConfig)
+        public Compass(PluginConfig config, CompassConfig compassConfig, CompassDetailsWindow detailsWindow, CompassOverlay overlay)
         {
             this.config = config;
             this.compassConfig = compassConfig;
+            this.detailsWindow = detailsWindow;
+            this.overlay = overlay;
             _compassEnabled = compassConfig.Enabled;   // assign to field to void trigger Icon manager when init
             ready = true;
         }
@@ -131,7 +136,7 @@ namespace AetherCompass.Compasses
         }
 
 
-        public async void OnZoneChange()
+        public async virtual void OnZoneChange(ushort terr)
         {
             ready = false;
             await System.Threading.Tasks.Task.Delay(2500);
@@ -233,26 +238,35 @@ namespace AetherCompass.Compasses
         {
             lastDrawEndPos = new(0, 0);
             if (obj == null) return false;
+            return DrawScreenMarkerDefault(obj->Position, obj->GetHeight(), icon, iconSizeRaw, iconAlpha,
+                info, infoTextColour, textShadowLightness, out lastDrawEndPos);
+        }
 
+        private protected virtual bool DrawScreenMarkerDefault(Vector3 objWorldPos, float objHeight,
+            ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
+            Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
+        {
+            lastDrawEndPos = new(0, 0);
+            
             // Make the marker drawn slightly higher than object's hitbox position
-            Vector3 hitboxPosAdjusted = new(obj->Position.X, obj->Position.Y + obj->GetHeight() + 1, obj->Position.Z);
+            Vector3 hitboxPosAdjusted = new(objWorldPos.X, objWorldPos.Y + objHeight + .5f, objWorldPos.Z);
             bool inFrontOfCamera = UiHelper.WorldToScreenPos(hitboxPosAdjusted, out lastDrawEndPos);
             lastDrawEndPos = PushToSideOnXIfNeeded(lastDrawEndPos, inFrontOfCamera);
 
-            var altidueDiff = CompassUtil.GetAltitudeDiffFromPlayer(obj);
+            var altidueDiff = CompassUtil.GetAltitudeDiffFromPlayer(objWorldPos);
 
             // Draw direction indicator
-            DrawDirectionIcon(lastDrawEndPos, config.ScreenMarkSizeScale, 
-                IconManager.DirectionScreenIndicatorIconColour, 
+            DrawDirectionIcon(lastDrawEndPos, config.ScreenMarkSizeScale,
+                IconManager.DirectionScreenIndicatorIconColour,
                 out float rotationFromUpward, out lastDrawEndPos);
             // Marker
-            bool markerDrawn = icon != null 
+            bool markerDrawn = icon != null
                 && DrawScreenMarkerIcon(icon.ImGuiHandle, lastDrawEndPos, iconSizeRaw, true,
                 config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
             if (markerDrawn)
             {
                 // Altitude
-                DrawAltitudeDiffIcon(altidueDiff, lastDrawEndPos, true, 
+                DrawAltitudeDiffIcon(altidueDiff, lastDrawEndPos, true,
                     config.ScreenMarkSizeScale, iconAlpha, out _);
                 // Info
                 DrawExtraInfoByMarker(info, config.ScreenMarkSizeScale, infoTextColour,

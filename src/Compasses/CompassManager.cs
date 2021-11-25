@@ -129,13 +129,12 @@ namespace AetherCompass.Compasses
                 compass.OnLoopEnd();
         }
 
-        public void OnZoneChange()
+        public void OnZoneChange(ushort terr)
         {
             workingCompasses.Clear();
-            var terr = Plugin.ClientState.TerritoryType;
             foreach (var compass in compasses)
             {
-                compass.OnZoneChange();
+                compass.OnZoneChange(terr);
                 if (compass.IsEnabledTerritory(terr))
                     workingCompasses.Add(compass);
             }

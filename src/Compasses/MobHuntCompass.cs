@@ -23,8 +23,8 @@ namespace AetherCompass.Compasses
 
 
 
-        public MobHuntCompass(PluginConfig config, MobHuntCompassConfig compassConfig)
-            : base(config, compassConfig) 
+        public MobHuntCompass(PluginConfig config, MobHuntCompassConfig compassConfig, CompassDetailsWindow detailsWindow, CompassOverlay overlay)
+            : base(config, compassConfig, detailsWindow, overlay) 
         {
             InitNMDataMap();
         }

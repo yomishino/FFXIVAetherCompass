@@ -119,6 +119,24 @@ namespace AetherCompass.UI.GUI
             }
         }
 
+
+        private static Dictionary<uint, TextureWrap?> _gatheringMarkerIconMap = new();
+
+        internal static TextureWrap? GetGatheringMarkerIcon(uint iconId)
+        {
+            if (!_gatheringMarkerIconMap.TryGetValue(iconId, out var tex) || tex == null)
+                SetGatheringMarkerIcon(iconId, GetIconAsImGuiTexture(iconId));
+            return _gatheringMarkerIconMap[iconId];
+        }
+
+        private static void SetGatheringMarkerIcon(uint iconId, TextureWrap? icon)
+        {
+            if (!_gatheringMarkerIconMap.TryGetValue(iconId, out var tex))
+                tex?.Dispose();
+            _gatheringMarkerIconMap[iconId] = icon;
+        }
+
+
         // NPC AnnounceIcon starts from 71200; see lumina sheet EventIconType
         // For types whose IconRange is 6, the 3rd is in-progress and 5th is last seq (checkmark icon),
         // because +0 is the dummy, so 1st icon in the range would start from +1.
@@ -155,12 +173,8 @@ namespace AetherCompass.UI.GUI
         private static void SetQuestMarkerIcon(uint iconId, TextureWrap? icon)
         {
             if (!_questMarkerIconMap.TryGetValue(iconId, out var tex))
-                _questMarkerIconMap[iconId] = icon;
-            else
-            {
                 tex?.Dispose();
-                _questMarkerIconMap[iconId] = icon;
-            }
+            _questMarkerIconMap[iconId] = icon;
         }
 
         private static uint GetQuestMarkerIconId(uint baseIconId, byte iconRange, bool questLastSeq = false)
@@ -194,6 +208,12 @@ namespace AetherCompass.UI.GUI
             MobHuntMarkerIcon = null;
         }
 
+        internal static void DisposeGatheringPointCompassIcons()
+        {
+            foreach (uint id in _gatheringMarkerIconMap.Keys)
+                SetGatheringMarkerIcon(id, null);
+        }
+
         internal static void DisposeQuestCompassIcons()
         {
             DefaultQuestMarkerIcon = null;
@@ -206,6 +226,7 @@ namespace AetherCompass.UI.GUI
             DisposeCommonIcons();
             DisposeAetherCurrentCompassIcons();
             DisposeMobHuntCompassIcons();
+            DisposeGatheringPointCompassIcons();
             DisposeQuestCompassIcons();
         }
 
@@ -224,6 +245,7 @@ namespace AetherCompass.UI.GUI
             return icon;
         }
 
+        [System.Diagnostics.Conditional("DEBUG")]
         private static void ShowLoadIconError(uint iconId)
         {
             string name = iconId switch
@@ -235,7 +257,8 @@ namespace AetherCompass.UI.GUI
                 AetherCurrentMarkerIconId => nameof(AetherCurrentMarkerIcon),
                 MobHuntMarkerIconId => nameof(MobHuntMarkerIcon),
                 DefaultQuestMarkerIconId => nameof(DefaultQuestMarkerIcon),
-                _ => _questMarkerIconMap.ContainsKey(iconId) ? $"QuestMarkerIcon_{iconId}" : "(UnknownIcon)",
+                _ => _gatheringMarkerIconMap.ContainsKey(iconId) ? $"GatheringMarkerIcon_{iconId}" :
+                    (_questMarkerIconMap.ContainsKey(iconId) ? $"QuestMarkerIcon_{iconId}" : "(UnknownIcon)"),
             };
             //Plugin.ShowError($"Plugin encountered an error: Failed to load icon",
             //    $"Failed to load icon: {name}, IconId = {iconId}");

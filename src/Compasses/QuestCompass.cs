@@ -27,7 +27,8 @@ namespace AetherCompass.Compasses
         private static readonly float infoTextShadowLightness = .1f;
 
 
-        public QuestCompass(PluginConfig config, QuestCompassConfig compassConfig) : base(config, compassConfig) 
+        public QuestCompass(PluginConfig config, QuestCompassConfig compassConfig, CompassDetailsWindow detailsWindow, CompassOverlay overlay) 
+            : base(config, compassConfig, detailsWindow, overlay) 
         {
             InitQuestSheetToDoChildLocationMap();
         }

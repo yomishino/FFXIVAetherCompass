@@ -31,6 +31,7 @@ namespace AetherCompass.Configs
 
         public AetherCurrentCompassConfig AetherCurrentConfig { get; private set; } = new();
         public MobHuntCompassConfig MobHuntConfig { get; private set; } = new();
+        public GatheringPointCompassConfig GatheringConfig { get; private set; } = new();
         public QuestCompassConfig QuestConfig { get; private set; } = new();
 
 #if DEBUG
@@ -64,6 +65,7 @@ namespace AetherCompass.Configs
 
             AetherCurrentConfig.CheckValueValidity();
             MobHuntConfig.CheckValueValidity();
+            GatheringConfig.CheckValueValidity();
             QuestConfig.CheckValueValidity();
 #if DEBUG
             DebugConfig.CheckValueValidity();
@@ -93,6 +95,7 @@ namespace AetherCompass.Configs
 
                 AetherCurrentConfig.Load(config.AetherCurrentConfig);
                 MobHuntConfig.Load(config.MobHuntConfig);
+                GatheringConfig.Load(config.GatheringConfig);
                 QuestConfig.Load(config.QuestConfig);
             }
             // NOTE: config ver conversion if needed

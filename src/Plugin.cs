@@ -90,13 +90,14 @@ namespace AetherCompass
 
             PluginCommands.AddCommands(this);
 
-            compassMgr.AddCompass(new AetherCurrentCompass(Config, Config.AetherCurrentConfig));
-            compassMgr.AddCompass(new MobHuntCompass(Config, Config.MobHuntConfig));
+            compassMgr.AddCompass(new AetherCurrentCompass(Config, Config.AetherCurrentConfig, detailsWindow, overlay));
+            compassMgr.AddCompass(new MobHuntCompass(Config, Config.MobHuntConfig, detailsWindow, overlay));
 #if !RELEASE
-            compassMgr.AddCompass(new QuestCompass(Config, Config.QuestConfig));
+            compassMgr.AddCompass(new GatheringPointCompass(Config, Config.GatheringConfig, detailsWindow, overlay));
+            compassMgr.AddCompass(new QuestCompass(Config, Config.QuestConfig, detailsWindow, overlay));
 #endif
 #if DEBUG
-            compassMgr.AddCompass(new DebugCompass(Config, Config.DebugConfig));
+            compassMgr.AddCompass(new DebugCompass(Config, Config.DebugConfig, detailsWindow, overlay));
 #endif
             
             Framework.Update += OnFrameworkUpdate;
@@ -298,7 +299,7 @@ namespace AetherCompass
             if (terr == 0) return;
             // Local player is almost always null when this event fired
             if (Enabled && ClientState.LocalContentId != 0)
-                compassMgr.OnZoneChange();
+                compassMgr.OnZoneChange(terr);
         }
 
         // Work only in PvE zone, also excl LoVM / chocobo race etc.
