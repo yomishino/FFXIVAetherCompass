@@ -246,8 +246,6 @@ namespace AetherCompass.Compasses
             ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
             Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
         {
-            lastDrawEndPos = new(0, 0);
-            
             // Make the marker drawn slightly higher than object's hitbox position
             Vector3 hitboxPosAdjusted = new(objWorldPos.X, objWorldPos.Y + objHeight + .5f, objWorldPos.Z);
             bool inFrontOfCamera = UiHelper.WorldToScreenPos(hitboxPosAdjusted, out lastDrawEndPos);
