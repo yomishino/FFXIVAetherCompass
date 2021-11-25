@@ -98,7 +98,7 @@ namespace AetherCompass.Configs
                 GatheringConfig.Load(config.GatheringConfig);
                 QuestConfig.Load(config.QuestConfig);
             }
-            // NOTE: config ver conversion if needed
+            // NOTE: config ver conversion if needed; and remind users
         }
 
         public static PluginConfig GetSavedPluginConfig()
