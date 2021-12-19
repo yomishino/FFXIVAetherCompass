@@ -92,8 +92,8 @@ namespace AetherCompass
 
             compassMgr.AddCompass(new AetherCurrentCompass(Config, Config.AetherCurrentConfig, detailsWindow, overlay));
             compassMgr.AddCompass(new MobHuntCompass(Config, Config.MobHuntConfig, detailsWindow, overlay));
-#if !RELEASE
             compassMgr.AddCompass(new GatheringPointCompass(Config, Config.GatheringConfig, detailsWindow, overlay));
+#if !RELEASE
             compassMgr.AddCompass(new QuestCompass(Config, Config.QuestConfig, detailsWindow, overlay));
 #endif
 #if DEBUG
