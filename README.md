@@ -12,9 +12,13 @@ Optionally, it can notify you through Chat and/or Toast messages.
 Currently supports detecting:
 - Aether Currents
 - Mob Hunt Elite Marks (Notorious Monsters)
+- Gathering Points
 
 ... and more are on the way.
 
+**NOTE:** Because most objects/NPCs are not loaded 
+when they are too faraway or when there are too many entities nearby (such as too many player characters), 
+they will not be detected in this case.
 
 ## Installation
 

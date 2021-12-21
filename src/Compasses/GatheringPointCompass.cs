@@ -216,7 +216,6 @@ namespace AetherCompass.Compasses
 
 
     // mapping GatheringPoint.Type column, not GatheringType sheet rows
-    // TODO: may need update in new Ex ver
     public enum GatheringPointType: byte
     {
         None,
