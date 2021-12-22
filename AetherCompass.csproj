@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <Authors>yomishino</Authors>
-    <Version>1.2.0.1</Version>
-    <Description>An FFXIV Dalamud plugin: An Aether compass that auto detects nearby Aether Currents --- and more.</Description>
+    <Version>1.2.0.2</Version>
+    <Description>An FFXIV Dalamud plugin providing a set of compasses that detect and mark certain nearby objects/NPCs.</Description>
     <PackageProjectUrl></PackageProjectUrl>
     <Configurations>Debug;Release;TestRelease</Configurations>
   </PropertyGroup>
