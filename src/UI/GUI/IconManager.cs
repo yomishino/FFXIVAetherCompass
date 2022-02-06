@@ -13,50 +13,31 @@ namespace AetherCompass.UI.GUI
 
 
         public const uint AltitudeHigherIconId = 60954;
-        internal static TextureWrap? AltitudeHigherIcon
-        {
-            get => iconMap[AltitudeHigherIconId];
-        }
+        internal static TextureWrap? AltitudeHigherIcon => iconMap[AltitudeHigherIconId];
         public const uint AltitudeLowerIconId = 60955;
-        internal static TextureWrap? AltitudeLowerIcon
-        {
-            get => iconMap[AltitudeLowerIconId];
-        }
+        internal static TextureWrap? AltitudeLowerIcon => iconMap[AltitudeLowerIconId];
         public static readonly Vector2 AltitudeIconSize = new(45, 45);
 
         // NaviMap thing with those quests/fate etc. direction markers are in 10001400
         // but use something else for easier work:
         // 60541 up, 60545 down; there are also two sets that are smaller
         public const uint DirectionScreenIndicatorIconId = 60541;
-        internal static TextureWrap? DirectionScreenIndicatorIcon
-        {
-            get => iconMap[DirectionScreenIndicatorIconId];
-        }
-        internal static readonly Vector2 DirectionScreenIndicatorIconSize = new(45, 45);
-        internal static readonly uint DirectionScreenIndicatorIconColour = ImGuiNET.ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
+        internal static TextureWrap? DirectionScreenIndicatorIcon => iconMap[DirectionScreenIndicatorIconId];
+        public static readonly Vector2 DirectionScreenIndicatorIconSize = new(45, 45);
+        public static readonly uint DirectionScreenIndicatorIconColour = ImGuiNET.ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
 
 
-        internal static readonly Vector2 MarkerIconSize = new(30, 30);
+        public static readonly Vector2 MarkerIconSize = new(30, 30);
 
         public const uint ConfigDummyMarkerIconId = 25948;
-        internal static TextureWrap? ConfigDummyMarkerIcon
-        {
-            get => iconMap[ConfigDummyMarkerIconId];
-        }
+        internal static TextureWrap? ConfigDummyMarkerIcon => iconMap[ConfigDummyMarkerIconId];
         internal static TextureWrap? DebugMarkerIcon => ConfigDummyMarkerIcon;
 
         public const uint AetherCurrentMarkerIconId = 60033;
-        internal static TextureWrap? AetherCurrentMarkerIcon
-        {
-            get => iconMap[AetherCurrentMarkerIconId];
-        }
+        internal static TextureWrap? AetherCurrentMarkerIcon => iconMap[AetherCurrentMarkerIconId];
 
         public const uint MobHuntMarkerIconId = 61710;
-        internal static TextureWrap? MobHuntMarkerIcon
-        {
-            get => iconMap[MobHuntMarkerIconId];
-        }
-
+        internal static TextureWrap? MobHuntMarkerIcon => iconMap[MobHuntMarkerIconId];
 
         private static readonly HashSet<uint> gatheringMarkerIconIds = new();
         internal static TextureWrap? GetGatheringMarkerIcon(uint iconId)
@@ -65,16 +46,12 @@ namespace AetherCompass.UI.GUI
             return iconMap[iconId];
         }
 
-
         // NPC AnnounceIcon starts from 71200; see lumina sheet EventIconType
         // For types whose IconRange is 6, the 3rd is in-progress and 5th is last seq (checkmark icon),
         // because +0 is the dummy, so 1st icon in the range would start from +1.
         // Each type has availabled and locked ver, but rn idk how to accurately tell if a quest is avail or locked
         public const uint DefaultQuestMarkerIconId = 71223;
-        internal static TextureWrap? DefaultQuestMarkerIcon
-        {
-            get => iconMap[DefaultQuestMarkerIconId];
-        }
+        internal static TextureWrap? DefaultQuestMarkerIcon => iconMap[DefaultQuestMarkerIconId];
 
         private static readonly HashSet<uint> questMarkerIconIds = new();
 

@@ -78,7 +78,9 @@ namespace AetherCompass
         }
         internal bool InConfig { get; set; }
 
-        
+        private static bool isInCompassWorkZone;
+        private static bool isInDetailWindowHideZone;
+
 
         public Plugin()
         {
@@ -122,35 +124,6 @@ namespace AetherCompass
         private void OnDrawUi()
         {
             if (ClientState.LocalContentId == 0) return;
-
-            if (Enabled && InCompassWorkZone())
-            {
-                if (ClientState.LocalPlayer != null)
-                {
-                    try
-                    {
-                        if (Config.ShowScreenMark) overlay.Draw();
-                        if (Config.ShowDetailWindow)
-                        {
-                            if (!(Config.HideDetailInContents && IsDetailWindowHideZone()))
-                                detailsWindow.Draw();
-                            else detailsWindow.Clear();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        //ShowError("Plugin encountered an error.", e.ToString());
-                        LogError(e.ToString());
-                    }
-                }
-                else
-                {
-                    // Clear when should not draw to avoid any action remaining in queue be drawn later
-                    // which would cause game crash due to access violation etc.
-                    if (Config.ShowScreenMark) overlay.Clear();
-                    if (Config.ShowDetailWindow) detailsWindow.Clear();
-                }
-            }
 
             if (InConfig)
             {
@@ -261,10 +234,42 @@ namespace AetherCompass
                 ImGui.End();
 
                 Config.CheckValueValidity(ImGui.GetMainViewport().Size);
-
-                // for drawing the marker display area
-                if (Config.ShowScreenMark) overlay.Draw();
             }
+
+            if (Enabled && isInCompassWorkZone && !InNotDrawingConditions())
+            {
+                if (ClientState.LocalPlayer != null)
+                {
+                    try
+                    {
+                        if (Config.ShowScreenMark) overlay.Draw();
+                        if (Config.ShowDetailWindow)
+                        {
+                            if (!(Config.HideDetailInContents && isInDetailWindowHideZone))
+                                detailsWindow.Draw();
+                            else detailsWindow.Clear();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        //ShowError("Plugin encountered an error.", e.ToString());
+                        LogError(e.ToString());
+                    }
+                }
+                else
+                {
+                    // Clear when should not draw to avoid any action remaining in queue be drawn later
+                    // which would cause game crash due to access violation etc.
+                    if (Config.ShowScreenMark) overlay.Clear();
+                    if (Config.ShowDetailWindow) detailsWindow.Clear();
+                }
+            }
+            else if (InConfig && Config.ShowScreenMark)
+            {
+                // for drawing the marker display area when in config
+                overlay.Draw();
+            }
+
         }
 
         private void Reload()
@@ -275,7 +280,7 @@ namespace AetherCompass
 
         private void OnFrameworkUpdate(Framework framework)
         {
-            if (Enabled && ClientState.LocalContentId != 0 && InCompassWorkZone())
+            if (Enabled && ClientState.LocalContentId != 0 && isInCompassWorkZone)
             {
                 try
                 {
@@ -300,18 +305,29 @@ namespace AetherCompass
             // Local player is almost always null when this event fired
             if (Enabled && ClientState.LocalContentId != 0)
                 compassMgr.OnZoneChange(terr);
+            CheckCompassWorkZone();
+            CheckDetailWindowHideZone();
         }
 
         // Work only in PvE zone, also excl LoVM / chocobo race etc.
-        private bool InCompassWorkZone()
+        private static void CheckCompassWorkZone()
         {
             var terr = DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
                 .GetRow(ClientState.TerritoryType);
-            return terr != null && !terr.IsPvpZone
+            isInCompassWorkZone = terr != null 
+                && !terr.IsPvpZone
                 && terr.BattalionMode <= 1   // > 1 are pvp contents or LoVM
                 && terr.TerritoryIntendedUse != 20  // chocobo race terr?
-                && !InNotDrawingConditions()
                 ;
+        }
+
+        private static void CheckDetailWindowHideZone()
+        {
+            var terr = DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
+                .GetRow(ClientState.TerritoryType);
+            // Exclusive type: 0 not instanced, 1 is solo instance, 2 is nonsolo instance.
+            // Not sure about 3, seems quite mixed up with solo battles, diadem and misc stuff like LoVM
+            isInDetailWindowHideZone = terr == null || terr.ExclusiveType > 0;
         }
 
         private bool InNotDrawingConditions()
@@ -337,14 +353,6 @@ namespace AetherCompass
             || ClientCondition[ConditionFlag.PreparingToCraft]
             );
 
-        private static bool IsDetailWindowHideZone()
-        {
-            var terr = (DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
-                .GetRow(ClientState.TerritoryType));
-            // Exclusive type: 0 not instanced, 1 is solo instance, 2 is nonsolo instance.
-            // Not sure about 3, seems quite mixed up with solo battles, diadem and misc stuff like LoVM
-            return terr == null || terr.ExclusiveType > 0;
-        }
 
 
 #region IDisposable Support

@@ -57,6 +57,9 @@ namespace AetherCompass.Compasses
 
         public void OnTick()
         {
+            overlay.Clear();
+            detailsWindow.Clear();
+
             foreach (var compass in workingCompasses)
                 compass.OnLoopStart();
 
