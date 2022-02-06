@@ -1,6 +1,7 @@
 ﻿using AetherCompass.Common.SeFunctions;
 using Dalamud.Game.Text.SeStringHandling;
 using System;
+using System.Threading.Tasks;
 
 namespace AetherCompass.UI
 {
@@ -10,14 +11,17 @@ namespace AetherCompass.UI
         private static DateTime lastSeNotifiedTime = DateTime.MinValue;
 
 
-        public static void TryNotifyByChat(SeString msg, bool playSe, int macroSeId = 0)
+        public static async void TryNotifyByChat(SeString msg, bool playSe, int macroSeId = 0)
         {
             Chat.PrintChat(msg);
-            if (playSe && CanNotifyBySe())
+            await Task.Run(() =>
             {
-                Sound.PlaySoundEffect(macroSeId);
-                lastSeNotifiedTime = DateTime.UtcNow;
-            }
+                if (playSe && CanNotifyBySe())
+                {
+                    Sound.PlaySoundEffect(macroSeId);
+                    lastSeNotifiedTime = DateTime.UtcNow;
+                }
+            });
         }
 
         public static void TryNotifyByToast(string msg)

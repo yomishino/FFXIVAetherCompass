@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading.Tasks;
 
 using TextureWrap = ImGuiScene.TextureWrap;
 
@@ -8,37 +9,18 @@ namespace AetherCompass.UI.GUI
 {
     public sealed class IconManager : IDisposable
     {
+        private static readonly IconMap iconMap = new();
+
+
         public const uint AltitudeHigherIconId = 60954;
-        private static TextureWrap? _altitudeHigherIcon;
         internal static TextureWrap? AltitudeHigherIcon
         {
-            get
-            {
-                if (_altitudeHigherIcon == null)
-                    _altitudeHigherIcon = GetIconAsImGuiTexture(AltitudeHigherIconId);
-                return _altitudeHigherIcon;
-            }
-            private set
-            {
-                _altitudeHigherIcon?.Dispose();
-                _altitudeHigherIcon = value;
-            }
+            get => iconMap[AltitudeHigherIconId];
         }
         public const uint AltitudeLowerIconId = 60955;
-        private static TextureWrap? _altitudeLowerIcon;
         internal static TextureWrap? AltitudeLowerIcon
         {
-            get
-            {
-                if (_altitudeLowerIcon == null)
-                    _altitudeLowerIcon = GetIconAsImGuiTexture(AltitudeLowerIconId);
-                return _altitudeLowerIcon;
-            }
-            private set
-            {
-                _altitudeLowerIcon?.Dispose();
-                _altitudeLowerIcon = value;
-            }
+            get => iconMap[AltitudeLowerIconId];
         }
         public static readonly Vector2 AltitudeIconSize = new(45, 45);
 
@@ -46,20 +28,9 @@ namespace AetherCompass.UI.GUI
         // but use something else for easier work:
         // 60541 up, 60545 down; there are also two sets that are smaller
         public const uint DirectionScreenIndicatorIconId = 60541;
-        private static TextureWrap? _directionScreenIndicatorIcon;
         internal static TextureWrap? DirectionScreenIndicatorIcon
         {
-            get
-            {
-                if (_directionScreenIndicatorIcon == null)
-                    _directionScreenIndicatorIcon = GetIconAsImGuiTexture(DirectionScreenIndicatorIconId);
-                return _directionScreenIndicatorIcon;
-            }
-            private set
-            {
-                _directionScreenIndicatorIcon?.Dispose();
-                _directionScreenIndicatorIcon = value;
-            }
+            get => iconMap[DirectionScreenIndicatorIconId];
         }
         internal static readonly Vector2 DirectionScreenIndicatorIconSize = new(45, 45);
         internal static readonly uint DirectionScreenIndicatorIconColour = ImGuiNET.ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
@@ -68,72 +39,30 @@ namespace AetherCompass.UI.GUI
         internal static readonly Vector2 MarkerIconSize = new(30, 30);
 
         public const uint ConfigDummyMarkerIconId = 25948;
-        private static TextureWrap? _configDummyMarkerIcon;
         internal static TextureWrap? ConfigDummyMarkerIcon
-        { 
-            get 
-            {
-                if (_configDummyMarkerIcon == null)
-                    _configDummyMarkerIcon = GetIconAsImGuiTexture(ConfigDummyMarkerIconId);
-                return _configDummyMarkerIcon;
-            } 
-            private set
-            {
-                _configDummyMarkerIcon?.Dispose();
-                _configDummyMarkerIcon = value;
-            }
+        {
+            get => iconMap[ConfigDummyMarkerIconId];
         }
         internal static TextureWrap? DebugMarkerIcon => ConfigDummyMarkerIcon;
 
         public const uint AetherCurrentMarkerIconId = 60033;
-        private static TextureWrap? _aetherCurrentMarkerIcon;
         internal static TextureWrap? AetherCurrentMarkerIcon
         {
-            get
-            {
-                if (_aetherCurrentMarkerIcon == null)
-                    _aetherCurrentMarkerIcon = GetIconAsImGuiTexture(AetherCurrentMarkerIconId);
-                return _aetherCurrentMarkerIcon;
-            }
-            private set
-            {
-                _aetherCurrentMarkerIcon?.Dispose();
-                _aetherCurrentMarkerIcon = value;
-            }
+            get => iconMap[AetherCurrentMarkerIconId];
         }
 
         public const uint MobHuntMarkerIconId = 61710;
-        private static TextureWrap? _mobHuntMarkerIcon;
         internal static TextureWrap? MobHuntMarkerIcon
         {
-            get
-            {
-                if (_mobHuntMarkerIcon == null)
-                    _mobHuntMarkerIcon = GetIconAsImGuiTexture(MobHuntMarkerIconId);
-                return _mobHuntMarkerIcon;
-            }
-            private set
-            {
-                _mobHuntMarkerIcon?.Dispose();
-                _mobHuntMarkerIcon = null;
-            }
+            get => iconMap[MobHuntMarkerIconId];
         }
 
 
-        private static Dictionary<uint, TextureWrap?> _gatheringMarkerIconMap = new();
-
+        private static readonly HashSet<uint> gatheringMarkerIconIds = new();
         internal static TextureWrap? GetGatheringMarkerIcon(uint iconId)
         {
-            if (!_gatheringMarkerIconMap.TryGetValue(iconId, out var tex) || tex == null)
-                SetGatheringMarkerIcon(iconId, GetIconAsImGuiTexture(iconId));
-            return _gatheringMarkerIconMap[iconId];
-        }
-
-        private static void SetGatheringMarkerIcon(uint iconId, TextureWrap? icon)
-        {
-            if (!_gatheringMarkerIconMap.TryGetValue(iconId, out var tex))
-                tex?.Dispose();
-            _gatheringMarkerIconMap[iconId] = icon;
+            gatheringMarkerIconIds.Add(iconId);
+            return iconMap[iconId];
         }
 
 
@@ -142,40 +71,21 @@ namespace AetherCompass.UI.GUI
         // because +0 is the dummy, so 1st icon in the range would start from +1.
         // Each type has availabled and locked ver, but rn idk how to accurately tell if a quest is avail or locked
         public const uint DefaultQuestMarkerIconId = 71223;
-        private static TextureWrap? _defaultQuestMarkerIcon;
         internal static TextureWrap? DefaultQuestMarkerIcon
         {
-            get
-            {
-                if (_defaultQuestMarkerIcon == null)
-                    _defaultQuestMarkerIcon = GetIconAsImGuiTexture(DefaultQuestMarkerIconId);
-                return _defaultQuestMarkerIcon;
-            }
-            private set
-            {
-                _defaultQuestMarkerIcon?.Dispose();
-                _defaultQuestMarkerIcon = value;
-            }
+            get => iconMap[DefaultQuestMarkerIconId];
         }
 
-        private static readonly Dictionary<uint, TextureWrap?> _questMarkerIconMap = new();
-        
+        private static readonly HashSet<uint> questMarkerIconIds = new();
+
         internal static TextureWrap? GetQuestMarkerIcon(uint iconId)
         {
-            if (!_questMarkerIconMap.TryGetValue(iconId, out var tex) || tex == null)
-                SetQuestMarkerIcon(iconId, GetIconAsImGuiTexture(iconId));
-            return _questMarkerIconMap[iconId];
+            questMarkerIconIds.Add(iconId);
+            return iconMap[iconId];
         }
 
         internal static TextureWrap? GetQuestMarkerIcon(uint baseIconId, byte iconRange, bool questLastSeq = false)
             => GetQuestMarkerIcon(GetQuestMarkerIconId(baseIconId, iconRange, questLastSeq));
-
-        private static void SetQuestMarkerIcon(uint iconId, TextureWrap? icon)
-        {
-            if (!_questMarkerIconMap.TryGetValue(iconId, out var tex))
-                tex?.Dispose();
-            _questMarkerIconMap[iconId] = icon;
-        }
 
         private static uint GetQuestMarkerIconId(uint baseIconId, byte iconRange, bool questLastSeq = false)
             => baseIconId + iconRange switch
@@ -186,83 +96,98 @@ namespace AetherCompass.UI.GUI
             };
 
 
+
         #region Dispose
 
-        // Disposing each icon is handled by setter
-
-        private static void DisposeCommonIcons()
-        {
-            AltitudeHigherIcon = null;
-            AltitudeLowerIcon = null;
-            DirectionScreenIndicatorIcon = null;
-            ConfigDummyMarkerIcon = null;
-        }
+        //private static void DisposeCommonIcons()
+        //{
+        //    iconMap.Remove(AltitudeHigherIconId);
+        //    iconMap.Remove(AltitudeLowerIconId);
+        //    iconMap.Remove(DirectionScreenIndicatorIconId);
+        //    iconMap.Remove(ConfigDummyMarkerIconId);
+        //}
 
         internal static void DisposeAetherCurrentCompassIcons()
         {
-            AetherCurrentMarkerIcon = null;
+            iconMap.Remove(AetherCurrentMarkerIconId);
         }
 
         internal static void DisposeMobHuntCompassIcons()
         {
-            MobHuntMarkerIcon = null;
+            iconMap.Remove(MobHuntMarkerIconId);
         }
 
         internal static void DisposeGatheringPointCompassIcons()
         {
-            foreach (uint id in _gatheringMarkerIconMap.Keys)
-                SetGatheringMarkerIcon(id, null);
+            foreach (uint id in gatheringMarkerIconIds)
+                iconMap.Remove(id);
         }
 
         internal static void DisposeQuestCompassIcons()
         {
-            DefaultQuestMarkerIcon = null;
-            foreach (uint id in _questMarkerIconMap.Keys)
-                SetQuestMarkerIcon(id, null);
+            iconMap.Remove(DefaultQuestMarkerIconId);
+            foreach (uint id in questMarkerIconIds)
+                iconMap.Remove(id);
         }
 
-        public static void DisposeAllIcons()
-        {
-            DisposeCommonIcons();
-            DisposeAetherCurrentCompassIcons();
-            DisposeMobHuntCompassIcons();
-            DisposeGatheringPointCompassIcons();
-            DisposeQuestCompassIcons();
-        }
+        public static void DisposeAllIcons() => iconMap.Clear();
 
-        public void Dispose()
-        {
-            DisposeAllIcons();
-        }
+        public void Dispose() => DisposeAllIcons();
 
         #endregion
+    }
 
 
-        private static TextureWrap? GetIconAsImGuiTexture(uint iconId)
-        { 
-            var icon = Plugin.DataManager.GetImGuiTextureIcon(iconId);
-            if (icon == null) ShowLoadIconError(iconId);
-            return icon;
-        }
+    class IconMap
+    {
+        private readonly Dictionary<uint, TextureWrap?> map = new();
 
-        [System.Diagnostics.Conditional("DEBUG")]
-        private static void ShowLoadIconError(uint iconId)
+        public TextureWrap? this[uint iconId]
         {
-            string name = iconId switch
+            get
             {
-                AltitudeHigherIconId => nameof(AltitudeHigherIcon),
-                AltitudeLowerIconId => nameof(AltitudeLowerIcon),
-                DirectionScreenIndicatorIconId => nameof(DirectionScreenIndicatorIcon),
-                ConfigDummyMarkerIconId => nameof(ConfigDummyMarkerIcon),
-                AetherCurrentMarkerIconId => nameof(AetherCurrentMarkerIcon),
-                MobHuntMarkerIconId => nameof(MobHuntMarkerIcon),
-                DefaultQuestMarkerIconId => nameof(DefaultQuestMarkerIcon),
-                _ => _gatheringMarkerIconMap.ContainsKey(iconId) ? $"GatheringMarkerIcon_{iconId}" :
-                    (_questMarkerIconMap.ContainsKey(iconId) ? $"QuestMarkerIcon_{iconId}" : "(UnknownIcon)"),
-            };
-            //Plugin.ShowError($"Plugin encountered an error: Failed to load icon",
-            //    $"Failed to load icon: {name}, IconId = {iconId}");
-            Plugin.LogError($"Failed to load icon: {name}, IconId = {iconId}");
+                if (map.TryGetValue(iconId, out var tex)) return tex;
+                map.Add(iconId, null);
+                LoadIconAsync(iconId);
+                return null;
+            }
+            set
+            {
+                if (map.TryGetValue(iconId, out var tex) && tex != null) tex.Dispose();
+                map.Add(iconId, value);
+            }
         }
+
+        public void Add(uint id, TextureWrap? tex) => map.Add(id, tex);
+
+        public bool TryGet(uint id, out TextureWrap? tex) => map.TryGetValue(id, out tex);
+
+        public bool Remove(uint id)
+        {
+            if (map.TryGetValue(id, out var tex) && tex != null) tex.Dispose();
+            return map.Remove(id);
+        }
+
+        public void Clear()
+        {
+            foreach (var tex in map.Values) tex?.Dispose();
+            map.Clear();
+        }
+
+        private async void LoadIconAsync(uint iconId)
+        {
+            var icon = await Task.Run(() => Plugin.DataManager.GetImGuiTextureIcon(iconId));
+            if (icon == null) throw new IconLoadFailException(iconId);
+            map[iconId] = icon;
+        }
+    }
+
+
+    public class IconLoadFailException : Exception
+    {
+        public readonly uint IconId;
+
+        public IconLoadFailException(uint iconId) : base($"Failed to load icon: {iconId}")
+            => IconId = iconId;
     }
 }
