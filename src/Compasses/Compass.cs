@@ -343,7 +343,7 @@ namespace AetherCompass.Compasses
             else
             {
                 // direction indicator would be on right side, so draw text on the left
-                var size = UiHelper.GetTextSize(info, fontsize);
+                var size = UiHelper.GetTextSize(info, ImGui.GetFont(), fontsize);
                 drawEndPos.X -= size.X + 2;
             }
             UiHelper.DrawTextWithShadow(ImGui.GetWindowDrawList(), info, drawEndPos,

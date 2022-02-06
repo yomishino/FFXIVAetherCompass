@@ -106,19 +106,21 @@ namespace AetherCompass.UI.GUI
         }
 
 
-        public static Vector2 GetTextSize(string text, float fontsize)
+        public static Vector2 GetTextSize(string text, ImFontPtr font, float fontsize)
         {
             var split = text.Split('\n');
             float maxLineW = 0;
+            int lineCount = 0;
             foreach (var s in split)
             {
                 float lineW = 0;
                 foreach (var c in s)
                     // ImFontPtr.FindGlyph(c).AdvanceX will not get the correct result, it usually gives larger result; idk why
-                    lineW += c < ImGui.GetFont().IndexAdvanceX.Size ? ImGui.GetFont().IndexAdvanceX[c] : ImGui.GetFont().FallbackAdvanceX;
+                    lineW += c < font.IndexAdvanceX.Size ? font.IndexAdvanceX[c] : font.FallbackAdvanceX;
                 maxLineW = MathF.Max(maxLineW, lineW);
+                lineCount++;
             }
-            return new Vector2(maxLineW * fontsize / ImGui.GetFontSize(), fontsize);
+            return new Vector2(maxLineW * fontsize / font.FontSize, fontsize * lineCount);
         }
 
         public static void DrawTextWithShadow(ImDrawListPtr drawList, string text, Vector2 pos,
