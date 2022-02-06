@@ -27,42 +27,36 @@ namespace AetherCompass.Compasses
         private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
             => "Aether Current";
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* obj)
+        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
         {
-            if (obj == null) return null;
+            if (objective.GameObject == null) return null;
             return new(() =>
             {
-                if (obj == null) return;
-                ImGui.Text($"{CompassUtil.GetName(obj)}");
-                ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(obj->Position)} (approx.)");
-                ImGui.BulletText($"{CompassUtil.GetDirectionFromPlayer(obj)},  " +
-                    $"{CompassUtil.Get3DDistanceFromPlayerDescriptive(obj, false)}");
-                ImGui.BulletText(CompassUtil.GetAltitudeDiffFromPlayerDescriptive(obj));
-                DrawFlagButton($"##{(long)obj}", CompassUtil.GetMapCoordInCurrentMap(obj->Position));
+                ImGui.Text($"{objective.Name}");
+                ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(objective.CurrentMapCoord)} (approx.)");
+                ImGui.BulletText($"{objective.CompassDirectionFromPlayer},  " +
+                    $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}");
+                ImGui.BulletText(CompassUtil.AltitudeDiffToDescriptiveString(objective.AltitudeDiff));
+                DrawFlagButton($"##{(long)objective.GameObject}", objective.CurrentMapCoord);
                 ImGui.Separator();
             });
         }
 
-        public override unsafe DrawAction? CreateMarkScreenAction(GameObject* obj)
+        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
         {
-            if (obj == null) return null;
-            var name = CompassUtil.GetName(obj);
-            var dist = CompassUtil.Get3DDistanceFromPlayer(obj);
+            if (objective.GameObject == null) return null;
             return new(
-                () => DrawScreenMarkerDefault(obj, IconManager.AetherCurrentMarkerIcon, 
-                    IconManager.MarkerIconSize, .9f, 
-                    $"{name}\n{CompassUtil.DistanceToDescriptiveString(dist, true)}", 
+                () => DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, 
+                    IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, .9f, 
+                    $"{objective.Name}\n{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}", 
                     infoTextColour, infoTextShadowLightness, out _), 
-                dist < 80);
+                objective.Distance3D < 80);
         }
 
-        private protected override unsafe bool IsObjective(GameObject* o)
+        public override unsafe bool IsObjective(GameObject* o)
         {
             if (o == null) return false;
             if (o->ObjectKind != (byte)ObjectKind.EventObj) return false;
-            //var eObjNames = Plugin.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.EObjName>();
-            //if (eObjNames == null) return false;
-            //return IsNameOfAetherCurrent(eObjNames.GetRow(o->DataID)?.Singular.RawString);
             return IsNameOfAetherCurrent(CompassUtil.GetName(o));
         }
 

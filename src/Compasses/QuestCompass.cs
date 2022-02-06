@@ -88,15 +88,14 @@ namespace AetherCompass.Compasses
             }
         }
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* o)
+        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
         {
-            if (o == null) return null;
-            if (!objQuestMap.TryGetValue(o->DataID, out var mappedInfo)) return null;
+            if (objective.GameObject == null) return null;
+            if (!objQuestMap.TryGetValue(objective.DataId, out var mappedInfo)) return null;
             var questId = mappedInfo.RelatedQuest.QuestID;
             return new(() =>
             {
-                if (o == null) return;
-                ImGui.Text($"{CompassUtil.GetName(o)} {(mappedInfo.TodoRevealed ? "★" : "")}");
+                ImGui.Text($"{objective.Name} {(mappedInfo.TodoRevealed ? "★" : "")}");
                 ImGui.BulletText($"Quest: {GetQuestName(questId)}");
 #if DEBUG
                 var qItem = GetQuestRow(questId);
@@ -107,42 +106,41 @@ namespace AetherCompass.Compasses
                         $"Type: {qItem.Type}");
                 }
 #endif
-                ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(o->Position)} (approx.)");
-                ImGui.BulletText($"{CompassUtil.GetDirectionFromPlayer(o)},  " +
-                    $"{CompassUtil.Get3DDistanceFromPlayerDescriptive(o, false)}");
-                ImGui.BulletText(CompassUtil.GetAltitudeDiffFromPlayerDescriptive(o));
-                DrawFlagButton($"##{(long)o}", CompassUtil.GetMapCoordInCurrentMap(o->Position));
+                ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(objective.CurrentMapCoord)} (approx.)");
+                ImGui.BulletText($"{objective.CompassDirectionFromPlayer},  " +
+                    $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}");
+                ImGui.BulletText(CompassUtil.AltitudeDiffToDescriptiveString(objective.AltitudeDiff));
+                DrawFlagButton($"##{(long)objective.GameObject}", objective.CurrentMapCoord);
                 ImGui.Separator();
             }, mappedInfo.RelatedQuest.IsPriority);
         }
 
-        public override unsafe DrawAction? CreateMarkScreenAction(GameObject* o)
+        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
         {
-            if (o == null) return null;
-            if (!objQuestMap.TryGetValue(o->DataID, out var mappedInfo)) return null;
+            if (objective.GameObject == null) return null;
+            if (!objQuestMap.TryGetValue(objective.DataId, out var mappedInfo)) return null;
             var qRow = GetQuestRow(mappedInfo.RelatedQuest.QuestID);
             var icon = qRow == null || qRow.EventIconType.Value == null
                 ? IconManager.DefaultQuestMarkerIcon
                 : IconManager.GetQuestMarkerIcon(qRow.EventIconType.Value.NpcIconAvailable, qRow.EventIconType.Value.IconRange, mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
-            var dist = CompassUtil.Get3DDistanceFromPlayer(o);
             var descr = 
                 (mappedInfo.TodoRevealed ? "★ " : "")
-                + (QuestConfig.ShowObjName ? $"{CompassUtil.GetName(o)}, " : "")
-                + CompassUtil.DistanceToDescriptiveString(dist, true);
+                + (QuestConfig.ShowObjName ? $"{objective.Name}, " : "")
+                + CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true);
             if (QuestConfig.ShowQuestName)
             {
                 var questName = GetQuestName(mappedInfo.RelatedQuest.QuestID);
                 if (questName != null) descr += $"\n(Quest: {questName})";
             }
             return new(
-                () => DrawScreenMarkerDefault(o, icon, IconManager.MarkerIconSize,
-                    .9f, descr,
+                () => DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, 
+                    icon, IconManager.MarkerIconSize, .9f, descr,
                     infoTextColour, infoTextShadowLightness, out _),
-                dist < 55 || mappedInfo.RelatedQuest.IsPriority);
+                objective.Distance3D < 55 || mappedInfo.RelatedQuest.IsPriority);
         }
 
 
-        private protected override unsafe bool IsObjective(GameObject* o)
+        public override unsafe bool IsObjective(GameObject* o)
         {
             if (o == null) return false;
             var kind = (ObjectKind)o->ObjectKind;

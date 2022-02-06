@@ -66,28 +66,21 @@ namespace AetherCompass.Compasses
 
 
         public abstract bool IsEnabledTerritory(uint terr);
-        private protected unsafe abstract bool IsObjective(GameObject* o);
+        public unsafe abstract bool IsObjective(GameObject* o);
         private protected unsafe abstract string GetClosestObjectiveDescription(GameObject* o);
-        public unsafe abstract DrawAction? CreateDrawDetailsAction(GameObject* o);
-        public unsafe abstract DrawAction? CreateMarkScreenAction(GameObject* o);
+        public unsafe abstract DrawAction? CreateDrawDetailsAction(CompassObjective objective);
+        public unsafe abstract DrawAction? CreateMarkScreenAction(CompassObjective objective);
 
         private protected abstract void DisposeCompassUsedIcons();
 
 
-        public unsafe virtual bool CheckObject(GameObject* o)
+        public unsafe virtual void UpdateClosestObjective(CompassObjective objective)
         {
-            if (o == null) return false;
-            if (IsObjective(o))
+            if (objective.Distance3D < closestObj.Distance3D)
             {
-                var dist = CompassUtil.Get3DDistanceFromPlayer(o);
-                if (o->ObjectID != Plugin.ClientState.LocalPlayer?.ObjectId && dist < closestObj.Distance3D)
-                {
-                    closestObj.Ptr = (IntPtr)o;
-                    closestObj.Distance3D = dist;
-                }
-                return true;
+                closestObj.Ptr = (IntPtr)objective.GameObject;
+                closestObj.Distance3D = objective.Distance3D;
             }
-            return false;
         }
 
         public unsafe virtual void OnLoopStart()
@@ -232,15 +225,15 @@ namespace AetherCompass.Compasses
             return false;
         }
         
-        private protected virtual unsafe bool DrawScreenMarkerDefault(GameObject* obj, 
-            ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
-            Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
-        {
-            lastDrawEndPos = new(0, 0);
-            if (obj == null) return false;
-            return DrawScreenMarkerDefault(obj->Position, obj->GetHeight(), icon, iconSizeRaw, iconAlpha,
-                info, infoTextColour, textShadowLightness, out lastDrawEndPos);
-        }
+        //private protected virtual unsafe bool DrawScreenMarkerDefault(GameObject* obj, 
+        //    ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
+        //    Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
+        //{
+        //    lastDrawEndPos = new(0, 0);
+        //    if (obj == null) return false;
+        //    return DrawScreenMarkerDefault(obj->Position, obj->GetHeight(), icon, iconSizeRaw, iconAlpha,
+        //        info, infoTextColour, textShadowLightness, out lastDrawEndPos);
+        //}
 
         private protected virtual bool DrawScreenMarkerDefault(Vector3 objWorldPos, float objHeight,
             ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,

@@ -45,14 +45,6 @@ namespace AetherCompass.Common
                 + MathF.Pow(o->Position.Z - player.Position.Z, 2));
         }
 
-        public unsafe static float GetYDistanceFromPlayer(GameObject* o)
-        {
-            if (o == null) return float.NaN;
-            var player = Plugin.ClientState.LocalPlayer;
-            if (player == null) return float.NaN;
-            return MathF.Abs(o->Position.Y - player.Position.Y);
-        }
-
         public static string DistanceToDescriptiveString(float dist, bool integer)
             => (integer ? $"{dist:0}" : $"{dist:0.0}")
             + (Plugin.ClientState.ClientLanguage == Dalamud.ClientLanguage.Japanese

@@ -98,16 +98,18 @@ namespace AetherCompass.Compasses
                 foreach (var compass in workingCompasses)
                 {
                     if (!compass.CompassEnabled) continue;
-                    if (!compass.CheckObject(obj)) continue;
+                    if (!compass.IsObjective(obj)) continue;
+                    var objective = new CompassObjective(obj);
+                    compass.UpdateClosestObjective(objective);
                     if (compass.ShowDetail)
                     {
-                        var action = compass.CreateDrawDetailsAction(obj);
+                        var action = compass.CreateDrawDetailsAction(objective);
                         if (action != null)
                             detailsWindow.AddDrawAction(compass, action);
                     }
                     if (compass.MarkScreen)
                     {
-                        var action = compass.CreateMarkScreenAction(obj);
+                        var action = compass.CreateMarkScreenAction(objective);
                         if (action != null)
                             overlay.AddDrawAction(action);
                     }

@@ -23,7 +23,7 @@ namespace AetherCompass.Compasses
 
         private protected override void DisposeCompassUsedIcons() { }
 
-        private protected override unsafe bool IsObjective(GameObject* o)
+        public override unsafe bool IsObjective(GameObject* o)
             => o != null && (o->ObjectID == Plugin.ClientState.LocalPlayer?.ObjectId
             || o->ObjectKind == (byte)ObjectKind.EventObj 
             //|| o->ObjectKind == (byte)ObjectKind.EventNpc
@@ -34,48 +34,43 @@ namespace AetherCompass.Compasses
         private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
             => "Debug Obj";
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* obj)
+        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
         {
-            if (obj == null) return null;
+            if (objective.GameObject == null) return null;
             return new(() =>
             {
-                if (obj == null) return;
-                ImGui.Text($"Object: {CompassUtil.GetName(obj)}");
-                ImGui.BulletText($"ObjectId: {obj->GetObjectID().ObjectID}, type {obj->GetObjectID().Type}");
-                ImGui.BulletText($"ObjectKind: {(ObjectKind)obj->ObjectKind}");
-                ImGui.BulletText($"NpcId: {obj->GetNpcID()} DataId: {obj->DataID}");
-                ImGui.BulletText($"2D-Distance: {CompassUtil.Get2DDistanceFromPlayer(obj):0.0}");
-                ImGui.BulletText($"Height diff: {CompassUtil.GetYDistanceFromPlayer(obj):0.0}");
-                ImGui.BulletText($"3D-Distance: {CompassUtil.Get3DDistanceFromPlayer(obj):0.0}");
-                ImGui.BulletText($"Direction: {CompassUtil.GetDirectionFromPlayer(obj)}, {CompassUtil.GetRotationFromPlayer(obj):0.00}");
-                ImGui.BulletText($"Position: {(Vector3)obj->Position}");
-                ImGui.BulletText($"MapCoord: {CompassUtil.GetMapCoordInCurrentMapFormattedString(obj->Position)}");
+                ImGui.Text($"Object: {objective.Name}");
+                ImGui.BulletText($"ObjectId: {objective.GameObjectId.ObjectID}, type {objective.GameObjectId.Type}");
+                ImGui.BulletText($"ObjectKind: {objective.ObjectKind}");
+                ImGui.BulletText($"NpcId: {objective.GameObject->GetNpcID()} DataId: {objective.DataId}");
+                ImGui.BulletText($"2D-Distance: {CompassUtil.Get2DDistanceFromPlayer(objective.GameObject):0.0}");
+                ImGui.BulletText($"Height diff: {objective.AltitudeDiff:0.0}");
+                ImGui.BulletText($"3D-Distance: {objective.Distance3D:0.0}");
+                ImGui.BulletText($"Direction: {objective.CompassDirectionFromPlayer}, {CompassUtil.GetRotationFromPlayer(objective.GameObject):0.00}");
+                ImGui.BulletText($"Position: {objective.Position}");
+                ImGui.BulletText($"MapCoord: {CompassUtil.MapCoordToFormattedString(objective.CurrentMapCoord)}");
 
-                DrawFlagButton(((long)obj).ToString(), CompassUtil.GetMapCoordInCurrentMap(obj->Position));
+                DrawFlagButton(((long)objective.GameObject).ToString(), objective.CurrentMapCoord);
 
                 ImGui.NewLine();
             });
         }
 
-        public override unsafe DrawAction? CreateMarkScreenAction(GameObject* obj)
+        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
         {
-            if (obj == null) return null;
-            var marker = IconManager.DebugMarkerIcon;
-            if (marker == null) return null;
-
+            if (objective.GameObject == null) return null;
             // These are already handled by the Draw...Default method,
             // here is just for debug record
-            var markerSize = IconManager.MarkerIconSize;
-            UiHelper.WorldToScreenPos(obj->Position, out var screenPos, out var pCoordsRaw);
+            UiHelper.WorldToScreenPos(objective.Position, out var screenPos, out var pCoordsRaw);
             screenPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos
 
             return new(() =>
             {
-                if (obj == null) return;
-                string info = $"name={CompassUtil.GetName(obj)}\n" +
-                            $"worldPos={(Vector3)obj->Position}, dist={CompassUtil.Get3DDistanceFromPlayer(obj):0.0}\n" +
+                string info = $"name={objective.Name}\n" +
+                            $"worldPos={objective.Position}, dist={objective.Distance3D:0.0}\n" +
                             $"sPosUnfixed=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, raw=<{pCoordsRaw.X:0.0}, {pCoordsRaw.Y:0.0}, {pCoordsRaw.Z:0.0}>";
-                DrawScreenMarkerDefault(obj, marker, markerSize, .9f, info, new(1, 1, 1, 1), 0, out _);
+                DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, 
+                    IconManager.DebugMarkerIcon, IconManager.MarkerIconSize, .9f, info, new(1, 1, 1, 1), 0, out _);
             });
         }
     }

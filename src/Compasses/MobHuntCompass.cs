@@ -32,7 +32,7 @@ namespace AetherCompass.Compasses
         public override bool IsEnabledTerritory(uint terr)
             => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1;
 
-        private protected override unsafe bool IsObjective(GameObject* o)
+        public override unsafe bool IsObjective(GameObject* o)
             => o != null && nmDataMap.TryGetValue(o->DataID, out var data) && data.IsValid
             && ((data.Rank == NMRank.S && MobHuntConfig.DetectS)
                 || (data.Rank == NMRank.A && MobHuntConfig.DetectA)
@@ -46,34 +46,26 @@ namespace AetherCompass.Compasses
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeMobHuntCompassIcons();
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* o)
-        {
-            return new(() =>
+        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
+            => objective.GameObject == null || !nmDataMap.TryGetValue(objective.DataId, out var nmData) ? null : new(() =>
             {
-                if (o == null) return;
-                if (!nmDataMap.TryGetValue(o->DataID, out var nmData)) return;
                 ImGui.Text(nmData.GetNMName());
-                ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(o->Position)} (approx.)");
-                ImGui.BulletText($"{CompassUtil.GetDirectionFromPlayer(o)},  " +
-                    $"{CompassUtil.Get3DDistanceFromPlayerDescriptive(o, false)}");
-                ImGui.BulletText(CompassUtil.GetAltitudeDiffFromPlayerDescriptive(o));
-                DrawFlagButton($"##{(long)o}", CompassUtil.GetMapCoordInCurrentMap(o->Position));
+                ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(objective.CurrentMapCoord)} (approx.)");
+                ImGui.BulletText($"{objective.CurrentMapCoord},  " +
+                    $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}");
+                ImGui.BulletText(CompassUtil.AltitudeDiffToDescriptiveString(objective.AltitudeDiff));
+                DrawFlagButton($"##{(long)objective.GameObject}", objective.CurrentMapCoord);
                 ImGui.Separator();
             });
-        }
 
-        public override unsafe DrawAction? CreateMarkScreenAction(GameObject* o)
-        {
-            if (o == null || !nmDataMap.TryGetValue(o->DataID, out var nmData)) return null;
-            return new(() =>
+        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
+            => objective.GameObject == null || !nmDataMap.TryGetValue(objective.DataId, out var nmData) ? null : new(() =>
             {
-                if (o == null) return;
-                if (!nmDataMap.TryGetValue(o->DataID, out var nmData)) return;
-                string descr = $"{nmData.Name}\nRank: {nmData.Rank}, {CompassUtil.Get3DDistanceFromPlayerDescriptive(o, true)}";
-                DrawScreenMarkerDefault(o, IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
+                string descr = $"{nmData.Name}\nRank: {nmData.Rank}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
+                DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, 
+                    IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
                     .9f, descr, infoTextColour, infoTextShadowLightness, out _);
             }, nmData.Rank == NMRank.S || nmData.Rank == NMRank.A);
-        }
 
         public override void DrawConfigUiExtra()
         {

@@ -28,32 +28,30 @@ namespace AetherCompass.Compasses
 
         public override bool IsEnabledTerritory(uint terr)
             => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1
-            // TODO: diadem? 
-            || CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 47;
+            || CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 47   // diadem
+            ;
 
-        private protected override unsafe bool IsObjective(GameObject* o)
+        public override unsafe bool IsObjective(GameObject* o)
             => o != null && o->ObjectKind == (byte)ObjectKind.GatheringPoint;
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(GameObject* o)
-            => new(() =>
+        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
+            => objective.GameObject == null ? null : new(() =>
             {
-                if (o == null) return;
-                ImGui.Text($"Lv{GetGatheringLevel(o->DataID)} {CompassUtil.GetName(o)}");
-                ImGui.BulletText($"{CompassUtil.GetMapCoordInCurrentMapFormattedString(o->Position)} (approx.)");
-                ImGui.BulletText($"{CompassUtil.GetDirectionFromPlayer(o)},  " +
-                    $"{CompassUtil.Get3DDistanceFromPlayerDescriptive(o, false)}");
-                ImGui.BulletText(CompassUtil.GetAltitudeDiffFromPlayerDescriptive(o));
-                DrawFlagButton($"##{(long)o}", CompassUtil.GetMapCoordInCurrentMap(o->Position));
+                ImGui.Text($"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}");
+                ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(objective.CurrentMapCoord)} (approx.)");
+                ImGui.BulletText($"{objective.CompassDirectionFromPlayer},  " +
+                    $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}");
+                ImGui.BulletText(CompassUtil.AltitudeDiffToDescriptiveString(objective.AltitudeDiff));
+                DrawFlagButton($"##{(long)objective.GameObject}", objective.CurrentMapCoord);
                 ImGui.Separator();
             });
 
-        public override unsafe DrawAction? CreateMarkScreenAction(GameObject* o)
-            => new(() =>
+        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
+            => objective.GameObject == null ? null : new(() =>
             {
-                if (o == null) return;
-                var icon = IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(o->DataID));
-                string descr = $"Lv{GetGatheringLevel(o->DataID)} {CompassUtil.GetName(o)}, {CompassUtil.Get3DDistanceFromPlayerDescriptive(o, true)}";
-                DrawScreenMarkerDefault(o, icon, IconManager.MarkerIconSize,
+                var icon = IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
+                string descr = $"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}";
+                DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, icon, IconManager.MarkerIconSize,
                     .9f, descr, infoTextColour, infoTextShadowLightness, out _);
             });
 

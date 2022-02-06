@@ -108,7 +108,7 @@ namespace AetherCompass
             ClientState.TerritoryChanged += OnZoneChange;
 
             Reload();
-
+            OnZoneChange(null, ClientState.TerritoryType);  // update zone related stuff on init
         }
 
         public static void LogDebug(string msg) => PluginLog.Debug(msg);
