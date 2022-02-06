@@ -315,8 +315,8 @@ namespace AetherCompass.Compasses
             drawEndPos = screenPos;
             
             ImGuiScene.TextureWrap? icon = null;
-            if (altDiff > 10) icon = IconManager.AltitudeHigherIcon;
-            if (altDiff < -10) icon = IconManager.AltitudeLowerIcon;
+            if (altDiff > 5) icon = IconManager.AltitudeHigherIcon;
+            if (altDiff < -5) icon = IconManager.AltitudeLowerIcon;
             if (icon == null) return false;
             var iconSize = IconManager.AltitudeIconSize * scale;
             if (posIsRaw)
