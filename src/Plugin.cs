@@ -1,5 +1,6 @@
 ﻿using AetherCompass.Compasses;
 using AetherCompass.Configs;
+using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
 using Dalamud.Game;
@@ -77,9 +78,6 @@ namespace AetherCompass
             }
         }
         internal bool InConfig { get; set; }
-
-        private static bool isInCompassWorkZone;
-        private static bool isInDetailWindowHideZone;
 
 
         public Plugin()
@@ -236,7 +234,7 @@ namespace AetherCompass
                 Config.CheckValueValidity(ImGui.GetMainViewport().Size);
             }
 
-            if (Enabled && isInCompassWorkZone && !InNotDrawingConditions())
+            if (Enabled && ZoneWatcher.IsInCompassWorkZone && !InNotDrawingConditions())
             {
                 if (ClientState.LocalPlayer != null)
                 {
@@ -245,7 +243,7 @@ namespace AetherCompass
                         if (Config.ShowScreenMark) overlay.Draw();
                         if (Config.ShowDetailWindow)
                         {
-                            if (!(Config.HideDetailInContents && isInDetailWindowHideZone))
+                            if (!(Config.HideDetailInContents && ZoneWatcher.IsInDetailWindowHideZone))
                                 detailsWindow.Draw();
                             else detailsWindow.Clear();
                         }
@@ -280,7 +278,7 @@ namespace AetherCompass
 
         private void OnFrameworkUpdate(Framework framework)
         {
-            if (Enabled && ClientState.LocalContentId != 0 && isInCompassWorkZone)
+            if (Enabled && ClientState.LocalContentId != 0 && ZoneWatcher.IsInCompassWorkZone)
             {
                 try
                 {
@@ -301,33 +299,11 @@ namespace AetherCompass
 
         private void OnZoneChange(object? _, ushort terr)
         {
+            ZoneWatcher.OnZoneChange();
             if (terr == 0) return;
             // Local player is almost always null when this event fired
             if (Enabled && ClientState.LocalContentId != 0)
-                compassMgr.OnZoneChange(terr);
-            CheckCompassWorkZone();
-            CheckDetailWindowHideZone();
-        }
-
-        // Work only in PvE zone, also excl LoVM / chocobo race etc.
-        private static void CheckCompassWorkZone()
-        {
-            var terr = DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
-                .GetRow(ClientState.TerritoryType);
-            isInCompassWorkZone = terr != null 
-                && !terr.IsPvpZone
-                && terr.BattalionMode <= 1   // > 1 are pvp contents or LoVM
-                && terr.TerritoryIntendedUse != 20  // chocobo race terr?
-                ;
-        }
-
-        private static void CheckDetailWindowHideZone()
-        {
-            var terr = DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?
-                .GetRow(ClientState.TerritoryType);
-            // Exclusive type: 0 not instanced, 1 is solo instance, 2 is nonsolo instance.
-            // Not sure about 3, seems quite mixed up with solo battles, diadem and misc stuff like LoVM
-            isInDetailWindowHideZone = terr == null || terr.ExclusiveType > 0;
+                compassMgr.OnZoneChange();
         }
 
         private bool InNotDrawingConditions()

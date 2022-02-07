@@ -1,5 +1,6 @@
 ﻿using AetherCompass.Compasses;
 using AetherCompass.Common;
+using AetherCompass.Game;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,7 @@ namespace AetherCompass.UI.GUI
 
         public void Draw()
         {
-            var map = CompassUtil.GetCurrentMap();
+            var map = ZoneWatcher.Map;
             if (map == null) return;
 
             if (ImGui.Begin("AetherCompass: Detected Objects' Details"))

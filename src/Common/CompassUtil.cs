@@ -1,4 +1,4 @@
-﻿using AetherCompass.Common.SeFunctions;
+﻿using AetherCompass.Game;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -103,27 +103,8 @@ namespace AetherCompass.Common
         }
 
 
-        public static TerritoryType? GetTerritoryType(uint terrId)
-            => Plugin.DataManager.GetExcelSheet<TerritoryType>()?.GetRow(terrId);
-
-        public static TerritoryType? GetCurrentTerritoryType()
-            => GetTerritoryType(Plugin.ClientState.TerritoryType);
-
-        public static short GetTerritoryZOffset(uint terrId)
-            => Plugin.DataManager.GetExcelSheet<TerritoryTypeTransient>()?.GetRow(terrId)?.OffsetZ ?? 0;
-
         public static short GetCurrentTerritoryZOffset()
-            => GetTerritoryZOffset(Plugin.ClientState.TerritoryType);
-
-        public static uint GetCurrentMapId()
-        {
-            var altMapId = ZoneMap.GetCurrentTerritoryAltMapId();
-            if (altMapId > 0) return altMapId;
-            return GetCurrentTerritoryType()?.Map.Row ?? 0;
-        }
-
-        public static Map? GetCurrentMap()
-            => Plugin.DataManager.GetExcelSheet<Map>()?.GetRow(GetCurrentMapId());
+            => ZoneWatcher.TerritoryTypeTransient?.OffsetZ ?? 0;
 
         public static string GetPlaceNameToString(uint placeNameRowId, string emptyPlaceName = "")
         {
@@ -161,17 +142,14 @@ namespace AetherCompass.Common
 
         public static Vector3 GetMapCoordInCurrentMap(Vector3 worldPos)
         {
-            var map = GetCurrentMap();
+            var map = ZoneWatcher.Map;
             if (map == null) return new Vector3(float.NaN, float.NaN, float.NaN);
             return GetMapCoord(worldPos, map.SizeFactor, map.OffsetX, map.OffsetY, GetCurrentTerritoryZOffset());
         }
 
         // Among valid maps, all that officially has no Z coord has Z-offset of -10000
-        public static bool HasZCoord(uint terrId)
-            => GetTerritoryZOffset(terrId) > -10000;
-
         public static bool CurrentHasZCoord()
-            => HasZCoord(Plugin.ClientState.TerritoryType);
+            => GetCurrentTerritoryZOffset() > -10000;
 
         public static string MapCoordToFormattedString(Vector3 coord, bool showZ = true)
             => $"X:{coord.X:0.0}, Y:{coord.Y:0.0}{(showZ && CurrentHasZCoord() ? $", Z:{coord.Z:0.0}" : string.Empty)}";
@@ -194,7 +172,7 @@ namespace AetherCompass.Common
 
         public static Vector3 GetWorldPositionFromMapCoordInCurrentMap(Vector3 mapCoord)
         {
-            var map = GetCurrentMap();
+            var map = ZoneWatcher.Map;
             if (map == null) return new Vector3(float.NaN, float.NaN, float.NaN);
             return GetWorldPosition(mapCoord, map.SizeFactor, map.OffsetX, map.OffsetY, GetCurrentTerritoryZOffset());
         }

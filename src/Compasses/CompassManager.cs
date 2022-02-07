@@ -1,5 +1,5 @@
 ﻿using AetherCompass.Configs;
-using AetherCompass.Common;
+using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
@@ -42,7 +42,7 @@ namespace AetherCompass.Compasses
         {
             if (!compasses.Add(c)) return false;
             if (!detailsWindow.RegisterCompass(c)) return false;
-            if (c.IsEnabledTerritory(Plugin.ClientState.TerritoryType))
+            if (c.IsEnabledInCurrentTerritory())
                 workingCompasses.Add(c);
             return true;
         }
@@ -63,7 +63,7 @@ namespace AetherCompass.Compasses
             foreach (var compass in workingCompasses)
                 compass.OnLoopStart();
 
-            var map = CompassUtil.GetCurrentMap();
+            var map = ZoneWatcher.Map;
             if (map == null) return;
 
             void* array;
@@ -116,7 +116,7 @@ namespace AetherCompass.Compasses
                     }
                     if (compass.HasFlagToProcess)
                     {
-                        var terrId = CompassUtil.GetCurrentTerritoryType()!.RowId;
+                        var terrId = Plugin.ClientState.TerritoryType;
                         var maplink = new MapLinkPayload(terrId, map.RowId,
                             compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, fudgeFactor: 0.01f);
 #if DEBUG
@@ -135,13 +135,13 @@ namespace AetherCompass.Compasses
                 compass.OnLoopEnd();
         }
 
-        public void OnZoneChange(ushort terr)
+        public void OnZoneChange()
         {
             workingCompasses.Clear();
             foreach (var compass in compasses)
             {
-                compass.OnZoneChange(terr);
-                if (compass.IsEnabledTerritory(terr))
+                compass.OnZoneChange();
+                if (compass.IsEnabledInCurrentTerritory())
                     workingCompasses.Add(compass);
             }
         }

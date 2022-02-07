@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace AetherCompass.Common.SeFunctions
+namespace AetherCompass.Game.SeFunctions
 {
     public static class ZoneMap
     {

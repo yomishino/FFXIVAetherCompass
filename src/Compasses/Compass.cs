@@ -1,5 +1,6 @@
 ﻿using AetherCompass.Common;
 using AetherCompass.Configs;
+using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -65,7 +66,7 @@ namespace AetherCompass.Compasses
         }
 
 
-        public abstract bool IsEnabledTerritory(uint terr);
+        public abstract bool IsEnabledInCurrentTerritory();
         public unsafe abstract bool IsObjective(GameObject* o);
         private protected unsafe abstract string GetClosestObjectiveDescription(GameObject* o);
         public unsafe abstract DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective);
@@ -106,7 +107,7 @@ namespace AetherCompass.Compasses
                         if (NotifyChat)
                         {
                             var msg = Chat.CreateMapLink(
-                                Plugin.ClientState.TerritoryType, CompassUtil.GetCurrentMapId(), coord, CompassUtil.CurrentHasZCoord());
+                                Plugin.ClientState.TerritoryType, ZoneWatcher.MapId, coord, CompassUtil.CurrentHasZCoord());
                             msg.PrependText($"Found {GetClosestObjectiveDescription(obj)} at ");
                             msg.AppendText($", on {dir}, {CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, false)} from you");
                             Notifier.TryNotifyByChat(msg, NotifySe, compassConfig.NotifySeId);
@@ -129,7 +130,7 @@ namespace AetherCompass.Compasses
         }
 
 
-        public async virtual void OnZoneChange(ushort terr)
+        public async virtual void OnZoneChange()
         {
             ready = false;
             await System.Threading.Tasks.Task.Delay(2500);

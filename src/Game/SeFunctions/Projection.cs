@@ -4,7 +4,7 @@ using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace AetherCompass.Common.SeFunctions
+namespace AetherCompass.Game.SeFunctions
 {
     internal static class Projection
     {

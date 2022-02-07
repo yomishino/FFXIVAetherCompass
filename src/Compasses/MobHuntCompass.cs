@@ -1,5 +1,6 @@
 ﻿using AetherCompass.Common;
 using AetherCompass.Configs;
+using AetherCompass.Game;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Lumina.Excel;
@@ -29,8 +30,8 @@ namespace AetherCompass.Compasses
             InitNMDataMap();
         }
 
-        public override bool IsEnabledTerritory(uint terr)
-            => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1;
+        public override bool IsEnabledInCurrentTerritory()
+            => ZoneWatcher.TerritoryType?.TerritoryIntendedUse == 1;
 
         public override unsafe bool IsObjective(GameObject* o)
             => o != null && nmDataMap.TryGetValue(o->DataID, out var data) && data.IsValid

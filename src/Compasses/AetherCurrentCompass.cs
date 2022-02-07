@@ -1,5 +1,6 @@
 ﻿using AetherCompass.Common;
 using AetherCompass.Configs;
+using AetherCompass.Game;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
@@ -18,8 +19,8 @@ namespace AetherCompass.Compasses
         public AetherCurrentCompass(PluginConfig config, AetherCurrentCompassConfig compassConfig, CompassDetailsWindow detailsWindow, CompassOverlay overlay)
             : base(config, compassConfig, detailsWindow, overlay) { }
 
-        public override bool IsEnabledTerritory(uint terr)
-            => CompassUtil.GetTerritoryType(terr)?.TerritoryIntendedUse == 1; // mostly normal wild field
+        public override bool IsEnabledInCurrentTerritory()
+            => ZoneWatcher.TerritoryType?.TerritoryIntendedUse == 1; // mostly normal wild field
 
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeAetherCurrentCompassIcons();

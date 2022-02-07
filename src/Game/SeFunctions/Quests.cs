@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace AetherCompass.Common.SeFunctions
+namespace AetherCompass.Game.SeFunctions
 {
     // https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/QuestManager.cs
     public static class Quests

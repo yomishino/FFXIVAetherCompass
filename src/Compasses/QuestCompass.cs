@@ -1,6 +1,7 @@
 ﻿using AetherCompass.Common;
-using AetherCompass.Common.SeFunctions;
+using AetherCompass.Game.SeFunctions;
 using AetherCompass.Configs;
+using AetherCompass.Game;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
@@ -33,12 +34,12 @@ namespace AetherCompass.Compasses
             InitQuestSheetToDoChildLocationMap();
         }
 
-        public override bool IsEnabledTerritory(uint terr)
+        public override bool IsEnabledInCurrentTerritory()
         {
-            var terrItem = CompassUtil.GetTerritoryType(terr);
+            var terr = ZoneWatcher.TerritoryType;
             // 0 is noninstance, 1 is solo instance
-            return terrItem?.ExclusiveType == 0
-                || ((QuestConfig?.EnabledInSoloContents ?? false) && terrItem?.ExclusiveType == 1)
+            return terr?.ExclusiveType == 0
+                || ((QuestConfig?.EnabledInSoloContents ?? false) && terr?.ExclusiveType == 1)
                 ;
         }
 
