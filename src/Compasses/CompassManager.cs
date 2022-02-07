@@ -63,9 +63,6 @@ namespace AetherCompass.Compasses
             foreach (var compass in workingCompasses)
                 if (compass.CompassEnabled) compass.OnLoopStart();
             
-            var map = ZoneWatcher.CurrentMap;
-            if (map == null) return;
-            
             void* array;
             int count;
 #if DEBUG
@@ -115,17 +112,34 @@ namespace AetherCompass.Compasses
                     }
                     if (compass.HasFlagToProcess)
                     {
+                        // NOTE: Dirty fix
+                        // Currently Dalamud's MapLinkPayload internally does not take into account Map's X/Y-offset,
+                        // so in map with non-zero offsets (e.g., Mist subdivision) it's always incorrect.
+                        // Tweak it with a FixedMapLinkPayload that has the original raw X/Y
+                        // but our calcualted map coord to fix this issue.
                         var terrId = Plugin.ClientState.TerritoryType;
-                        var maplink = new MapLinkPayload(terrId, map.RowId,
-                            compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, fudgeFactor: 0.01f);
-#if DEBUG
-                        Plugin.LogDebug($"Create MapLinkPayload from {compass.FlaggedMapCoord}: {maplink}");
-#endif
-                        if (Plugin.GameGui.OpenMapWithMapLink(maplink))
+                        //var maplink = new MapLinkPayload(terrId, ZoneWatcher.CurrentMapId, 
+                        //    compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, fudgeFactor: 0.01f);
+                        var map = ZoneWatcher.CurrentMap;
+                        if (map != null)
                         {
-                            var msg = Chat.CreateMapLink(terrId, map.RowId, maplink.XCoord, maplink.YCoord).PrependText("Flag set: ");
-                            Chat.PrintChat(msg);
-                            compass.HasFlagToProcess = false;
+                            var fixedMapLink = Common.FixedMapLinkPayload.FromMapCoord(terrId, ZoneWatcher.CurrentMapId,
+                                compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, map.SizeFactor, map.OffsetX, map.OffsetY);
+#if DEBUG
+                            Plugin.LogDebug($"Create MapLinkPayload from {compass.FlaggedMapCoord}: {fixedMapLink}");
+#endif
+                            //if (Plugin.GameGui.OpenMapWithMapLink(maplinkFix))
+                            //{
+                            //    var msg = Chat.CreateMapLink(terrId, ZoneWatcher.CurrentMapId, maplink.XCoord, maplink.YCoord).PrependText("Flag set: ");
+                            //    Chat.PrintChat(msg);
+                            //    compass.HasFlagToProcess = false;
+                            //}
+                            if (Plugin.GameGui.OpenMapWithMapLink(fixedMapLink))
+                            {
+                                var msg = Chat.CreateMapLink(fixedMapLink).PrependText("Flag set: ");
+                                Chat.PrintChat(msg);
+                                compass.HasFlagToProcess = false;
+                            }
                         }
                     }
                 }

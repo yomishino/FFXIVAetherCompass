@@ -40,9 +40,8 @@ namespace AetherCompass.Compasses
                 || (data.Rank == NMRank.B && MobHuntConfig.DetectB))
             && CompassUtil.IsCharacterAlive(o);
 
-        private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
-            => o == null || !nmDataMap.TryGetValue(o->DataID, out var data)
-            ? string.Empty : data.GetNMName();
+        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
+            => !nmDataMap.TryGetValue(objective.DataId, out var data) ? string.Empty : data.GetNMName();
 
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeMobHuntCompassIcons();

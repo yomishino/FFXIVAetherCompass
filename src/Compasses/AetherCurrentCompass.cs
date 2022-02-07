@@ -25,7 +25,7 @@ namespace AetherCompass.Compasses
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeAetherCurrentCompassIcons();
 
-        private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
+        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective _)
             => "Aether Current";
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)

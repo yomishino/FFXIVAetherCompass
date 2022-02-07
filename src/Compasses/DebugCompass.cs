@@ -31,7 +31,7 @@ namespace AetherCompass.Compasses
             || o->ObjectKind == (byte)ObjectKind.Aetheryte
             || o->ObjectKind == (byte)ObjectKind.AreaObject);
 
-        private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
+        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective _)
             => "Debug Obj";
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)

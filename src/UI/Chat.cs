@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace AetherCompass.UI
@@ -25,6 +26,22 @@ namespace AetherCompass.UI
         public static void PrintErrorChat(string msg)
         {
             Plugin.ChatGui.PrintError("[AetherCompass] " + msg);
+        }
+
+        public static SeString CreateMapLink(Common.FixedMapLinkPayload fixedMapPayload)
+        {
+            var nameString = $"{fixedMapPayload.PlaceName} {fixedMapPayload.CoordinateString}";
+
+            var payloads = new List<Payload>(new Payload[]
+            {
+                fixedMapPayload,
+                // arrow goes here
+                new TextPayload(nameString),
+                RawPayload.LinkTerminator,
+            });
+            payloads.InsertRange(1, SeString.TextArrowPayloads);
+
+            return new(payloads);
         }
 
         public static SeString CreateMapLink(uint terrId, uint mapId, float xCoord, float yCoord)

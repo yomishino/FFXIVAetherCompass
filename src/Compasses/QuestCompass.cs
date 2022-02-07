@@ -43,8 +43,8 @@ namespace AetherCompass.Compasses
                 ;
         }
 
-        private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
-            => o == null ? string.Empty : CompassUtil.GetName(o) + " (Quest)";
+        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
+            => objective.Name + " (Quest)";
 
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeQuestCompassIcons();

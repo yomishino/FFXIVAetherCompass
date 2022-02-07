@@ -58,8 +58,8 @@ namespace AetherCompass.Compasses
 
         private protected override void DisposeCompassUsedIcons() => IconManager.DisposeGatheringPointCompassIcons();
 
-        private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
-            => CompassUtil.GetName(o);
+        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
+            => objective.Name;
 
 
         private static ExcelSheet<Sheets.GatheringPoint>? GatheringPointSheet

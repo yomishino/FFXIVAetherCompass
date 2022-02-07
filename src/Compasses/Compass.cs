@@ -23,8 +23,7 @@ namespace AetherCompass.Compasses
         private bool ready = false;
 
         // Record last and 2nd last closest to prevent frequent notification when player is at a pos close to two objs
-        private IntPtr closestObjPtr;
-        private float closestDistance3D = float.MaxValue;
+        private CachedCompassObjective? closestObj;
         private IntPtr closestObjPtrLast;
         private IntPtr closestObjPtrSecondLast;
         private DateTime closestObjLastChangedTime = DateTime.MinValue;
@@ -70,7 +69,7 @@ namespace AetherCompass.Compasses
 
         public abstract bool IsEnabledInCurrentTerritory();
         public unsafe abstract bool IsObjective(GameObject* o);
-        private protected unsafe abstract string GetClosestObjectiveDescription(GameObject* o);
+        private protected unsafe abstract string GetClosestObjectiveDescription(CachedCompassObjective objective);
         public unsafe abstract DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective);
         public unsafe abstract DrawAction? CreateMarkScreenAction(CachedCompassObjective objective);
 
@@ -79,10 +78,15 @@ namespace AetherCompass.Compasses
 
         public unsafe virtual void UpdateClosestObjective(CachedCompassObjective objective)
         {
-            if (objective.Distance3D < closestDistance3D)
+            if (objective.GameObject != null)
             {
-                closestDistance3D = objective.Distance3D;
-                closestObjPtr = (IntPtr)objective.GameObject;
+                if (closestObj == null) closestObj = objective;
+                else if (objective.Distance3D < closestObj.Distance3D)
+            {
+                    //closestDistance3D = objective.Distance3D;
+                    //closestObjPtr = (IntPtr)objective.GameObject;
+                    closestObj = objective;
+                }
             }
         }
 
@@ -99,36 +103,35 @@ namespace AetherCompass.Compasses
                     closestObjPtrSecondLast = IntPtr.Zero;
                     closestObjLastChangedTime = DateTime.UtcNow;
                 }
-                else if (closestObjPtr != IntPtr.Zero && closestObjPtr != closestObjPtrLast && closestObjPtr != closestObjPtrSecondLast)
+                else if (closestObj != null && closestObj.GameObject != null 
+                    && (IntPtr)closestObj.GameObject != closestObjPtrLast 
+                    && (IntPtr)closestObj.GameObject != closestObjPtrSecondLast)
                 {
-                    var obj = (GameObject*)closestObjPtr;
-                    if (obj != null)
+                    if (NotifyChat)
                     {
-                        var dir = CompassUtil.GetDirectionFromPlayer(obj);
-                        var coord = CompassUtil.GetMapCoordInCurrentMap(obj->Position);
-                        if (NotifyChat)
-                        {
-                            var msg = Chat.CreateMapLink(
-                                Plugin.ClientState.TerritoryType, ZoneWatcher.CurrentMapId, coord, CompassUtil.CurrentHasZCoord());
-                            msg.PrependText($"Found {GetClosestObjectiveDescription(obj)} at ");
-                            msg.AppendText($", on {dir}, {CompassUtil.DistanceToDescriptiveString(closestDistance3D, false)} from you");
-                            Notifier.TryNotifyByChat(msg, NotifySe, compassConfig.NotifySeId);
-                        }
-                        if (NotifyToast)
-                        {
-                            var msg = $"Found {GetClosestObjectiveDescription(obj)} on {dir}, " +
-                                $"{CompassUtil.DistanceToDescriptiveString(closestDistance3D, true)} from you, " +
-                                $"at {CompassUtil.MapCoordToFormattedString(coord)}";
-                            Notifier.TryNotifyByToast(msg);
-                        }
+                        var msg = Chat.CreateMapLink(
+                            Plugin.ClientState.TerritoryType, ZoneWatcher.CurrentMapId,
+                            closestObj.CurrentMapCoord, CompassUtil.CurrentHasZCoord());
+                        msg.PrependText($"Found {GetClosestObjectiveDescription(closestObj)} at ");
+                        msg.AppendText($", on {closestObj.CompassDirectionFromPlayer}, " +
+                            $"{CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, false)} from you");
+                        Notifier.TryNotifyByChat(msg, NotifySe, compassConfig.NotifySeId);
+                    }
+                    if (NotifyToast)
+                    {
+                        var msg =
+                            $"Found {GetClosestObjectiveDescription(closestObj)} " +
+                            $"on {closestObj.CompassDirectionFromPlayer}, " +
+                            $"{CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, true)} from you, " +
+                            $"at {CompassUtil.MapCoordToFormattedString(closestObj.CurrentMapCoord)}";
+                        Notifier.TryNotifyByToast(msg);
                     }
                     closestObjPtrSecondLast = closestObjPtrLast;
-                    closestObjPtrLast = closestObjPtr;
+                    closestObjPtrLast = (IntPtr)closestObj.GameObject;
                     closestObjLastChangedTime = DateTime.UtcNow;
                 }
             }
-            closestObjPtr = IntPtr.Zero;
-            closestDistance3D = float.MaxValue;
+            closestObj = null;
         }
 
 
@@ -137,8 +140,6 @@ namespace AetherCompass.Compasses
             ready = false;
             await System.Threading.Tasks.Task.Delay(2500);
             ready = true;
-            closestObjPtr = IntPtr.Zero;
-            closestDistance3D = float.MaxValue;
             closestObjPtrLast = IntPtr.Zero;
             closestObjPtrSecondLast = IntPtr.Zero;  
     }
