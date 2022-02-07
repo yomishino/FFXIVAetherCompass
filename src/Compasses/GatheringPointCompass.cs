@@ -34,7 +34,7 @@ namespace AetherCompass.Compasses
         public override unsafe bool IsObjective(GameObject* o)
             => o != null && o->ObjectKind == (byte)ObjectKind.GatheringPoint;
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
             => objective.GameObject == null ? null : new(() =>
             {
                 ImGui.Text($"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}");
@@ -46,7 +46,7 @@ namespace AetherCompass.Compasses
                 ImGui.Separator();
             });
 
-        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
             => objective.GameObject == null ? null : new(() =>
             {
                 var icon = IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));

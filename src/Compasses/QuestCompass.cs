@@ -88,7 +88,7 @@ namespace AetherCompass.Compasses
             }
         }
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
         {
             if (objective.GameObject == null) return null;
             if (!objQuestMap.TryGetValue(objective.DataId, out var mappedInfo)) return null;
@@ -115,7 +115,7 @@ namespace AetherCompass.Compasses
             }, mappedInfo.RelatedQuest.IsPriority);
         }
 
-        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
             if (objective.GameObject == null) return null;
             if (!objQuestMap.TryGetValue(objective.DataId, out var mappedInfo)) return null;

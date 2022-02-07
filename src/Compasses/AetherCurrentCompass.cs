@@ -27,7 +27,7 @@ namespace AetherCompass.Compasses
         private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
             => "Aether Current";
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
         {
             if (objective.GameObject == null) return null;
             return new(() =>
@@ -42,7 +42,7 @@ namespace AetherCompass.Compasses
             });
         }
 
-        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
             if (objective.GameObject == null) return null;
             return new(

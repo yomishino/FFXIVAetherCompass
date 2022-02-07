@@ -95,11 +95,12 @@ namespace AetherCompass.Compasses
 #endif
                         ) continue;
 
+                CachedCompassObjective? objective = null;
                 foreach (var compass in workingCompasses)
                 {
                     if (!compass.CompassEnabled) continue;
                     if (!compass.IsObjective(obj)) continue;
-                    var objective = new CompassObjective(obj);
+                    if (objective == null || objective.GameObject != obj) objective = new(obj);
                     compass.UpdateClosestObjective(objective);
                     if (compass.ShowDetail)
                     {

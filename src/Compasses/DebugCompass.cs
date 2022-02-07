@@ -34,14 +34,14 @@ namespace AetherCompass.Compasses
         private protected override unsafe string GetClosestObjectiveDescription(GameObject* o)
             => "Debug Obj";
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
         {
             if (objective.GameObject == null) return null;
             return new(() =>
             {
                 ImGui.Text($"Object: {objective.Name}");
                 ImGui.BulletText($"ObjectId: {objective.GameObjectId.ObjectID}, type {objective.GameObjectId.Type}");
-                ImGui.BulletText($"ObjectKind: {objective.ObjectKind}");
+                ImGui.BulletText($"ObjectKind: {(ObjectKind)objective.GameObject->ObjectKind}");
                 ImGui.BulletText($"NpcId: {objective.GameObject->GetNpcID()} DataId: {objective.DataId}");
                 ImGui.BulletText($"2D-Distance: {CompassUtil.Get2DDistanceFromPlayer(objective.GameObject):0.0}");
                 ImGui.BulletText($"Height diff: {objective.AltitudeDiff:0.0}");
@@ -56,7 +56,7 @@ namespace AetherCompass.Compasses
             });
         }
 
-        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
             if (objective.GameObject == null) return null;
             // These are already handled by the Draw...Default method,

@@ -46,7 +46,7 @@ namespace AetherCompass.Compasses
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeMobHuntCompassIcons();
 
-        public override unsafe DrawAction? CreateDrawDetailsAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
             => objective.GameObject == null || !nmDataMap.TryGetValue(objective.DataId, out var nmData) ? null : new(() =>
             {
                 ImGui.Text(nmData.GetNMName());
@@ -58,7 +58,7 @@ namespace AetherCompass.Compasses
                 ImGui.Separator();
             });
 
-        public override unsafe DrawAction? CreateMarkScreenAction(CompassObjective objective)
+        public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
             => objective.GameObject == null || !nmDataMap.TryGetValue(objective.DataId, out var nmData) ? null : new(() =>
             {
                 string descr = $"{nmData.Name}\nRank: {nmData.Rank}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";

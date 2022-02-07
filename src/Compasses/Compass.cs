@@ -68,13 +68,13 @@ namespace AetherCompass.Compasses
         public abstract bool IsEnabledTerritory(uint terr);
         public unsafe abstract bool IsObjective(GameObject* o);
         private protected unsafe abstract string GetClosestObjectiveDescription(GameObject* o);
-        public unsafe abstract DrawAction? CreateDrawDetailsAction(CompassObjective objective);
-        public unsafe abstract DrawAction? CreateMarkScreenAction(CompassObjective objective);
+        public unsafe abstract DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective);
+        public unsafe abstract DrawAction? CreateMarkScreenAction(CachedCompassObjective objective);
 
         private protected abstract void DisposeCompassUsedIcons();
 
 
-        public unsafe virtual void UpdateClosestObjective(CompassObjective objective)
+        public unsafe virtual void UpdateClosestObjective(CachedCompassObjective objective)
         {
             if (objective.Distance3D < closestObj.Distance3D)
             {
