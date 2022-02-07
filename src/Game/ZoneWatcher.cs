@@ -5,24 +5,27 @@ namespace AetherCompass.Game
 {
     public static class ZoneWatcher
     {
-        public static Excel.TerritoryType? TerritoryType { get; private set; }
-        public static Excel.TerritoryTypeTransient? TerritoryTypeTransient { get; private set; }
-       
-        public static uint MapId
+        public static Lumina.Excel.ExcelSheet<Excel.PlaceName>? PlaceName = Plugin.DataManager.GetExcelSheet<Excel.PlaceName>();
+
+        public static Excel.TerritoryType? CurrentTerritoryType { get; private set; }
+        public static Excel.TerritoryTypeTransient? CurrentTerritoryTypeTransient { get; private set; }
+
+
+        public static uint CurrentMapId
         {
             get
             {
                 var altMapId = ZoneMap.GetCurrentTerritoryAltMapId();
                 if (altMapId > 0) return altMapId;
-                return TerritoryType?.Map.Row ?? 0;
+                return CurrentTerritoryType?.Map.Row ?? 0;
             }
         }
         private static Excel.Map? cachedMap;
-        public static Excel.Map? Map
+        public static Excel.Map? CurrentMap
         {
             get
             {
-                if (cachedMap == null || MapId != cachedMap.RowId) cachedMap = GetMap();
+                if (cachedMap == null || CurrentMapId != cachedMap.RowId) cachedMap = GetMap();
                 return cachedMap;
             }
         }
@@ -33,9 +36,9 @@ namespace AetherCompass.Game
         public static void OnZoneChange()
         {
             var terrId = Plugin.ClientState.TerritoryType;
-            TerritoryType = terrId == 0 ? null
+            CurrentTerritoryType = terrId == 0 ? null
                 : Plugin.DataManager.GetExcelSheet<Excel.TerritoryType>()?.GetRow(terrId);
-            TerritoryTypeTransient = terrId == 0 ? null
+            CurrentTerritoryTypeTransient = terrId == 0 ? null
                 : Plugin.DataManager.GetExcelSheet<Excel.TerritoryTypeTransient>()?.GetRow(terrId);
 
             cachedMap = GetMap();
@@ -45,16 +48,16 @@ namespace AetherCompass.Game
         }
 
         private static Excel.Map? GetMap()
-            => Plugin.DataManager.GetExcelSheet<Excel.Map>()?.GetRow(MapId);
+            => Plugin.DataManager.GetExcelSheet<Excel.Map>()?.GetRow(CurrentMapId);
 
 
         // Work only in PvE zone, also excl LoVM / chocobo race etc.
         private static void CheckCompassWorkZone()
         {
-            IsInCompassWorkZone = TerritoryType != null
-                && !TerritoryType.IsPvpZone
-                && TerritoryType.BattalionMode <= 1   // > 1 are pvp contents or LoVM
-                && TerritoryType.TerritoryIntendedUse != 20  // chocobo race terr?
+            IsInCompassWorkZone = CurrentTerritoryType != null
+                && !CurrentTerritoryType.IsPvpZone
+                && CurrentTerritoryType.BattalionMode <= 1   // > 1 are pvp contents or LoVM
+                && CurrentTerritoryType.TerritoryIntendedUse != 20  // chocobo race terr?
                 ;
         }
 
@@ -62,7 +65,7 @@ namespace AetherCompass.Game
         {
             // Exclusive type: 0 not instanced, 1 is solo instance, 2 is nonsolo instance.
             // Not sure about 3, seems quite mixed up with solo battles, diadem and misc stuff like LoVM
-            IsInDetailWindowHideZone = TerritoryType == null || TerritoryType.ExclusiveType > 0;
+            IsInDetailWindowHideZone = CurrentTerritoryType == null || CurrentTerritoryType.ExclusiveType > 0;
         }
 
     }

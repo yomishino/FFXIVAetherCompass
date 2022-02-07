@@ -20,7 +20,7 @@ namespace AetherCompass.Compasses
             : base(config, compassConfig, detailsWindow, overlay) { }
 
         public override bool IsEnabledInCurrentTerritory()
-            => ZoneWatcher.TerritoryType?.TerritoryIntendedUse == 1; // mostly normal wild field
+            => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1; // mostly normal wild field
 
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeAetherCurrentCompassIcons();
@@ -47,9 +47,8 @@ namespace AetherCompass.Compasses
         {
             if (objective.GameObject == null) return null;
             return new(
-                () => DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, 
-                    IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, .9f, 
-                    $"{objective.Name}\n{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}", 
+                () => DrawScreenMarkerDefault(objective, IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, 
+                    .9f, $"{objective.Name}\n{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}", 
                     infoTextColour, infoTextShadowLightness, out _), 
                 objective.Distance3D < 80);
         }

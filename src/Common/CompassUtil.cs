@@ -2,7 +2,6 @@
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using Lumina.Excel.GeneratedSheets;
 using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -12,9 +11,12 @@ namespace AetherCompass.Common
 {
     public static class CompassUtil
     {
+        // Too slow to read the name as SeString
+        // Just read it as plain UTF8 string for now, unless necessary
         public unsafe static string GetName(GameObject* o)
             => o == null ? string.Empty
-            : MemoryHelper.ReadSeStringNullTerminated((IntPtr)o->Name).TextValue;
+            //: MemoryHelper.ReadSeString((IntPtr)o->Name, 64).TextValue;  
+            : Marshal.PtrToStringUTF8((IntPtr)o->Name) ?? string.Empty;
 
         public unsafe static byte GetCharacterLevel(GameObject* o)
             => o != null && o->IsCharacter() ? ((Character*)o)->Level : byte.MinValue;
@@ -104,11 +106,11 @@ namespace AetherCompass.Common
 
 
         public static short GetCurrentTerritoryZOffset()
-            => ZoneWatcher.TerritoryTypeTransient?.OffsetZ ?? 0;
+            => ZoneWatcher.CurrentTerritoryTypeTransient?.OffsetZ ?? 0;
 
         public static string GetPlaceNameToString(uint placeNameRowId, string emptyPlaceName = "")
         {
-            var name = Plugin.DataManager.GetExcelSheet<PlaceName>()?.GetRow(placeNameRowId)?.Name.ToString();
+            var name = ZoneWatcher.PlaceName?.GetRow(placeNameRowId)?.Name.ToString();
             if (string.IsNullOrEmpty(name)) return emptyPlaceName;
             return name;
         }
@@ -142,7 +144,7 @@ namespace AetherCompass.Common
 
         public static Vector3 GetMapCoordInCurrentMap(Vector3 worldPos)
         {
-            var map = ZoneWatcher.Map;
+            var map = ZoneWatcher.CurrentMap;
             if (map == null) return new Vector3(float.NaN, float.NaN, float.NaN);
             return GetMapCoord(worldPos, map.SizeFactor, map.OffsetX, map.OffsetY, GetCurrentTerritoryZOffset());
         }
@@ -172,7 +174,7 @@ namespace AetherCompass.Common
 
         public static Vector3 GetWorldPositionFromMapCoordInCurrentMap(Vector3 mapCoord)
         {
-            var map = ZoneWatcher.Map;
+            var map = ZoneWatcher.CurrentMap;
             if (map == null) return new Vector3(float.NaN, float.NaN, float.NaN);
             return GetWorldPosition(mapCoord, map.SizeFactor, map.OffsetX, map.OffsetY, GetCurrentTerritoryZOffset());
         }

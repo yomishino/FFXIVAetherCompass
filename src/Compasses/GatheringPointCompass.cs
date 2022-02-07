@@ -28,8 +28,8 @@ namespace AetherCompass.Compasses
             : base(config, compassConfig, detailsWindow, overlay) { }
 
         public override bool IsEnabledInCurrentTerritory()
-            => ZoneWatcher.TerritoryType?.TerritoryIntendedUse == 1
-            || ZoneWatcher.TerritoryType?.TerritoryIntendedUse == 47   // diadem
+            => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1
+            || ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 47   // diadem
             ;
 
         public override unsafe bool IsObjective(GameObject* o)
@@ -52,7 +52,7 @@ namespace AetherCompass.Compasses
             {
                 var icon = IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
                 string descr = $"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}";
-                DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, icon, IconManager.MarkerIconSize,
+                DrawScreenMarkerDefault(objective, icon, IconManager.MarkerIconSize,
                     .9f, descr, infoTextColour, infoTextShadowLightness, out _);
             });
 
@@ -63,13 +63,13 @@ namespace AetherCompass.Compasses
 
 
         private static ExcelSheet<Sheets.GatheringPoint>? GatheringPointSheet
-            => Plugin.DataManager.GetExcelSheet<Sheets.GatheringPoint>();
+            = Plugin.DataManager.GetExcelSheet<Sheets.GatheringPoint>();
         
         private static ExcelSheet<Sheets.GatheringPointBase>? GatheringPointBaseSheet
-            => Plugin.DataManager.GetExcelSheet<Sheets.GatheringPointBase>();
+            = Plugin.DataManager.GetExcelSheet<Sheets.GatheringPointBase>();
 
         private static ExcelSheet<Sheets.GatheringType>? GatheringTypeSheet
-            => Plugin.DataManager.GetExcelSheet<Sheets.GatheringType>();
+            = Plugin.DataManager.GetExcelSheet<Sheets.GatheringType>();
 
         // True for those that use special icon;
         private static bool IsSpecialGatheringPointType(GatheringPointType type)

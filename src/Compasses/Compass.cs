@@ -23,8 +23,10 @@ namespace AetherCompass.Compasses
         private bool ready = false;
 
         // Record last and 2nd last closest to prevent frequent notification when player is at a pos close to two objs
-        private (IntPtr Ptr, float Distance3D, IntPtr LastClosest, IntPtr SecondLast) closestObj 
-            = (IntPtr.Zero, float.MaxValue, IntPtr.Zero, IntPtr.Zero);
+        private IntPtr closestObjPtr;
+        private float closestDistance3D = float.MaxValue;
+        private IntPtr closestObjPtrLast;
+        private IntPtr closestObjPtrSecondLast;
         private DateTime closestObjLastChangedTime = DateTime.MinValue;
         private const int closestObjResetDelayInSec = 60;
         
@@ -77,10 +79,10 @@ namespace AetherCompass.Compasses
 
         public unsafe virtual void UpdateClosestObjective(CachedCompassObjective objective)
         {
-            if (objective.Distance3D < closestObj.Distance3D)
+            if (objective.Distance3D < closestDistance3D)
             {
-                closestObj.Ptr = (IntPtr)objective.GameObject;
-                closestObj.Distance3D = objective.Distance3D;
+                closestDistance3D = objective.Distance3D;
+                closestObjPtr = (IntPtr)objective.GameObject;
             }
         }
 
@@ -94,12 +96,12 @@ namespace AetherCompass.Compasses
             {
                 if ((DateTime.UtcNow - closestObjLastChangedTime).TotalSeconds > closestObjResetDelayInSec)
                 {
-                    closestObj.SecondLast = IntPtr.Zero;
+                    closestObjPtrSecondLast = IntPtr.Zero;
                     closestObjLastChangedTime = DateTime.UtcNow;
                 }
-                else if (closestObj.Ptr != IntPtr.Zero && closestObj.Ptr != closestObj.LastClosest && closestObj.Ptr != closestObj.SecondLast)
+                else if (closestObjPtr != IntPtr.Zero && closestObjPtr != closestObjPtrLast && closestObjPtr != closestObjPtrSecondLast)
                 {
-                    var obj = (GameObject*)closestObj.Ptr;
+                    var obj = (GameObject*)closestObjPtr;
                     if (obj != null)
                     {
                         var dir = CompassUtil.GetDirectionFromPlayer(obj);
@@ -107,26 +109,26 @@ namespace AetherCompass.Compasses
                         if (NotifyChat)
                         {
                             var msg = Chat.CreateMapLink(
-                                Plugin.ClientState.TerritoryType, ZoneWatcher.MapId, coord, CompassUtil.CurrentHasZCoord());
+                                Plugin.ClientState.TerritoryType, ZoneWatcher.CurrentMapId, coord, CompassUtil.CurrentHasZCoord());
                             msg.PrependText($"Found {GetClosestObjectiveDescription(obj)} at ");
-                            msg.AppendText($", on {dir}, {CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, false)} from you");
+                            msg.AppendText($", on {dir}, {CompassUtil.DistanceToDescriptiveString(closestDistance3D, false)} from you");
                             Notifier.TryNotifyByChat(msg, NotifySe, compassConfig.NotifySeId);
                         }
                         if (NotifyToast)
                         {
                             var msg = $"Found {GetClosestObjectiveDescription(obj)} on {dir}, " +
-                                $"{CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, true)} from you, " +
+                                $"{CompassUtil.DistanceToDescriptiveString(closestDistance3D, true)} from you, " +
                                 $"at {CompassUtil.MapCoordToFormattedString(coord)}";
                             Notifier.TryNotifyByToast(msg);
                         }
                     }
-                    closestObj.SecondLast = closestObj.LastClosest;
-                    closestObj.LastClosest = closestObj.Ptr;
+                    closestObjPtrSecondLast = closestObjPtrLast;
+                    closestObjPtrLast = closestObjPtr;
                     closestObjLastChangedTime = DateTime.UtcNow;
                 }
             }
-            closestObj.Ptr = IntPtr.Zero;
-            closestObj.Distance3D = float.MaxValue;
+            closestObjPtr = IntPtr.Zero;
+            closestDistance3D = float.MaxValue;
         }
 
 
@@ -135,8 +137,11 @@ namespace AetherCompass.Compasses
             ready = false;
             await System.Threading.Tasks.Task.Delay(2500);
             ready = true;
-            closestObj = (IntPtr.Zero, float.MaxValue, IntPtr.Zero, IntPtr.Zero);
-        }
+            closestObjPtr = IntPtr.Zero;
+            closestDistance3D = float.MaxValue;
+            closestObjPtrLast = IntPtr.Zero;
+            closestObjPtrSecondLast = IntPtr.Zero;  
+    }
 
 
         #region Config UI
@@ -226,26 +231,14 @@ namespace AetherCompass.Compasses
             return false;
         }
         
-        //private protected virtual unsafe bool DrawScreenMarkerDefault(GameObject* obj, 
-        //    ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
-        //    Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
-        //{
-        //    lastDrawEndPos = new(0, 0);
-        //    if (obj == null) return false;
-        //    return DrawScreenMarkerDefault(obj->Position, obj->GetHeight(), icon, iconSizeRaw, iconAlpha,
-        //        info, infoTextColour, textShadowLightness, out lastDrawEndPos);
-        //}
-
-        private protected virtual bool DrawScreenMarkerDefault(Vector3 objWorldPos, float objHeight,
+        private protected virtual bool DrawScreenMarkerDefault(CachedCompassObjective obj,
             ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
             Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
         {
             // Make the marker drawn slightly higher than object's hitbox position
-            Vector3 hitboxPosAdjusted = new(objWorldPos.X, objWorldPos.Y + objHeight + .5f, objWorldPos.Z);
+            Vector3 hitboxPosAdjusted = new(obj.Position.X, obj.Position.Y + obj.GameObjectHeight + .5f, obj.Position.Z);
             bool inFrontOfCamera = UiHelper.WorldToScreenPos(hitboxPosAdjusted, out lastDrawEndPos);
             lastDrawEndPos = PushToSideOnXIfNeeded(lastDrawEndPos, inFrontOfCamera);
-
-            var altidueDiff = CompassUtil.GetAltitudeDiffFromPlayer(objWorldPos);
 
             // Draw direction indicator
             DrawDirectionIcon(lastDrawEndPos, config.ScreenMarkSizeScale,
@@ -258,7 +251,7 @@ namespace AetherCompass.Compasses
             if (markerDrawn)
             {
                 // Altitude
-                DrawAltitudeDiffIcon(altidueDiff, lastDrawEndPos, true,
+                DrawAltitudeDiffIcon(obj.AltitudeDiff, lastDrawEndPos, true,
                     config.ScreenMarkSizeScale, iconAlpha, out _);
                 // Info
                 DrawExtraInfoByMarker(info, config.ScreenMarkSizeScale, infoTextColour,

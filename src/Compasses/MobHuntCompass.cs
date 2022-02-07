@@ -31,7 +31,7 @@ namespace AetherCompass.Compasses
         }
 
         public override bool IsEnabledInCurrentTerritory()
-            => ZoneWatcher.TerritoryType?.TerritoryIntendedUse == 1;
+            => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1;
 
         public override unsafe bool IsObjective(GameObject* o)
             => o != null && nmDataMap.TryGetValue(o->DataID, out var data) && data.IsValid
@@ -63,8 +63,7 @@ namespace AetherCompass.Compasses
             => objective.GameObject == null || !nmDataMap.TryGetValue(objective.DataId, out var nmData) ? null : new(() =>
             {
                 string descr = $"{nmData.Name}\nRank: {nmData.Rank}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
-                DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, 
-                    IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
+                DrawScreenMarkerDefault(objective, IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
                     .9f, descr, infoTextColour, infoTextShadowLightness, out _);
             }, nmData.Rank == NMRank.S || nmData.Rank == NMRank.A);
 

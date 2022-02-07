@@ -19,7 +19,7 @@ namespace AetherCompass.Compasses
 
 
         public override bool IsEnabledInCurrentTerritory()
-            => ZoneWatcher.TerritoryType?.RowId != 0;
+            => ZoneWatcher.CurrentTerritoryType?.RowId != 0;
 
         private protected override void DisposeCompassUsedIcons() { }
 
@@ -69,8 +69,8 @@ namespace AetherCompass.Compasses
                 string info = $"name={objective.Name}\n" +
                             $"worldPos={objective.Position}, dist={objective.Distance3D:0.0}\n" +
                             $"sPosUnfixed=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, raw=<{pCoordsRaw.X:0.0}, {pCoordsRaw.Y:0.0}, {pCoordsRaw.Z:0.0}>";
-                DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, 
-                    IconManager.DebugMarkerIcon, IconManager.MarkerIconSize, .9f, info, new(1, 1, 1, 1), 0, out _);
+                DrawScreenMarkerDefault(objective, IconManager.DebugMarkerIcon, IconManager.MarkerIconSize, 
+                    .9f, info, new(1, 1, 1, 1), 0, out _);
             });
         }
     }

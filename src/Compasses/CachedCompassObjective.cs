@@ -29,9 +29,9 @@ namespace AetherCompass.Compasses
                 Position = GameObject->Position;
                 Distance3D = CompassUtil.Get3DDistanceFromPlayer(GameObject);
                 AltitudeDiff = CompassUtil.GetAltitudeDiffFromPlayer(GameObject);
-                CompassDirectionFromPlayer = CompassUtil.GetDirectionFromPlayer(GameObject);
+                CompassDirectionFromPlayer = CompassUtil.GetDirectionFromPlayer(Position);
                 GameObjectHeight = GameObject->GetHeight();
-                CurrentMapCoord = CompassUtil.GetMapCoordInCurrentMap(GameObject->Position);
+                CurrentMapCoord = CompassUtil.GetMapCoordInCurrentMap(Position);
             }
             else
                 Name = string.Empty;

@@ -36,7 +36,7 @@ namespace AetherCompass.Compasses
 
         public override bool IsEnabledInCurrentTerritory()
         {
-            var terr = ZoneWatcher.TerritoryType;
+            var terr = ZoneWatcher.CurrentTerritoryType;
             // 0 is noninstance, 1 is solo instance
             return terr?.ExclusiveType == 0
                 || ((QuestConfig?.EnabledInSoloContents ?? false) && terr?.ExclusiveType == 1)
@@ -134,9 +134,8 @@ namespace AetherCompass.Compasses
                 if (questName != null) descr += $"\n(Quest: {questName})";
             }
             return new(
-                () => DrawScreenMarkerDefault(objective.Position, objective.GameObjectHeight, 
-                    icon, IconManager.MarkerIconSize, .9f, descr,
-                    infoTextColour, infoTextShadowLightness, out _),
+                () => DrawScreenMarkerDefault(objective, icon, IconManager.MarkerIconSize, .9f, 
+                    descr, infoTextColour, infoTextShadowLightness, out _),
                 objective.Distance3D < 55 || mappedInfo.RelatedQuest.IsPriority);
         }
 
@@ -165,14 +164,14 @@ namespace AetherCompass.Compasses
         }
 
 
-        private static ExcelSheet<Sheets.Quest>? QuestSheet 
-            => Plugin.DataManager.GetExcelSheet<Sheets.Quest>();
-        private static ExcelSheet<Sheets.EObj>? EObjSheet 
-            => Plugin.DataManager.GetExcelSheet<Sheets.EObj>();
-        private static ExcelSheet<Sheets.ENpcBase>? ENpcSheet
-            => Plugin.DataManager.GetExcelSheet<Sheets.ENpcBase>();
-        private static ExcelSheet<Sheets.Level>? LevelSheet
-            => Plugin.DataManager.GetExcelSheet<Sheets.Level>();
+        private static readonly ExcelSheet<Sheets.Quest>? QuestSheet 
+            = Plugin.DataManager.GetExcelSheet<Sheets.Quest>();
+        private static readonly ExcelSheet<Sheets.EObj>? EObjSheet 
+            = Plugin.DataManager.GetExcelSheet<Sheets.EObj>();
+        private static readonly ExcelSheet<Sheets.ENpcBase>? ENpcSheet
+            = Plugin.DataManager.GetExcelSheet<Sheets.ENpcBase>();
+        private static readonly ExcelSheet<Sheets.Level>? LevelSheet
+            = Plugin.DataManager.GetExcelSheet<Sheets.Level>();
 
         private static Sheets.Quest? GetQuestRow(ushort questId)
             => QuestSheet?.GetRow(QuestIdToQuestRowId(questId));

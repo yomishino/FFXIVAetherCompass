@@ -37,7 +37,7 @@ namespace AetherCompass.UI.GUI
 
         public void Draw()
         {
-            var map = ZoneWatcher.Map;
+            var map = ZoneWatcher.CurrentMap;
             if (map == null) return;
 
             if (ImGui.Begin("AetherCompass: Detected Objects' Details"))

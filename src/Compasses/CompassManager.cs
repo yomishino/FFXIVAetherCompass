@@ -61,11 +61,11 @@ namespace AetherCompass.Compasses
             detailsWindow.Clear();
 
             foreach (var compass in workingCompasses)
-                compass.OnLoopStart();
-
-            var map = ZoneWatcher.Map;
+                if (compass.CompassEnabled) compass.OnLoopStart();
+            
+            var map = ZoneWatcher.CurrentMap;
             if (map == null) return;
-
+            
             void* array;
             int count;
 #if DEBUG
@@ -85,7 +85,6 @@ namespace AetherCompass.Compasses
                 if (config.DebugTestAllGameObjects)
                     obj = ((GameObject**)array)[i];
                 else
-
 #endif
                     obj = info != null ? info->GameObject : null;
                 if (obj == null) continue;
@@ -95,12 +94,12 @@ namespace AetherCompass.Compasses
 #endif
                         ) continue;
 
-                CachedCompassObjective? objective = null;
+                CachedCompassObjective objective = new(null);
                 foreach (var compass in workingCompasses)
                 {
                     if (!compass.CompassEnabled) continue;
                     if (!compass.IsObjective(obj)) continue;
-                    if (objective == null || objective.GameObject != obj) objective = new(obj);
+                    if (objective.GameObject != obj) objective = new(obj);
                     compass.UpdateClosestObjective(objective);
                     if (compass.ShowDetail)
                     {
@@ -132,7 +131,7 @@ namespace AetherCompass.Compasses
                 }
             }
             foreach (var compass in workingCompasses)
-                compass.OnLoopEnd();
+                if (compass.CompassEnabled) compass.OnLoopEnd();
         }
 
         public void OnZoneChange()

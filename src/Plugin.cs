@@ -284,7 +284,7 @@ namespace AetherCompass
                 {
                     compassMgr.OnTick();
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     //ShowError("Plugin encountered an error.", e.ToString());
                     LogError(e.ToString());
