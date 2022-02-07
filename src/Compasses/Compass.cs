@@ -82,11 +82,7 @@ namespace AetherCompass.Compasses
             {
                 if (closestObj == null) closestObj = objective;
                 else if (objective.Distance3D < closestObj.Distance3D)
-            {
-                    //closestDistance3D = objective.Distance3D;
-                    //closestObjPtr = (IntPtr)objective.GameObject;
                     closestObj = objective;
-                }
             }
         }
 
@@ -232,7 +228,7 @@ namespace AetherCompass.Compasses
             return false;
         }
         
-        private protected virtual bool DrawScreenMarkerDefault(CachedCompassObjective obj,
+        private protected bool DrawScreenMarkerDefault(CachedCompassObjective obj,
             ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
             Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
         {

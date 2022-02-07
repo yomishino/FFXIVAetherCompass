@@ -26,17 +26,12 @@ namespace AetherCompass.Common
         public unsafe static bool IsCharacterAlive(GameObject* o)
             => o != null && o->IsCharacter() && (Marshal.ReadByte((IntPtr)o + 0x197C) & 2) == 0;
 
-        public unsafe static float Get3DDistance(GameObject* o1, GameObject* o2)
-            => o1 == null || o2 == null ? float.NaN : Get3DDistance(o1->Position, o2->Position);
-
-        public static float Get3DDistance(Vector3 pos1, Vector3 pos2)
-            => MathF.Sqrt(MathF.Pow(pos1.X - pos2.X, 2) + MathF.Pow(pos1.Y - pos2.Y, 2) + MathF.Pow(pos1.Z - pos2.Z, 2));
-
         public unsafe static float Get3DDistanceFromPlayer(GameObject* o)
             => o == null ? float.NaN : Get3DDistanceFromPlayer(o->Position);
 
         public unsafe static float Get3DDistanceFromPlayer(Vector3 gameObjPos)
-            => Plugin.ClientState.LocalPlayer == null ? float.NaN : Get3DDistance(gameObjPos, Plugin.ClientState.LocalPlayer.Position);
+            => Plugin.ClientState.LocalPlayer == null 
+            ? float.NaN : Vector3.Distance(gameObjPos, Plugin.ClientState.LocalPlayer.Position);
 
         public unsafe static float Get2DDistanceFromPlayer(GameObject* o)
         {
@@ -89,18 +84,21 @@ namespace AetherCompass.Common
             return MathF.Atan2(gameObjPos.X - player.Position.X, gameObjPos.Z - player.Position.Z);
         }
 
+        private static readonly float directionSpan = MathF.Sin(3 * MathF.PI / 8);
+
         public unsafe static CompassDirection GetDirectionFromPlayer(GameObject* o)
             => o == null ? CompassDirection.NaN : GetDirectionFromPlayer(o->Position);
 
         public static CompassDirection GetDirectionFromPlayer(Vector3 gameObjPos)
         {
-            var r = GetRotationFromPlayer(gameObjPos);
-            if (float.IsNaN(r)) return CompassDirection.NaN;
+            var player = Plugin.ClientState.LocalPlayer;
+            if (player == null) return CompassDirection.NaN;
+            var vec = Vector2.Normalize(new Vector2(gameObjPos.X - player.Position.X, gameObjPos.Z - player.Position.Z));
             CompassDirection d = 0;
-            if (MathF.Abs(r) <= 3 * MathF.PI / 8) d |= CompassDirection.South;
-            if (MathF.Abs(r) > 5 * MathF.PI / 8) d |= CompassDirection.North;
-            if (MathF.PI / 8 < r && r <= 7 * MathF.PI / 8) d |= CompassDirection.East;
-            if (-7 * MathF.PI / 8 < r && r <= -MathF.PI / 8) d |= CompassDirection.West;
+            if (MathF.Abs(vec.X) < directionSpan)
+                d |= vec.Y > 0 ? CompassDirection.South : CompassDirection.North;
+            if (MathF.Abs(vec.Y) < directionSpan)
+                d |= vec.X > 0 ? CompassDirection.East : CompassDirection.West;
             return d;
         }
 

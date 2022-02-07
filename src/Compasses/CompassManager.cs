@@ -2,7 +2,6 @@
 using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using System.Collections.Generic;
@@ -97,6 +96,7 @@ namespace AetherCompass.Compasses
                     if (!compass.CompassEnabled) continue;
                     if (!compass.IsObjective(obj)) continue;
                     if (objective.GameObject != obj) objective = new(obj);
+                    
                     compass.UpdateClosestObjective(objective);
                     if (compass.ShowDetail)
                     {
