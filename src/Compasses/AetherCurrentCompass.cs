@@ -38,7 +38,7 @@ namespace AetherCompass.Compasses
                 ImGui.BulletText($"{objective.CompassDirectionFromPlayer},  " +
                     $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}");
                 ImGui.BulletText(CompassUtil.AltitudeDiffToDescriptiveString(objective.AltitudeDiff));
-                DrawFlagButton($"##{(long)objective.GameObject}", objective.CurrentMapCoord);
+                DrawFlagButton($"{(long)objective.GameObject}", objective.CurrentMapCoord);
                 ImGui.Separator();
             });
         }

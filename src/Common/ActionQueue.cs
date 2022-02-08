@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 namespace AetherCompass.Common
 {
     public class ActionQueue
     {
-        private readonly Queue<DrawAction> importantActions;
-        private readonly Queue<DrawAction> normalActions;
+        private readonly ConcurrentQueue<DrawAction> importantActions;
+        private readonly ConcurrentQueue<DrawAction> normalActions;
         
         public int Threshold { get; }
         public int Count { get; private set; } = 0;
@@ -15,8 +15,8 @@ namespace AetherCompass.Common
 
         public ActionQueue(int threshold)
         {
-            normalActions = new(threshold);
-            importantActions = new(threshold);
+            normalActions = new();
+            importantActions = new();
             Threshold = threshold > 0 ? threshold 
                 : throw new ArgumentOutOfRangeException(nameof(threshold), "threshold should be positive");
         }
@@ -55,7 +55,6 @@ namespace AetherCompass.Common
             }
             return false;
         }
-
 
         private bool TryDequeueImportant(out DrawAction? a)
         {

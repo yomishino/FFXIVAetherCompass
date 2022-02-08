@@ -49,12 +49,12 @@ namespace AetherCompass.Compasses
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeQuestCompassIcons();
 
-        public override void OnLoopStart()
+        protected override void ProcessOnLoopStart()
         {
             objQuestMap.Clear();
             ProcessQuestData();
 
-            base.OnLoopStart();
+            base.ProcessOnLoopStart();
 
             // TODO: may mark those location range in quest ToDOs if somehow we can know which ToDos are already done; 
             // we can find those locations easily from Quest sheet but only if we can know which ToDo are done!

@@ -1,10 +1,12 @@
-﻿using AetherCompass.Configs;
+﻿using AetherCompass.Common;
+using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using System.Collections.Generic;
+using System.Threading;
 using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
 
 
@@ -18,6 +20,8 @@ namespace AetherCompass.Compasses
         private readonly CompassDetailsWindow detailsWindow = null!;
         private readonly PluginConfig config = null!;
 
+        private CancellationTokenSource cancellationTokenSrc = new();
+
 
         private unsafe static UI3DModule* UI3DModule => ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
 
@@ -29,6 +33,11 @@ namespace AetherCompass.Compasses
 #if DEBUG
         private unsafe static readonly GameObjectManager* gameObjMgr = GameObjectManager.Instance();
 #endif
+
+
+        private bool hasMapFlagToProcess;
+        private System.Numerics.Vector2 mapFlagCoord;
+
 
         public CompassManager(CompassOverlay overlay, CompassDetailsWindow window, PluginConfig config)
         {
@@ -54,102 +63,97 @@ namespace AetherCompass.Compasses
             return compasses.Remove(c);
         }
 
+        public void RegisterMapFlag(System.Numerics.Vector2 flagCoord)
+        {
+            hasMapFlagToProcess = true;
+            mapFlagCoord = flagCoord;
+        }
+
         public void OnTick()
         {
+            var lastCancellationTokenSrc = cancellationTokenSrc;
+            if (!cancellationTokenSrc.IsCancellationRequested)
+                cancellationTokenSrc.Cancel();
+            cancellationTokenSrc = new();
+
             overlay.Clear();
             detailsWindow.Clear();
 
-            foreach (var compass in workingCompasses)
-                if (compass.CompassEnabled) compass.OnLoopStart();
-            
-            void* array;
-            int count;
-#if DEBUG
-            if (gameObjMgr == null) return;
-            array = config.DebugTestAllGameObjects ? gameObjMgr->ObjectListFiltered : SortedObjectInfoPointerArray;
-            count = config.DebugTestAllGameObjects ? gameObjMgr->ObjectListFilteredCount : SortedObjectInfoCount;
-#else
-                array = SortedObjectInfoPointerArray;
-                count = SortedObjectInfoCount;
-#endif
-            if (array == null) return;
-            for (int i = 0; i < count; i++)
+            if (workingCompasses.Count > 0)
             {
-                GameObject* obj;
-                var info = ((ObjectInfo**)array)[i];
-#if DEBUG
-                if (config.DebugTestAllGameObjects)
-                    obj = ((GameObject**)array)[i];
-                else
-#endif
-                    obj = info != null ? info->GameObject : null;
-                if (obj == null) continue;
-                if (obj->ObjectKind == (byte)ObjectKind.Pc
-#if DEBUG
-                        && !config.DebugTestAllGameObjects
-#endif
-                        ) continue;
+                foreach (var compass in workingCompasses)
+                    if (compass.CompassEnabled) compass.Reset();
 
-                CachedCompassObjective objective = new(null);
+#if DEBUG
+                var debugTestAll = gameObjMgr != null && config.DebugTestAllGameObjects;
+                void* array = debugTestAll ? gameObjMgr->ObjectListFiltered : SortedObjectInfoPointerArray;
+                int count = debugTestAll ? gameObjMgr->ObjectListFilteredCount : SortedObjectInfoCount;
+#else
+                var array = SortedObjectInfoPointerArray;
+                var count = SortedObjectInfoCount;
+#endif
+
+                if (array == null) return;
+
                 foreach (var compass in workingCompasses)
                 {
-                    if (!compass.CompassEnabled) continue;
-                    if (!compass.IsObjective(obj)) continue;
-                    if (objective.GameObject != obj) objective = new(obj);
-                    
-                    compass.UpdateClosestObjective(objective);
-                    if (compass.ShowDetail)
+                    if (compass.CompassEnabled)
                     {
-                        var action = compass.CreateDrawDetailsAction(objective);
-                        if (action != null)
-                            detailsWindow.AddDrawAction(compass, action);
-                    }
-                    if (compass.MarkScreen)
-                    {
-                        var action = compass.CreateMarkScreenAction(objective);
-                        if (action != null)
-                            overlay.AddDrawAction(action);
-                    }
-                    if (compass.HasFlagToProcess)
-                    {
-                        // NOTE: Dirty fix
-                        // Currently Dalamud's MapLinkPayload internally does not take into account Map's X/Y-offset,
-                        // so in map with non-zero offsets (e.g., Mist subdivision) it's always incorrect.
-                        // Tweak it with a FixedMapLinkPayload that has the original raw X/Y
-                        // but our calcualted map coord to fix this issue.
-                        var terrId = Plugin.ClientState.TerritoryType;
-                        //var maplink = new MapLinkPayload(terrId, ZoneWatcher.CurrentMapId, 
-                        //    compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, fudgeFactor: 0.01f);
-                        var map = ZoneWatcher.CurrentMap;
-                        if (map != null)
-                        {
-                            var fixedMapLink = Common.FixedMapLinkPayload.FromMapCoord(terrId, ZoneWatcher.CurrentMapId,
-                                compass.FlaggedMapCoord.X, compass.FlaggedMapCoord.Y, map.SizeFactor, map.OffsetX, map.OffsetY);
 #if DEBUG
-                            Plugin.LogDebug($"Create MapLinkPayload from {compass.FlaggedMapCoord}: {fixedMapLink}");
+                        if (debugTestAll)
+                            compass.ProcessLoopDebugAllObjects((GameObject**)array, count, cancellationTokenSrc.Token);
+                        else
 #endif
-                            //if (Plugin.GameGui.OpenMapWithMapLink(maplinkFix))
-                            //{
-                            //    var msg = Chat.CreateMapLink(terrId, ZoneWatcher.CurrentMapId, maplink.XCoord, maplink.YCoord).PrependText("Flag set: ");
-                            //    Chat.PrintChat(msg);
-                            //    compass.HasFlagToProcess = false;
-                            //}
-                            if (Plugin.GameGui.OpenMapWithMapLink(fixedMapLink))
-                            {
-                                var msg = Chat.CreateMapLink(fixedMapLink).PrependText("Flag set: ");
-                                Chat.PrintChat(msg);
-                                compass.HasFlagToProcess = false;
-                            }
-                        }
+                            compass.ProcessLoop((ObjectInfo**)array, count, cancellationTokenSrc.Token);
                     }
+
                 }
             }
-            foreach (var compass in workingCompasses)
-                if (compass.CompassEnabled) compass.OnLoopEnd();
+
+            ProcessFlagOnTickEnd();
+
+            lastCancellationTokenSrc.Dispose();
+        }
+
+        private void ProcessFlagOnTickEnd()
+        {
+            if (!hasMapFlagToProcess) return;
+
+            // NOTE: Dirty fix
+            // Currently Dalamud's MapLinkPayload internally does not take into account Map's X/Y-offset,
+            // so in map with non-zero offsets (e.g., Mist subdivision) it's always incorrect.
+            // Tweak it with a FixedMapLinkPayload that has the original raw X/Y
+            // but our calcualted map coord to fix this issue.
+            var terrId = Plugin.ClientState.TerritoryType;
+            //var maplink = new MapLinkPayload(terrId, ZoneWatcher.CurrentMapId, 
+            //    mapFlagCoord.X, mapFlagCoord.Y, fudgeFactor: 0.01f);
+            var map = ZoneWatcher.CurrentMap;
+            if (map != null)
+            {
+                var fixedMapLink = FixedMapLinkPayload.FromMapCoord(terrId, ZoneWatcher.CurrentMapId,
+                    mapFlagCoord.X, mapFlagCoord.Y, map.SizeFactor, map.OffsetX, map.OffsetY);
+#if DEBUG
+                Plugin.LogDebug($"Create MapLinkPayload from {mapFlagCoord}: {fixedMapLink}");
+#endif
+                //if (Plugin.GameGui.OpenMapWithMapLink(maplinkFix))
+                //{
+                //    var msg = Chat.CreateMapLink(terrId, ZoneWatcher.CurrentMapId, maplink.XCoord, maplink.YCoord).PrependText("Flag set: ");
+                //    Chat.PrintChat(msg);
+                //    hasMapFlagToProcess = false;
+                //}
+                if (Plugin.GameGui.OpenMapWithMapLink(fixedMapLink))
+                {
+                    var msg = Chat.CreateMapLink(fixedMapLink).PrependText("Flag set: ");
+                    Chat.PrintChat(msg);
+                }
+            }
+
+            hasMapFlagToProcess = false;
         }
 
         public void OnZoneChange()
         {
+            cancellationTokenSrc.Cancel();
             workingCompasses.Clear();
             foreach (var compass in compasses)
             {

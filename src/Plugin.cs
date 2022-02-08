@@ -57,7 +57,7 @@ namespace AetherCompass
             "Aether Compass";
 #endif
 
-        private readonly CompassManager compassMgr;
+        internal static CompassManager CompassManager { get; private set; } = null!;
         private readonly CompassOverlay overlay;
         private readonly CompassDetailsWindow detailsWindow;
 
@@ -86,18 +86,18 @@ namespace AetherCompass
             overlay = new();
             detailsWindow = new();
             
-            compassMgr = new(overlay, detailsWindow, Config);
+            CompassManager = new(overlay, detailsWindow, Config);
 
             PluginCommands.AddCommands(this);
 
-            compassMgr.AddCompass(new AetherCurrentCompass(Config, Config.AetherCurrentConfig, detailsWindow, overlay));
-            compassMgr.AddCompass(new MobHuntCompass(Config, Config.MobHuntConfig, detailsWindow, overlay));
-            compassMgr.AddCompass(new GatheringPointCompass(Config, Config.GatheringConfig, detailsWindow, overlay));
+            CompassManager.AddCompass(new AetherCurrentCompass(Config, Config.AetherCurrentConfig, detailsWindow, overlay));
+            CompassManager.AddCompass(new MobHuntCompass(Config, Config.MobHuntConfig, detailsWindow, overlay));
+            CompassManager.AddCompass(new GatheringPointCompass(Config, Config.GatheringConfig, detailsWindow, overlay));
 #if !RELEASE
-            compassMgr.AddCompass(new QuestCompass(Config, Config.QuestConfig, detailsWindow, overlay));
+            CompassManager.AddCompass(new QuestCompass(Config, Config.QuestConfig, detailsWindow, overlay));
 #endif
 #if DEBUG
-            compassMgr.AddCompass(new DebugCompass(Config, Config.DebugConfig, detailsWindow, overlay));
+            CompassManager.AddCompass(new DebugCompass(Config, Config.DebugConfig, detailsWindow, overlay));
 #endif
             
             Framework.Update += OnFrameworkUpdate;
@@ -212,7 +212,7 @@ namespace AetherCompass
                     ImGuiEx.Separator(true, true);
                     ImGui.Text("Compass Settings:");
                     ImGui.NewLine();
-                    compassMgr.DrawCompassConfigUi();
+                    CompassManager.DrawCompassConfigUi();
                 }
                 ImGuiEx.Separator(false, true);
                 if (ImGui.Button("Save"))
@@ -283,7 +283,7 @@ namespace AetherCompass
             {
                 try
                 {
-                    compassMgr.OnTick();
+                    CompassManager.OnTick();
                 }
                 catch (Exception e)
                 {
@@ -304,7 +304,7 @@ namespace AetherCompass
             if (terr == 0) return;
             // Local player is almost always null when this event fired
             if (Enabled && ClientState.LocalContentId != 0)
-                compassMgr.OnZoneChange();
+                CompassManager.OnZoneChange();
         }
 
         private bool InNotDrawingConditions()

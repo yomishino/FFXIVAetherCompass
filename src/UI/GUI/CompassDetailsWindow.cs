@@ -19,7 +19,7 @@ namespace AetherCompass.UI.GUI
         public bool UnregisterCompass(Compass c)
             => drawActions.Remove(c);
 
-        public bool AddDrawAction(Compass c, Action? a, bool important = false)
+        public bool AddDrawAction(Compass c, Action? a, bool important)
         {
             if (a == null) return false;
             if (!drawActions.TryGetValue(c, out var queue))

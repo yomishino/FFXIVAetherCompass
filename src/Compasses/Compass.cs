@@ -4,9 +4,12 @@ using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
 using ImGuiNET;
 using System;
 using System.Numerics;
+using System.Threading;
+using System.Threading.Tasks;
 
 
 
@@ -29,9 +32,6 @@ namespace AetherCompass.Compasses
         private DateTime closestObjLastChangedTime = DateTime.MinValue;
         private const int closestObjResetDelayInSec = 60;
         
-        internal bool HasFlagToProcess = false; // For notifying CompassManager
-        internal Vector2 FlaggedMapCoord;
-
 
         public abstract string CompassName { get; }
         public abstract string Description { get; }
@@ -62,7 +62,7 @@ namespace AetherCompass.Compasses
             this.compassConfig = compassConfig;
             this.detailsWindow = detailsWindow;
             this.overlay = overlay;
-            _compassEnabled = compassConfig.Enabled;   // assign to field to void trigger Icon manager when init
+            _compassEnabled = compassConfig.Enabled;   // assign to field to avoid trigger Icon manager when init
             ready = true;
         }
 
@@ -86,12 +86,97 @@ namespace AetherCompass.Compasses
             }
         }
 
-        public unsafe virtual void OnLoopStart()
-        {  }
+        protected virtual void ProcessOnLoopStart()
+        { }
 
-        public unsafe virtual void OnLoopEnd()
+        protected virtual void ProcessOnLoopEnd()
         {
-            HasFlagToProcess = false;
+            ProcessClosestObjOnLoopEnd();
+        }
+
+        public unsafe void ProcessLoop(ObjectInfo** infoArray, int count, CancellationToken token)
+        {
+            Task.Run(() =>
+            {
+                if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
+                ProcessOnLoopStart();
+                CachedCompassObjective objective = new(null);
+                for (int i = 0; i < count; i++)
+                {
+                    if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
+                    var info = infoArray[i];
+                    var obj = info != null ? info->GameObject : null;
+                    if (obj == null || obj->ObjectKind == (byte)ObjectKind.Pc) continue;
+                    if (!IsObjective(obj)) continue;
+                    if (objective.GameObject != obj) objective = new(obj);
+                    ProcessObjectiveInLoop(objective);
+                }
+                if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
+                ProcessOnLoopEnd();
+            }, token).ContinueWith(t =>
+            {
+                if (t.IsFaulted && t.Exception != null)
+                {
+                    foreach (var e in t.Exception.InnerExceptions)
+                    {
+                        if (e is OperationCanceledException or ObjectDisposedException) continue;
+                        throw e;
+                    }
+                }
+            }, CancellationToken.None);
+        }
+
+#if DEBUG
+        public unsafe void ProcessLoopDebugAllObjects(GameObject** GameObjectList, int count, CancellationToken token)
+        {
+            Task.Run(() =>
+            {
+                if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
+                ProcessOnLoopStart();
+                CachedCompassObjective objective = new(null);
+                for (int i = 0; i < count; i++)
+                {
+                    if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
+                    var obj = GameObjectList[i];
+                    if (obj == null) continue;
+                    if (!IsObjective(obj)) continue;
+                    if (objective.GameObject != obj) objective = new(obj);
+                    ProcessObjectiveInLoop(objective);
+                }
+                if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
+                ProcessOnLoopEnd();
+            }, token).ContinueWith(t =>
+            {
+                if (t.IsFaulted && t.Exception != null)
+                {
+                    foreach (var e in t.Exception.InnerExceptions)
+                    {
+                        if (e is OperationCanceledException or ObjectDisposedException) continue;
+                        throw e;
+                    }
+                }
+            }, CancellationToken.None);
+        }
+#endif
+
+        private unsafe void ProcessObjectiveInLoop(CachedCompassObjective objective)
+        {
+            UpdateClosestObjective(objective);
+
+            if (ShowDetail)
+            {
+                var action = CreateDrawDetailsAction(objective);
+                detailsWindow.AddDrawAction(this, action);
+            }
+            if (MarkScreen)
+            {
+                var action = CreateMarkScreenAction(objective);
+                overlay.AddDrawAction(action);
+            }
+        }
+
+        private unsafe void ProcessClosestObjOnLoopEnd()
+        {
             if (ready)
             {
                 if ((DateTime.UtcNow - closestObjLastChangedTime).TotalSeconds > closestObjResetDelayInSec)
@@ -99,8 +184,8 @@ namespace AetherCompass.Compasses
                     closestObjPtrSecondLast = IntPtr.Zero;
                     closestObjLastChangedTime = DateTime.UtcNow;
                 }
-                else if (closestObj != null && closestObj.GameObject != null 
-                    && (IntPtr)closestObj.GameObject != closestObjPtrLast 
+                else if (closestObj != null && closestObj.GameObject != null
+                    && (IntPtr)closestObj.GameObject != closestObjPtrLast
                     && (IntPtr)closestObj.GameObject != closestObjPtrSecondLast)
                 {
                     if (NotifyChat)
@@ -127,6 +212,10 @@ namespace AetherCompass.Compasses
                     closestObjLastChangedTime = DateTime.UtcNow;
                 }
             }
+        }
+
+        public virtual void Reset()
+        {
             closestObj = null;
         }
 
@@ -134,10 +223,11 @@ namespace AetherCompass.Compasses
         public async virtual void OnZoneChange()
         {
             ready = false;
-            await System.Threading.Tasks.Task.Delay(2500);
-            ready = true;
+            Reset();
             closestObjPtrLast = IntPtr.Zero;
-            closestObjPtrSecondLast = IntPtr.Zero;  
+            closestObjPtrSecondLast = IntPtr.Zero;
+            await Task.Delay(2500);
+            ready = true;
     }
 
 
@@ -205,13 +295,10 @@ namespace AetherCompass.Compasses
 
         #region Helpers
 
-        private protected void DrawFlagButton(string id, Vector3 mapCoordToFlag)
+        protected void DrawFlagButton(string id, Vector3 mapCoordToFlag)
         {
             if (ImGui.Button($"Set flag on map##{GetType().Name}_{id}"))
-            {
-                HasFlagToProcess = true;
-                FlaggedMapCoord = new Vector2(mapCoordToFlag.X, mapCoordToFlag.Y);
-            }
+                Plugin.CompassManager.RegisterMapFlag(new(mapCoordToFlag.X, mapCoordToFlag.Y));
         }
 
         internal static DrawAction? GenerateConfigDummyMarkerDrawAction(string info, float scale)
