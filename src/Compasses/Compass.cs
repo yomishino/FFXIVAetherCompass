@@ -214,109 +214,105 @@ namespace AetherCompass.Compasses
             }
         }
 
-
-        internal static bool DrawConfigDummyMarker(string info, float scale)
+        internal static DrawAction? GenerateConfigDummyMarkerDrawAction(string info, float scale)
         {
             var icon = IconManager.ConfigDummyMarkerIcon;
-            if (icon == null) return false;
+            if (icon == null) info = "(Failed to load icon)\n" + info;
             var drawPos = UiHelper.GetScreenCentre();
-            if (DrawScreenMarkerIcon(icon.ImGuiHandle, drawPos, IconManager.MarkerIconSize, true, scale, 1, out drawPos))
-            {
-                DrawExtraInfoByMarker(info, scale, new(1, 1, 1, 1), 0, drawPos, IconManager.MarkerIconSize, 0, out _);
-                return true;
-            }
-            return false;
+            return DrawAction.Combine(important: true,
+                GenerateScreenMarkerIconDrawAction(icon, drawPos, IconManager.MarkerIconSize, true, scale, 1, out drawPos),
+                GenerateExtraInfoDrawAction(info, scale, new(1, 1, 1, 1), 0, drawPos, IconManager.MarkerIconSize, 0, out _));
         }
         
-        private protected bool DrawScreenMarkerDefault(CachedCompassObjective obj,
+        protected DrawAction? GenerateDefaultScreenMarkerDrawAction(CachedCompassObjective obj,
             ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
-            Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos)
+            Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos, bool important = false)
         {
-            // Make the marker drawn slightly higher than object's hitbox position
             Vector3 hitboxPosAdjusted = new(obj.Position.X, obj.Position.Y + obj.GameObjectHeight + .5f, obj.Position.Z);
             bool inFrontOfCamera = UiHelper.WorldToScreenPos(hitboxPosAdjusted, out lastDrawEndPos);
             lastDrawEndPos = PushToSideOnXIfNeeded(lastDrawEndPos, inFrontOfCamera);
 
-            // Draw direction indicator
-            DrawDirectionIcon(lastDrawEndPos, config.ScreenMarkSizeScale,
+            // Direction indicator
+            var directionIconDrawAction = GenerateDirectionIconDrawAction(lastDrawEndPos, 
+                config.ScreenMarkConstraint, config.ScreenMarkSizeScale,
                 IconManager.DirectionScreenIndicatorIconColour,
                 out float rotationFromUpward, out lastDrawEndPos);
             // Marker
-            bool markerDrawn = icon != null
-                && DrawScreenMarkerIcon(icon.ImGuiHandle, lastDrawEndPos, iconSizeRaw, true,
-                config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
-            if (markerDrawn)
-            {
-                // Altitude
-                DrawAltitudeDiffIcon(obj.AltitudeDiff, lastDrawEndPos, true,
-                    config.ScreenMarkSizeScale, iconAlpha, out _);
-                // Info
-                DrawExtraInfoByMarker(info, config.ScreenMarkSizeScale, infoTextColour,
-                    textShadowLightness, lastDrawEndPos, iconSizeRaw, rotationFromUpward, out _);
-            }
-            return markerDrawn;
+            var markerIconDrawAction = GenerateScreenMarkerIconDrawAction(icon, lastDrawEndPos,
+                iconSizeRaw, true, config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
+            // Altitude diff
+            var altDiffIconDrawAction = markerIconDrawAction == null ? null
+                : GenerateAltitudeDiffIconDrawAction(obj.AltitudeDiff, lastDrawEndPos, 
+                    true, config.ScreenMarkSizeScale, iconAlpha, out _);
+            // Extra info
+            var extraInfoDrawAction = GenerateExtraInfoDrawAction(info, config.ScreenMarkSizeScale,
+                infoTextColour, textShadowLightness, lastDrawEndPos, iconSizeRaw, rotationFromUpward, out _);
+            return DrawAction.Combine(important, directionIconDrawAction, markerIconDrawAction, altDiffIconDrawAction, extraInfoDrawAction);
         }
 
-        private protected bool DrawDirectionIcon(Vector2 screenPosRaw, float scale,
-            uint colour, out float rotationFromUpward, out Vector2 drawEndPos)
+        protected static DrawAction? GenerateDirectionIconDrawAction(Vector2 screenPosRaw,
+            Vector4 screenMarkConstraint, float scale, uint colour, 
+            out float rotationFromUpward, out Vector2 drawEndPos)
         {
             drawEndPos = screenPosRaw;
             rotationFromUpward = 0;
             var icon = IconManager.DirectionScreenIndicatorIcon;
-            if (icon == null) return false;
             var iconSize = IconManager.DirectionScreenIndicatorIconSize * scale;
             rotationFromUpward = UiHelper.GetAngleOnScreen(drawEndPos);
             // Flip the direction indicator along X when not inside viewport;
             if (!UiHelper.IsScreenPosInsideMainViewport(drawEndPos))
                 rotationFromUpward = -rotationFromUpward;
-            drawEndPos = UiHelper.GetConstrainedScreenPos(screenPosRaw, config.ScreenMarkConstraint, iconSize / 4);
+            drawEndPos = UiHelper.GetConstrainedScreenPos(screenPosRaw, screenMarkConstraint, iconSize / 4);
             drawEndPos -= iconSize / 2;
             (var p1, var p2, var p3, var p4) = UiHelper.GetRotatedPointsOnScreen(drawEndPos, iconSize, rotationFromUpward);
-            ImGui.GetWindowDrawList().AddImageQuad(icon.ImGuiHandle, p1, p2, p3, p4, new(0, 0), new(1, 0), new(1, 1), new(0, 1), colour);
             var iconCentre = (p1 + p3) / 2;
-            drawEndPos = new Vector2(iconCentre.X + iconSize.Y / 2 * MathF.Sin(rotationFromUpward), 
+            drawEndPos = new Vector2(iconCentre.X + iconSize.Y / 2 * MathF.Sin(rotationFromUpward),
                 iconCentre.Y + iconSize.X / 2 * MathF.Cos(rotationFromUpward));
-            return true;
+            return icon == null ? null 
+                : new(() => ImGui.GetWindowDrawList().AddImageQuad(icon.ImGuiHandle,
+                    p1, p2, p3, p4, new(0, 0), new(1, 0), new(1, 1), new(0, 1), colour));
         }
 
-        private protected static bool DrawScreenMarkerIcon(IntPtr iconTexHandle, 
-            Vector2 drawScreenPos, Vector2 iconSizeRaw, bool posIsRaw,
-            float scale, float alpha, out Vector2 drawEndPos)
+        protected static DrawAction? GenerateScreenMarkerIconDrawAction(
+            ImGuiScene.TextureWrap? icon, Vector2 drawScreenPos, Vector2 iconSizeRaw, 
+            bool posIsRaw, float scale, float alpha, out Vector2 drawEndPos)
         {
             var iconSize = iconSizeRaw * scale;
             drawEndPos = drawScreenPos;
-            if (iconTexHandle == IntPtr.Zero) return false;
             if (posIsRaw)
                 drawEndPos -= iconSize / 2;
-            ImGui.GetWindowDrawList().AddImage(iconTexHandle, drawEndPos, drawEndPos + iconSize,
-                new(0, 0), new(1, 1), ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, alpha)));
-            return true;
+            var iconDrawPos = drawEndPos;
+            return icon == null ? null 
+                : new(() => ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle, 
+                    iconDrawPos, iconDrawPos + iconSize, new(0, 0), new(1, 1), 
+                    ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, alpha))));
         }
 
-        private protected static bool DrawAltitudeDiffIcon(float altDiff, Vector2 screenPos, 
-            bool posIsRaw, float scale, float alpha, out Vector2 drawEndPos)
+        protected static DrawAction? GenerateAltitudeDiffIconDrawAction(float altDiff, 
+            Vector2 screenPos, bool posIsRaw, float scale, float alpha, out Vector2 drawEndPos)
         {
             drawEndPos = screenPos;
-            
+
             ImGuiScene.TextureWrap? icon = null;
             if (altDiff > 5) icon = IconManager.AltitudeHigherIcon;
             if (altDiff < -5) icon = IconManager.AltitudeLowerIcon;
-            if (icon == null) return false;
+            if (icon == null) return null;
             var iconSize = IconManager.AltitudeIconSize * scale;
             if (posIsRaw)
                 drawEndPos -= iconSize / 2;
-            ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle, drawEndPos, drawEndPos + iconSize,
-                new(0, 0), new(1, 1), ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, alpha)));
+            var iconDrawPos = drawEndPos;
             drawEndPos += iconSize / 2;
-            return true;
+            return new(() => ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle, 
+                iconDrawPos, iconDrawPos+ iconSize, new(0, 0), new(1, 1), 
+                ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, alpha))));
         }
 
-        private protected static bool DrawExtraInfoByMarker(string info, float scale, 
-            Vector4 colour, float shadowLightness, Vector2 markerScreenPos, 
+        protected static DrawAction? GenerateExtraInfoDrawAction(string info, float scale,
+            Vector4 colour, float shadowLightness, Vector2 markerScreenPos,
             Vector2 markerSizeRaw, float directionRotationFromUpward, out Vector2 drawEndPos)
         {
             drawEndPos = markerScreenPos;
-            if (string.IsNullOrEmpty(info)) return false;
+            if (string.IsNullOrEmpty(info)) return null;
             var fontsize = ImGui.GetFontSize() * scale;
             drawEndPos.Y += 2;  // make it slighly lower
             if (directionRotationFromUpward > -.95f)
@@ -330,9 +326,9 @@ namespace AetherCompass.Compasses
                 var size = UiHelper.GetTextSize(info, ImGui.GetFont(), fontsize);
                 drawEndPos.X -= size.X + 2;
             }
-            UiHelper.DrawTextWithShadow(ImGui.GetWindowDrawList(), info, drawEndPos,
-                ImGui.GetFont(), ImGui.GetFontSize(), scale, colour, shadowLightness);
-            return true;
+            var textDrawPos = drawEndPos;
+            return new(() => UiHelper.DrawTextWithShadow(ImGui.GetWindowDrawList(), info, 
+                textDrawPos, ImGui.GetFont(), ImGui.GetFontSize(), scale, colour, shadowLightness));
         }
 
         private protected static Vector2 PushToSideOnXIfNeeded(Vector2 drawPos, bool posInFrontOfCamera)

@@ -133,10 +133,9 @@ namespace AetherCompass.Compasses
                 var questName = GetQuestName(mappedInfo.RelatedQuest.QuestID);
                 if (questName != null) descr += $"\n(Quest: {questName})";
             }
-            return new(
-                () => DrawScreenMarkerDefault(objective, icon, IconManager.MarkerIconSize, .9f, 
-                    descr, infoTextColour, infoTextShadowLightness, out _),
-                objective.Distance3D < 55 || mappedInfo.RelatedQuest.IsPriority);
+            return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
+                .9f, descr, infoTextColour, infoTextShadowLightness, out _,
+                important: objective.Distance3D < 55 || mappedInfo.RelatedQuest.IsPriority);
         }
 
 

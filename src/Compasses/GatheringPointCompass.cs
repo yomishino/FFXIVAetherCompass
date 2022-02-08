@@ -48,13 +48,14 @@ namespace AetherCompass.Compasses
             });
 
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
-            => objective.GameObject == null ? null : new(() =>
-            {
-                var icon = IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
-                string descr = $"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}";
-                DrawScreenMarkerDefault(objective, icon, IconManager.MarkerIconSize,
-                    .9f, descr, infoTextColour, infoTextShadowLightness, out _);
-            });
+        {
+            if (objective.GameObject == null) return null;
+            var icon = IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
+            string descr = $"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}";
+            return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
+                    .9f, descr, infoTextColour, infoTextShadowLightness, out _,
+                    important: false);
+        }
 
         private protected override void DisposeCompassUsedIcons() => IconManager.DisposeGatheringPointCompassIcons();
 
@@ -62,13 +63,13 @@ namespace AetherCompass.Compasses
             => objective.Name;
 
 
-        private static ExcelSheet<Sheets.GatheringPoint>? GatheringPointSheet
+        private static readonly ExcelSheet<Sheets.GatheringPoint>? GatheringPointSheet
             = Plugin.DataManager.GetExcelSheet<Sheets.GatheringPoint>();
         
-        private static ExcelSheet<Sheets.GatheringPointBase>? GatheringPointBaseSheet
+        private static readonly ExcelSheet<Sheets.GatheringPointBase>? GatheringPointBaseSheet
             = Plugin.DataManager.GetExcelSheet<Sheets.GatheringPointBase>();
 
-        private static ExcelSheet<Sheets.GatheringType>? GatheringTypeSheet
+        private static readonly ExcelSheet<Sheets.GatheringType>? GatheringTypeSheet
             = Plugin.DataManager.GetExcelSheet<Sheets.GatheringType>();
 
         // True for those that use special icon;

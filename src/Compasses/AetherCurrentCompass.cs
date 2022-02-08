@@ -46,11 +46,10 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
             if (objective.GameObject == null) return null;
-            return new(
-                () => DrawScreenMarkerDefault(objective, IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, 
-                    .9f, $"{objective.Name}\n{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}", 
-                    infoTextColour, infoTextShadowLightness, out _), 
-                objective.Distance3D < 80);
+            return GenerateDefaultScreenMarkerDrawAction(objective,
+                IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, .9f,
+                $"{objective.Name}\n{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}",
+                infoTextColour, infoTextShadowLightness, out _, important: objective.Distance3D < 60);
         }
 
         public override unsafe bool IsObjective(GameObject* o)

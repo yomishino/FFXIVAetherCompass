@@ -64,14 +64,11 @@ namespace AetherCompass.Compasses
             UiHelper.WorldToScreenPos(objective.Position, out var screenPos, out var pCoordsRaw);
             screenPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos
 
-            return new(() =>
-            {
-                string info = $"name={objective.Name}\n" +
+            string info = $"name={objective.Name}\n" +
                             $"worldPos={objective.Position}, dist={objective.Distance3D:0.0}\n" +
                             $"sPosUnfixed=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, raw=<{pCoordsRaw.X:0.0}, {pCoordsRaw.Y:0.0}, {pCoordsRaw.Z:0.0}>";
-                DrawScreenMarkerDefault(objective, IconManager.DebugMarkerIcon, IconManager.MarkerIconSize, 
-                    .9f, info, new(1, 1, 1, 1), 0, out _);
-            });
+            return GenerateDefaultScreenMarkerDrawAction(objective, 
+                IconManager.DebugMarkerIcon, IconManager.MarkerIconSize, .9f, info, new(1, 1, 1, 1), 0, out _);
         }
     }
 }

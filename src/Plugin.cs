@@ -148,7 +148,8 @@ namespace AetherCompass
                         ImGui.TreePush();
                         ImGuiEx.DragFloat("Marker size scale", ref Config.ScreenMarkSizeScale,
                             .01f, PluginConfig.ScreenMarkSizeScaleMin, PluginConfig.ScreenMarkSizeScaleMax);
-                        overlay.AddDrawAction(() => Compass.DrawConfigDummyMarker($"Marker size scale: {Config.ScreenMarkSizeScale:0.00}", Config.ScreenMarkSizeScale));
+                        overlay.AddDrawAction(Compass.GenerateConfigDummyMarkerDrawAction(
+                            $"Marker size scale: {Config.ScreenMarkSizeScale:0.00}", Config.ScreenMarkSizeScale));
                         var viewport = ImGui.GetMainViewport().Pos;
                         var vsize = ImGui.GetMainViewport().Size;
                         System.Numerics.Vector4 displayArea = new(
