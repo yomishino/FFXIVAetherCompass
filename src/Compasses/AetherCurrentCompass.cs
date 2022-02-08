@@ -16,8 +16,8 @@ namespace AetherCompass.Compasses
         private const float infoTextShadowLightness = .1f;
 
 
-        public AetherCurrentCompass(PluginConfig config, AetherCurrentCompassConfig compassConfig, CompassDetailsWindow detailsWindow, CompassOverlay overlay)
-            : base(config, compassConfig, detailsWindow, overlay) { }
+        public AetherCurrentCompass(AetherCurrentCompassConfig compassConfig)
+            : base(compassConfig) { }
 
         public override bool IsEnabledInCurrentTerritory()
             => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1; // mostly normal wild field

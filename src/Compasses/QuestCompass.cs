@@ -28,8 +28,7 @@ namespace AetherCompass.Compasses
         private static readonly float infoTextShadowLightness = .1f;
 
 
-        public QuestCompass(PluginConfig config, QuestCompassConfig compassConfig, CompassDetailsWindow detailsWindow, CompassOverlay overlay) 
-            : base(config, compassConfig, detailsWindow, overlay) 
+        public QuestCompass(QuestCompassConfig compassConfig) : base(compassConfig) 
         {
             InitQuestSheetToDoChildLocationMap();
         }
@@ -82,7 +81,7 @@ namespace AetherCompass.Compasses
                 "Additionally, for quests that require looking for NPC/objects in a certain area, " +
                 "enabling this option may reveal the objectives' locations.\n\n" +
                 "In either case, NPC/objects that are known to be quest objectives will have a \"★\" mark by their names");
-            if (config.ShowScreenMark)
+            if (MarkScreen)
             {
                 ImGui.Checkbox("Show quest name by screen marker", ref QuestConfig.ShowQuestName);
                 ImGui.Checkbox("Show NPC/Object's name by screen mark", ref QuestConfig.ShowObjName);

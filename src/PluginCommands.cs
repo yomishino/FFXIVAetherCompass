@@ -49,10 +49,10 @@ namespace AetherCompass
                     host.Enabled = false;
                     return;
                 case "mark":
-                    host.Config.ShowScreenMark = !host.Config.ShowScreenMark;
+                    Plugin.Config.ShowScreenMark = !Plugin.Config.ShowScreenMark;
                     return;
                 case "detail":
-                    host.Config.ShowDetailWindow = !host.Config.ShowDetailWindow;
+                    Plugin.Config.ShowDetailWindow = !Plugin.Config.ShowDetailWindow;
                     return;
                 case "config":
                     host.InConfig = true;

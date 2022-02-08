@@ -57,11 +57,11 @@ namespace AetherCompass
             "Aether Compass";
 #endif
 
-        internal static CompassManager CompassManager { get; private set; } = null!;
-        private readonly CompassOverlay overlay;
-        private readonly CompassDetailsWindow detailsWindow;
+        internal static readonly CompassManager CompassManager = new();
+        internal static readonly CompassOverlay Overlay = new();
+        internal static readonly CompassDetailsWindow DetailsWindow = new();
 
-        internal readonly PluginConfig Config;
+        internal static PluginConfig Config { get; private set; } = null!;
 
         private bool _enabled = false;
         public bool Enabled 
@@ -70,8 +70,8 @@ namespace AetherCompass
             internal set 
             {
                 _enabled = false;
-                overlay.Clear();
-                detailsWindow.Clear();
+                Overlay.Clear();
+                DetailsWindow.Clear();
                 if (!value) IconManager.DisposeAllIcons();
                 _enabled = value;
                 if (Config != null) Config.Enabled = value;
@@ -83,21 +83,17 @@ namespace AetherCompass
         public Plugin()
         {
             Config = PluginInterface.GetPluginConfig() as PluginConfig ?? new();
-            overlay = new();
-            detailsWindow = new();
             
-            CompassManager = new(overlay, detailsWindow, Config);
-
             PluginCommands.AddCommands(this);
 
-            CompassManager.AddCompass(new AetherCurrentCompass(Config, Config.AetherCurrentConfig, detailsWindow, overlay));
-            CompassManager.AddCompass(new MobHuntCompass(Config, Config.MobHuntConfig, detailsWindow, overlay));
-            CompassManager.AddCompass(new GatheringPointCompass(Config, Config.GatheringConfig, detailsWindow, overlay));
+            CompassManager.AddCompass(new AetherCurrentCompass(Config.AetherCurrentConfig));
+            CompassManager.AddCompass(new MobHuntCompass(Config.MobHuntConfig));
+            CompassManager.AddCompass(new GatheringPointCompass(Config.GatheringConfig));
 #if !RELEASE
-            CompassManager.AddCompass(new QuestCompass(Config, Config.QuestConfig, detailsWindow, overlay));
+            CompassManager.AddCompass(new QuestCompass(Config.QuestConfig));
 #endif
 #if DEBUG
-            CompassManager.AddCompass(new DebugCompass(Config, Config.DebugConfig, detailsWindow, overlay));
+            CompassManager.AddCompass(new DebugCompass(Config.DebugConfig));
 #endif
             
             Framework.Update += OnFrameworkUpdate;
@@ -148,7 +144,7 @@ namespace AetherCompass
                         ImGui.TreePush();
                         ImGuiEx.DragFloat("Marker size scale", ref Config.ScreenMarkSizeScale,
                             .01f, PluginConfig.ScreenMarkSizeScaleMin, PluginConfig.ScreenMarkSizeScaleMax);
-                        overlay.AddDrawAction(Compass.GenerateConfigDummyMarkerDrawAction(
+                        Overlay.AddDrawAction(Compass.GenerateConfigDummyMarkerDrawAction(
                             $"Marker size scale: {Config.ScreenMarkSizeScale:0.00}", Config.ScreenMarkSizeScale));
                         var viewport = ImGui.GetMainViewport().Pos;
                         var vsize = ImGui.GetMainViewport().Size;
@@ -167,7 +163,7 @@ namespace AetherCompass
                             viewport.Y + vsize.Y - displayArea.Y, // D
                             viewport.X + vsize.X - displayArea.Z, // R
                             displayArea.W - viewport.Y); // U
-                        overlay.AddDrawAction(() => ImGui.GetWindowDrawList().AddRect(
+                        Overlay.AddDrawAction(() => ImGui.GetWindowDrawList().AddRect(
                             new(displayArea.X, displayArea.W), new(displayArea.Z, displayArea.Y),
                             ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1)), 0, ImDrawFlags.Closed, 4));
                         ImGui.Indent();
@@ -241,12 +237,12 @@ namespace AetherCompass
                 {
                     try
                     {
-                        if (Config.ShowScreenMark) overlay.Draw();
+                        if (Config.ShowScreenMark) Overlay.Draw();
                         if (Config.ShowDetailWindow)
                         {
                             if (!(Config.HideDetailInContents && ZoneWatcher.IsInDetailWindowHideZone))
-                                detailsWindow.Draw();
-                            else detailsWindow.Clear();
+                                DetailsWindow.Draw();
+                            else DetailsWindow.Clear();
                         }
                     }
                     catch (Exception e)
@@ -259,14 +255,14 @@ namespace AetherCompass
                 {
                     // Clear when should not draw to avoid any action remaining in queue be drawn later
                     // which would cause game crash due to access violation etc.
-                    if (Config.ShowScreenMark) overlay.Clear();
-                    if (Config.ShowDetailWindow) detailsWindow.Clear();
+                    if (Config.ShowScreenMark) Overlay.Clear();
+                    if (Config.ShowDetailWindow) DetailsWindow.Clear();
                 }
             }
             else if (InConfig && Config.ShowScreenMark)
             {
                 // for drawing the marker display area when in config
-                overlay.Draw();
+                Overlay.Draw();
             }
 
         }
@@ -307,7 +303,7 @@ namespace AetherCompass
                 CompassManager.OnZoneChange();
         }
 
-        private bool InNotDrawingConditions()
+        private static bool InNotDrawingConditions()
             => Config.HideInEvent &&
             (  ClientCondition[ConditionFlag.ChocoboRacing]
             || ClientCondition[ConditionFlag.CreatingCharacter]

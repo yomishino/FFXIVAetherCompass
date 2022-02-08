@@ -24,8 +24,8 @@ namespace AetherCompass.Compasses
         private static readonly float infoTextShadowLightness = .1f;
 
 
-        public GatheringPointCompass(PluginConfig config, GatheringPointCompassConfig compassConfig, CompassDetailsWindow detailsWindow, CompassOverlay overlay)
-            : base(config, compassConfig, detailsWindow, overlay) { }
+        public GatheringPointCompass(GatheringPointCompassConfig compassConfig)
+            : base(compassConfig) { }
 
         public override bool IsEnabledInCurrentTerritory()
             => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1

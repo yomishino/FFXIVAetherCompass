@@ -14,8 +14,8 @@ namespace AetherCompass.Compasses
         public override string Description => "For Debug";
         
 
-        public DebugCompass(PluginConfig config, CompassConfig compassConfig, CompassDetailsWindow detailsWindow, CompassOverlay overlay) 
-            : base(config, compassConfig, detailsWindow, overlay) { }
+        public DebugCompass(CompassConfig compassConfig) 
+            : base(compassConfig) { }
 
 
         public override bool IsEnabledInCurrentTerritory()

@@ -1,8 +1,6 @@
 ﻿using AetherCompass.Common;
-using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI;
-using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using System.Collections.Generic;
@@ -16,9 +14,6 @@ namespace AetherCompass.Compasses
     {
         private readonly HashSet<Compass> compasses = new();
         private readonly HashSet<Compass> workingCompasses = new();
-        private readonly CompassOverlay overlay = null!;
-        private readonly CompassDetailsWindow detailsWindow = null!;
-        private readonly PluginConfig config = null!;
 
         private CancellationTokenSource cancellationTokenSrc = new();
 
@@ -39,17 +34,10 @@ namespace AetherCompass.Compasses
         private System.Numerics.Vector2 mapFlagCoord;
 
 
-        public CompassManager(CompassOverlay overlay, CompassDetailsWindow window, PluginConfig config)
-        {
-            this.overlay = overlay;
-            this.detailsWindow = window;
-            this.config = config;
-        }
-
         public bool AddCompass(Compass c)
         {
             if (!compasses.Add(c)) return false;
-            if (!detailsWindow.RegisterCompass(c)) return false;
+            if (!Plugin.DetailsWindow.RegisterCompass(c)) return false;
             if (c.IsEnabledInCurrentTerritory())
                 workingCompasses.Add(c);
             return true;
@@ -58,7 +46,7 @@ namespace AetherCompass.Compasses
         public bool RemoveCompass(Compass c)
         {
             if (!compasses.Contains(c)) return false;
-            detailsWindow.UnregisterCompass(c);
+            Plugin.DetailsWindow.UnregisterCompass(c);
             workingCompasses.Remove(c);
             return compasses.Remove(c);
         }
@@ -76,8 +64,8 @@ namespace AetherCompass.Compasses
                 cancellationTokenSrc.Cancel();
             cancellationTokenSrc = new();
 
-            overlay.Clear();
-            detailsWindow.Clear();
+            Plugin.Overlay.Clear();
+            Plugin.DetailsWindow.Clear();
 
             if (workingCompasses.Count > 0)
             {
@@ -85,7 +73,7 @@ namespace AetherCompass.Compasses
                     if (compass.CompassEnabled) compass.Reset();
 
 #if DEBUG
-                var debugTestAll = gameObjMgr != null && config.DebugTestAllGameObjects;
+                var debugTestAll = gameObjMgr != null && Plugin.Config.DebugTestAllGameObjects;
                 void* array = debugTestAll ? gameObjMgr->ObjectListFiltered : SortedObjectInfoPointerArray;
                 int count = debugTestAll ? gameObjMgr->ObjectListFilteredCount : SortedObjectInfoCount;
 #else
@@ -153,14 +141,17 @@ namespace AetherCompass.Compasses
 
         public void OnZoneChange()
         {
-            cancellationTokenSrc.Cancel();
-            workingCompasses.Clear();
-            foreach (var compass in compasses)
+            try
             {
-                compass.OnZoneChange();
-                if (compass.IsEnabledInCurrentTerritory())
-                    workingCompasses.Add(compass);
-            }
+                cancellationTokenSrc.Cancel();
+                workingCompasses.Clear();
+                foreach (var compass in compasses)
+                {
+                    compass.OnZoneChange();
+                    if (compass.IsEnabledInCurrentTerritory())
+                        workingCompasses.Add(compass);
+                }
+            } catch (System.ObjectDisposedException) { }
         }
 
         public void DrawCompassConfigUi()

@@ -17,11 +17,7 @@ namespace AetherCompass.Compasses
 {
     public abstract class Compass
     {
-        private protected readonly PluginConfig config = null!;
         private protected readonly CompassConfig compassConfig = null!;
-
-        private protected readonly CompassDetailsWindow detailsWindow = null!;
-        private protected readonly CompassOverlay overlay = null!;
 
         private bool ready = false;
 
@@ -48,20 +44,17 @@ namespace AetherCompass.Compasses
             }
         }
 
-        public virtual bool MarkScreen => config.ShowScreenMark && compassConfig.MarkScreen;
-        public virtual bool ShowDetail => config.ShowDetailWindow && compassConfig.ShowDetail;
+        public virtual bool MarkScreen => Plugin.Config.ShowScreenMark && compassConfig.MarkScreen;
+        public virtual bool ShowDetail => Plugin.Config.ShowDetailWindow && compassConfig.ShowDetail;
 
-        public virtual bool NotifyChat => config.NotifyChat && compassConfig.NotifyChat;
-        public virtual bool NotifySe => config.NotifySe && compassConfig.NotifySe;
-        public virtual bool NotifyToast => config.NotifyToast && compassConfig.NotifyToast;
+        public virtual bool NotifyChat => Plugin.Config.NotifyChat && compassConfig.NotifyChat;
+        public virtual bool NotifySe => Plugin.Config.NotifySe && compassConfig.NotifySe;
+        public virtual bool NotifyToast => Plugin.Config.NotifyToast && compassConfig.NotifyToast;
 
 
-        public Compass(PluginConfig config, CompassConfig compassConfig, CompassDetailsWindow detailsWindow, CompassOverlay overlay)
+        public Compass(CompassConfig compassConfig)
         {
-            this.config = config;
             this.compassConfig = compassConfig;
-            this.detailsWindow = detailsWindow;
-            this.overlay = overlay;
             _compassEnabled = compassConfig.Enabled;   // assign to field to avoid trigger Icon manager when init
             ready = true;
         }
@@ -166,12 +159,12 @@ namespace AetherCompass.Compasses
             if (ShowDetail)
             {
                 var action = CreateDrawDetailsAction(objective);
-                detailsWindow.AddDrawAction(this, action);
+                Plugin.DetailsWindow.AddDrawAction(this, action);
             }
             if (MarkScreen)
             {
                 var action = CreateMarkScreenAction(objective);
-                overlay.AddDrawAction(action);
+                Plugin.Overlay.AddDrawAction(action);
             }
         }
 
@@ -228,7 +221,7 @@ namespace AetherCompass.Compasses
             closestObjPtrSecondLast = IntPtr.Zero;
             await Task.Delay(2500);
             ready = true;
-    }
+        }
 
 
         #region Config UI
@@ -247,21 +240,21 @@ namespace AetherCompass.Compasses
                 ImGui.PushID($"{CompassName}");
                 if (ImGui.TreeNode($"Compass settings"))
                 {
-                    if (config.ShowScreenMark)
+                    if (Plugin.Config.ShowScreenMark)
                     {
                         ImGuiEx.Checkbox("Mark detected objects on screen", ref compassConfig.MarkScreen,
                             "Mark objects detected by this compass on screen, showing the direction and distance.");
                     }
-                    if (config.ShowDetailWindow)
+                    if (Plugin.Config.ShowDetailWindow)
                     {
                         ImGuiEx.Checkbox("Show objects details", ref compassConfig.ShowDetail,
                             "List details of objects detected by this compass in the Details Window.");
                     }
-                    if (config.NotifyChat)
+                    if (Plugin.Config.NotifyChat)
                     {
                         ImGuiEx.Checkbox("Chat Notification", ref compassConfig.NotifyChat,
                             "Allow this compass to send a chat message about an object detected.");
-                        if (config.NotifySe)
+                        if (Plugin.Config.NotifySe)
                         {
                             ImGuiEx.Checkbox("Sound Notification", ref compassConfig.NotifySe,
                                 "Also allow this compass to make sound when sending chat message notification.");
@@ -276,7 +269,7 @@ namespace AetherCompass.Compasses
                             }
                         }
                     }
-                    if (config.NotifyToast)
+                    if (Plugin.Config.NotifyToast)
                     {
                         ImGuiEx.Checkbox("Toast Notification", ref compassConfig.NotifyToast,
                             "Allow this compass to make a Toast notification about an object detected.");
@@ -297,7 +290,7 @@ namespace AetherCompass.Compasses
 
         protected void DrawFlagButton(string id, Vector3 mapCoordToFlag)
         {
-            if (ImGui.Button($"Set flag on map##{GetType().Name}_{id}"))
+            if (ImGui.Button($"Set flag on map##{CompassName}_{id}"))
                 Plugin.CompassManager.RegisterMapFlag(new(mapCoordToFlag.X, mapCoordToFlag.Y));
         }
 
@@ -311,7 +304,7 @@ namespace AetherCompass.Compasses
                 GenerateExtraInfoDrawAction(info, scale, new(1, 1, 1, 1), 0, drawPos, IconManager.MarkerIconSize, 0, out _));
         }
         
-        protected DrawAction? GenerateDefaultScreenMarkerDrawAction(CachedCompassObjective obj,
+        protected static DrawAction? GenerateDefaultScreenMarkerDrawAction(CachedCompassObjective obj,
             ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
             Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos, bool important = false)
         {
@@ -320,19 +313,19 @@ namespace AetherCompass.Compasses
             lastDrawEndPos = PushToSideOnXIfNeeded(lastDrawEndPos, inFrontOfCamera);
 
             // Direction indicator
-            var directionIconDrawAction = GenerateDirectionIconDrawAction(lastDrawEndPos, 
-                config.ScreenMarkConstraint, config.ScreenMarkSizeScale,
+            var directionIconDrawAction = GenerateDirectionIconDrawAction(lastDrawEndPos,
+                Plugin.Config.ScreenMarkConstraint, Plugin.Config.ScreenMarkSizeScale,
                 IconManager.DirectionScreenIndicatorIconColour,
                 out float rotationFromUpward, out lastDrawEndPos);
             // Marker
             var markerIconDrawAction = GenerateScreenMarkerIconDrawAction(icon, lastDrawEndPos,
-                iconSizeRaw, true, config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
+                iconSizeRaw, true, Plugin.Config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
             // Altitude diff
             var altDiffIconDrawAction = markerIconDrawAction == null ? null
                 : GenerateAltitudeDiffIconDrawAction(obj.AltitudeDiff, lastDrawEndPos, 
-                    true, config.ScreenMarkSizeScale, iconAlpha, out _);
+                    true, Plugin.Config.ScreenMarkSizeScale, iconAlpha, out _);
             // Extra info
-            var extraInfoDrawAction = GenerateExtraInfoDrawAction(info, config.ScreenMarkSizeScale,
+            var extraInfoDrawAction = GenerateExtraInfoDrawAction(info, Plugin.Config.ScreenMarkSizeScale,
                 infoTextColour, textShadowLightness, lastDrawEndPos, iconSizeRaw, rotationFromUpward, out _);
             return DrawAction.Combine(important, directionIconDrawAction, markerIconDrawAction, altDiffIconDrawAction, extraInfoDrawAction);
         }
