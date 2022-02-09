@@ -147,9 +147,9 @@ namespace AetherCompass.Compasses
                 workingCompasses.Clear();
                 foreach (var compass in compasses)
                 {
-                    compass.OnZoneChange();
                     if (compass.IsEnabledInCurrentTerritory())
                         workingCompasses.Add(compass);
+                    compass.OnZoneChange();
                 }
             } catch (System.ObjectDisposedException) { }
         }

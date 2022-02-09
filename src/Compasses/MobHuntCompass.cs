@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI.GUI;
@@ -47,7 +48,7 @@ namespace AetherCompass.Compasses
             => IconManager.DisposeMobHuntCompassIcons();
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
-            => objective.GameObject == null || !nmDataMap.TryGetValue(objective.DataId, out var nmData) ? null : new(() =>
+            => objective.IsEmpty() || !nmDataMap.TryGetValue(objective.DataId, out var nmData) ? null : new(() =>
             {
                 ImGui.Text(nmData.GetNMName());
                 ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(objective.CurrentMapCoord)} (approx.)");
@@ -60,7 +61,7 @@ namespace AetherCompass.Compasses
 
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
-            if (objective.GameObject == null || !nmDataMap.TryGetValue(objective.DataId, out var nmData)) return null;
+            if (objective.IsEmpty() || !nmDataMap.TryGetValue(objective.DataId, out var nmData)) return null;
             string descr = $"{nmData.Name}\nRank: {nmData.Rank}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
             return GenerateDefaultScreenMarkerDrawAction(objective, IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
                 .9f, descr, infoTextColour, infoTextShadowLightness, out _, 

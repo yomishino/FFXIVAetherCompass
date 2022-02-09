@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Compasses.Objectives;
 using AetherCompass.Game.SeFunctions;
 using AetherCompass.Configs;
 using AetherCompass.Game;
@@ -48,7 +49,7 @@ namespace AetherCompass.Compasses
         private protected override void DisposeCompassUsedIcons()
             => IconManager.DisposeQuestCompassIcons();
 
-        protected override void ProcessOnLoopStart()
+        public override void ProcessOnLoopStart()
         {
             objQuestMap.Clear();
             ProcessQuestData();
@@ -90,7 +91,7 @@ namespace AetherCompass.Compasses
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
         {
-            if (objective.GameObject == null) return null;
+            if (objective.IsEmpty()) return null;
             if (!objQuestMap.TryGetValue(objective.DataId, out var mappedInfo)) return null;
             var questId = mappedInfo.RelatedQuest.QuestID;
             return new(() =>
@@ -117,7 +118,7 @@ namespace AetherCompass.Compasses
 
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
-            if (objective.GameObject == null) return null;
+            if (objective.IsEmpty()) return null;
             if (!objQuestMap.TryGetValue(objective.DataId, out var mappedInfo)) return null;
             var qRow = GetQuestRow(mappedInfo.RelatedQuest.QuestID);
             var icon = qRow == null || qRow.EventIconType.Value == null

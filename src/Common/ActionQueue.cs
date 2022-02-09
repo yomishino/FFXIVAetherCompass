@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace AetherCompass.Common
 {
     public class ActionQueue
     {
-        private readonly ConcurrentQueue<DrawAction> importantActions;
-        private readonly ConcurrentQueue<DrawAction> normalActions;
+        private readonly BlockingCollection<DrawAction> importantActions;
+        private readonly BlockingCollection<DrawAction> normalActions;
         
         public int Threshold { get; }
-        public int Count { get; private set; } = 0;
+        // count may be inaccurate 
+        public int Count => importantActions.Count + normalActions.Count;
 
 
         public ActionQueue(int threshold)
         {
-            normalActions = new();
-            importantActions = new();
+            normalActions = new(threshold);
+            importantActions = new(threshold);
             Threshold = threshold > 0 ? threshold 
                 : throw new ArgumentOutOfRangeException(nameof(threshold), "threshold should be positive");
         }
@@ -34,53 +34,19 @@ namespace AetherCompass.Common
 
         private bool EnqueueImportant(DrawAction a)
         {
-            if (Count < Threshold || TryDequeueNormal(out _))
-            {
-                importantActions.Enqueue(a);
-                Count++;
-                AssertCount();
-                return true;
-            }
-            return false;
+            if (!importantActions.TryAdd(a)) return false;
+            // Try make space by dequeueing normal
+            // if important queue still has space but total bound reached
+            // This is approximate tho
+            if (Count >= Threshold && !TryDequeueNormal(out _)) return false;
+            return importantActions.TryAdd(a);
         }
 
-        private bool EnqueueNormal(DrawAction a)
-        {
-            if (Count < Threshold || TryDequeueNormal(out _))
-            {
-                normalActions.Enqueue(a);
-                Count++;
-                AssertCount();
-                return true;
-            }
-            return false;
-        }
+        private bool EnqueueNormal(DrawAction a) => normalActions.TryAdd(a);
 
-        private bool TryDequeueImportant(out DrawAction? a)
-        {
-            if (importantActions.TryDequeue(out a))
-            {
-                Count--;
-                AssertCount();
-                return true;
-            }
-            return false;
-        }
+        private bool TryDequeueImportant(out DrawAction? a) => importantActions.TryTake(out a);
 
-        private bool TryDequeueNormal(out DrawAction? a)
-        {
-            if (normalActions.TryDequeue(out a))
-            {
-                Count--;
-                AssertCount();
-                return true;
-            }
-            return false;
-        }
-
-        [Conditional("DEBUG")]
-        private void AssertCount()
-            => Debug.Assert(Count == normalActions.Count + importantActions.Count && Count <= Threshold);
+        private bool TryDequeueNormal(out DrawAction? a) => normalActions.TryTake(out a);
 
         public void DoAll()
         {
@@ -92,9 +58,8 @@ namespace AetherCompass.Common
 
         public void Clear()
         {
-            normalActions.Clear();
-            importantActions.Clear();
-            Count = 0;
+            while (normalActions.TryTake(out var _)) ;
+            while (importantActions.TryTake(out var _)) ;
         }
     }
 }

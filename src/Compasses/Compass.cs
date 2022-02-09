@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI;
@@ -68,21 +69,20 @@ namespace AetherCompass.Compasses
 
         private protected abstract void DisposeCompassUsedIcons();
 
+        protected unsafe virtual CachedCompassObjective CreateCompassObjective(GameObject* obj)
+            => new(obj);
 
         public unsafe virtual void UpdateClosestObjective(CachedCompassObjective objective)
         {
-            if (objective.GameObject != null)
-            {
-                if (closestObj == null) closestObj = objective;
-                else if (objective.Distance3D < closestObj.Distance3D)
-                    closestObj = objective;
-            }
+            if (closestObj == null) closestObj = objective;
+            else if (objective.Distance3D < closestObj.Distance3D)
+                closestObj = objective;
         }
 
-        protected virtual void ProcessOnLoopStart()
+        public virtual void ProcessOnLoopStart()
         { }
 
-        protected virtual void ProcessOnLoopEnd()
+        public virtual void ProcessOnLoopEnd()
         {
             ProcessClosestObjOnLoopEnd();
         }
@@ -91,9 +91,7 @@ namespace AetherCompass.Compasses
         {
             Task.Run(() =>
             {
-                if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
                 ProcessOnLoopStart();
-                CachedCompassObjective objective = new(null);
                 for (int i = 0; i < count; i++)
                 {
                     if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
@@ -101,22 +99,22 @@ namespace AetherCompass.Compasses
                     var obj = info != null ? info->GameObject : null;
                     if (obj == null || obj->ObjectKind == (byte)ObjectKind.Pc) continue;
                     if (!IsObjective(obj)) continue;
-                    if (objective.GameObject != obj) objective = new(obj);
+                    var objective = CreateCompassObjective(obj);
                     ProcessObjectiveInLoop(objective);
                 }
                 if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
                 ProcessOnLoopEnd();
             }, token).ContinueWith(t =>
             {
-                if (t.IsFaulted && t.Exception != null)
+                if (t.Exception != null)
                 {
                     foreach (var e in t.Exception.InnerExceptions)
                     {
                         if (e is OperationCanceledException or ObjectDisposedException) continue;
-                        throw e;
+                        Plugin.LogError(e.ToString());
                     }
                 }
-            }, CancellationToken.None);
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
 #if DEBUG
@@ -124,35 +122,33 @@ namespace AetherCompass.Compasses
         {
             Task.Run(() =>
             {
-                if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
                 ProcessOnLoopStart();
-                CachedCompassObjective objective = new(null);
                 for (int i = 0; i < count; i++)
                 {
                     if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
                     var obj = GameObjectList[i];
                     if (obj == null) continue;
                     if (!IsObjective(obj)) continue;
-                    if (objective.GameObject != obj) objective = new(obj);
+                    var objective = CreateCompassObjective(obj);
                     ProcessObjectiveInLoop(objective);
                 }
                 if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
                 ProcessOnLoopEnd();
             }, token).ContinueWith(t =>
             {
-                if (t.IsFaulted && t.Exception != null)
+                if (t.Exception != null)
                 {
                     foreach (var e in t.Exception.InnerExceptions)
                     {
                         if (e is OperationCanceledException or ObjectDisposedException) continue;
-                        throw e;
+                        Plugin.LogError(e.ToString());
                     }
                 }
-            }, CancellationToken.None);
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 #endif
 
-        private unsafe void ProcessObjectiveInLoop(CachedCompassObjective objective)
+        private void ProcessObjectiveInLoop(CachedCompassObjective objective)
         {
             UpdateClosestObjective(objective);
 
@@ -168,6 +164,29 @@ namespace AetherCompass.Compasses
             }
         }
 
+        private void ProcessObjectiveInLoop(CachedCompassObjective objective, CancellationToken token)
+        {
+            try
+            {
+                Task.Run(() =>
+                {
+                    ProcessObjectiveInLoop(objective);
+                }, token).ContinueWith(t =>
+                {
+                    if (t.Exception != null)
+                    {
+                        foreach (var e in t.Exception.InnerExceptions)
+                            Plugin.LogError(e.ToString());
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
+            }
+            catch (AggregateException e) 
+            { 
+                if (e.InnerException is not (TaskCanceledException or ObjectDisposedException))
+                    throw;
+            }
+        }
+
         private unsafe void ProcessClosestObjOnLoopEnd()
         {
             if (ready)
@@ -177,9 +196,9 @@ namespace AetherCompass.Compasses
                     closestObjPtrSecondLast = IntPtr.Zero;
                     closestObjLastChangedTime = DateTime.UtcNow;
                 }
-                else if (closestObj != null && closestObj.GameObject != null
-                    && (IntPtr)closestObj.GameObject != closestObjPtrLast
-                    && (IntPtr)closestObj.GameObject != closestObjPtrSecondLast)
+                else if (closestObj != null && !closestObj.IsEmpty()
+                    && !closestObj.IsCacheFor(closestObjPtrLast)
+                    && !closestObj.IsCacheFor(closestObjPtrSecondLast))
                 {
                     if (NotifyChat)
                     {
@@ -201,7 +220,7 @@ namespace AetherCompass.Compasses
                         Notifier.TryNotifyByToast(msg);
                     }
                     closestObjPtrSecondLast = closestObjPtrLast;
-                    closestObjPtrLast = (IntPtr)closestObj.GameObject;
+                    closestObjPtrLast = closestObj.GameObject;
                     closestObjLastChangedTime = DateTime.UtcNow;
                 }
             }

@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI.GUI;
@@ -30,7 +31,7 @@ namespace AetherCompass.Compasses
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
         {
-            if (objective.GameObject == null) return null;
+            if (objective.IsEmpty()) return null;
             return new(() =>
             {
                 ImGui.Text($"{objective.Name}");
@@ -45,7 +46,7 @@ namespace AetherCompass.Compasses
 
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
-            if (objective.GameObject == null) return null;
+            if (objective.IsEmpty()) return null;
             return GenerateDefaultScreenMarkerDrawAction(objective,
                 IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, .9f,
                 $"{objective.Name}\n{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}",

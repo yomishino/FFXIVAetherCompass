@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI.GUI;
@@ -36,7 +37,7 @@ namespace AetherCompass.Compasses
             => o != null && o->ObjectKind == (byte)ObjectKind.GatheringPoint;
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
-            => objective.GameObject == null ? null : new(() =>
+            => objective.IsEmpty() ? null : new(() =>
             {
                 ImGui.Text($"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}");
                 ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(objective.CurrentMapCoord)} (approx.)");
@@ -49,7 +50,7 @@ namespace AetherCompass.Compasses
 
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
-            if (objective.GameObject == null) return null;
+            if (objective.IsEmpty()) return null;
             var icon = IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
             string descr = $"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}";
             return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
