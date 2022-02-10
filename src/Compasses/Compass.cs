@@ -245,10 +245,9 @@ namespace AetherCompass.Compasses
         #region Config UI
         public void DrawConfigUi()
         {
-            ImGuiEx.Checkbox($"Enable Compass: {CompassName}", ref CompassConfig.Enabled);
+            ImGuiEx.Checkbox($"{CompassName}", ref CompassConfig.Enabled);
             // Also dispose icons if disabled
             if (CompassConfig.Enabled != _compassEnabled) CompassEnabled = CompassConfig.Enabled;
-            ImGui.Indent();
             ImGui.Indent();
             ImGuiEx.IconTextCompass(nextSameLine: true);
             ImGui.TextWrapped(Description);
@@ -258,46 +257,56 @@ namespace AetherCompass.Compasses
                 ImGui.PushID($"{CompassName}");
                 if (ImGui.TreeNode($"Compass settings"))
                 {
+                    ImGui.BulletText("UI:");
+                    ImGui.Indent();
                     if (Plugin.Config.ShowScreenMark)
-                    {
                         ImGuiEx.Checkbox("Mark detected objects on screen", ref CompassConfig.MarkScreen,
                             "Mark objects detected by this compass on screen, showing the direction and distance.");
-                    }
+                    else ImGui.TextDisabled("Mark-on-screen disabled in Plugin Settings");
                     if (Plugin.Config.ShowDetailWindow)
-                    {
                         ImGuiEx.Checkbox("Show objects details", ref CompassConfig.ShowDetail,
                             "List details of objects detected by this compass in the Details Window.");
-                    }
+                    else ImGui.TextDisabled("Detail Window disabled in Plugin Settings");
+                    ImGui.Unindent();
+
+                    ImGui.BulletText("Notifications:");
+                    ImGui.Indent();
                     if (Plugin.Config.NotifyChat)
                     {
-                        ImGuiEx.Checkbox("Chat Notification", ref CompassConfig.NotifyChat,
+                        ImGuiEx.Checkbox("Chat", ref CompassConfig.NotifyChat,
                             "Allow this compass to send a chat message about an object detected.");
                         if (Plugin.Config.NotifySe)
                         {
-                            ImGuiEx.Checkbox("Sound Notification", ref CompassConfig.NotifySe,
+                            ImGuiEx.Checkbox("Sound", ref CompassConfig.NotifySe,
                                 "Also allow this compass to make sound when sending chat message notification.");
                             if (CompassConfig.NotifySe)
                             {
-                                ImGuiEx.InputInt("Sound Effect ID", ref CompassConfig.NotifySeId,
+                                ImGui.Indent();
+                                ImGuiEx.InputInt("Sound Effect ID", 100, ref CompassConfig.NotifySeId,
                                     "Input the Sound Effect ID for sound notification, from 1 to 16.\n\n" +
                                     "Sound Effect ID is the same as the game's macro sound effects <se.1>~<se.16>. " +
                                     "For example, if <se.1> is to be used, then enter \"1\" here.");
                                 if (CompassConfig.NotifySeId < 1) CompassConfig.NotifySeId = 1;
                                 if (CompassConfig.NotifySeId > 16) CompassConfig.NotifySeId = 16;
+                                ImGui.Unindent();
                             }
                         }
+                        else ImGui.TextDisabled("Sound notification disabled in Plugin Settings");
                     }
+                    else ImGui.TextDisabled("Chat notification disabled in Plugin Settings");
                     if (Plugin.Config.NotifyToast)
                     {
-                        ImGuiEx.Checkbox("Toast Notification", ref CompassConfig.NotifyToast,
+                        ImGuiEx.Checkbox("Toast", ref CompassConfig.NotifyToast,
                             "Allow this compass to make a Toast notification about an object detected.");
                     }
+                    else ImGui.TextDisabled("Toast notification disabled in Plugin Settings");
+                    ImGui.Unindent();
+
                     DrawConfigUiExtra();
                     ImGui.TreePop();
                 }
                 ImGui.PopID();
             }
-            ImGui.Unindent();
         }
 
         public virtual void DrawConfigUiExtra() { }

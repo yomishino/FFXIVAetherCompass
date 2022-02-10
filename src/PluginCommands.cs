@@ -7,9 +7,9 @@ namespace AetherCompass
     {
         public const string MainCommand = "/aethercompass";
 
-        public static void AddCommands(Plugin host)
+        public static void AddCommands()
         {
-            Plugin.CommandManager.AddHandler(MainCommand, new CommandInfo((cmd, args) => ProcessMainCommand(host, cmd, args))
+            Plugin.CommandManager.AddHandler(MainCommand, new CommandInfo((cmd, args) => ProcessMainCommand(cmd, args))
             {
                 HelpMessage = "Toggle the plugin between enabled/disabled when no options provided\n" +
                     "\tOptions:\n" +
@@ -27,26 +27,26 @@ namespace AetherCompass
             Plugin.CommandManager.RemoveHandler(MainCommand);
         }
 
-        private static void ProcessMainCommand(Plugin host, string command, string args)
+        private static void ProcessMainCommand(string command, string args)
         {
             if (string.IsNullOrWhiteSpace(args))
             {
-                host.Enabled = !host.Enabled;
+                Plugin.Enabled = !Plugin.Enabled;
                 return;
             }
             var argList = args.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
             if (argList.Length == 0)
             {
-                host.Enabled = !host.Enabled;
+                Plugin.Enabled = !Plugin.Enabled;
                 return;
             }
             switch (argList[0])
             {
                 case "on":
-                    host.Enabled = true;
+                    Plugin.Enabled = true;
                     return;
                 case "off":
-                    host.Enabled = false;
+                    Plugin.Enabled = false;
                     return;
                 case "mark":
                     Plugin.Config.ShowScreenMark = !Plugin.Config.ShowScreenMark;
@@ -55,10 +55,10 @@ namespace AetherCompass
                     Plugin.Config.ShowDetailWindow = !Plugin.Config.ShowDetailWindow;
                     return;
                 case "config":
-                    host.InConfig = true;
+                    Plugin.InConfig = true;
                     return;
                 default:
-                    Chat.PrintErrorChat($"Unknown command args: {args}");
+                    Chat.PrintErrorChat($"{command}: Unknown command args: {args}");
                     return;
             }
 

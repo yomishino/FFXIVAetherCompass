@@ -29,27 +29,27 @@ namespace AetherCompass.UI.GUI
 
         public static void Checkbox(string label, ref bool v, string? tooltip = null)
         {
-            ImGui.Checkbox(label + (tooltip == null ? string.Empty : " (?)"), ref v);
+            ImGui.Checkbox(label, ref v);
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
         }
 
-        public static void InputInt(string label, ref int v, string? tooltip = null)
+        public static void InputInt(string label, int itemWidth, ref int v, string? tooltip = null)
         {
             ImGui.Text(label + ": ");
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
             ImGui.SameLine();
-            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X * .9f);
-            ImGui.InputInt((tooltip == null ? "##" : " (?)##") + label, ref v);
+            ImGui.SetNextItemWidth(itemWidth * ImGuiHelpers.GlobalScale);
+            ImGui.InputInt("##" + label, ref v);
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
         }
 
-        public static void DragFloat(string label, ref float v, float v_spd, float v_min, float v_max, string v_fmt = "%.2f", string? tooltip = null)
+        public static void DragFloat(string label, int itemWidth, ref float v, float v_spd, float v_min, float v_max, string v_fmt = "%.2f", string? tooltip = null)
         {
             ImGui.Text(label + ": ");
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
             ImGui.SameLine();
-            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X * .9f);
-            ImGui.DragFloat((tooltip == null ? "##" : " (?)##") + label, ref v, v_spd, v_min, v_max, v_fmt);
+            ImGui.SetNextItemWidth(itemWidth * ImGuiHelpers.GlobalScale);
+            ImGui.DragFloat("##" + label, ref v, v_spd, v_min, v_max, v_fmt);
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
         }
 
@@ -58,7 +58,7 @@ namespace AetherCompass.UI.GUI
             ImGui.Text(label + ": ");
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
             ImGui.Indent();
-            ImGui.DragFloat4((tooltip == null ? "##" : " (?)##") + label, ref v, v_spd, v_min, v_max, v_fmt);
+            ImGui.DragFloat4("##" + label, ref v, v_spd, v_min, v_max, v_fmt);
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
             ImGui.Unindent();
         }

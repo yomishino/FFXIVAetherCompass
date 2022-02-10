@@ -67,7 +67,8 @@ namespace AetherCompass.Compasses
 
         public override void DrawConfigUiExtra()
         {
-            ImGui.NewLine();
+            ImGui.BulletText("More options:");
+            ImGui.Indent();
             ImGuiEx.Checkbox("Also enable this compass in solo instanced contents", ref QuestConfig.EnabledInSoloContents,
                 "By default, this compass will not work in any type of instanced contents.\n" +
                 "You can enable it in solo instanced contents if needed.");
@@ -90,6 +91,7 @@ namespace AetherCompass.Compasses
                 ImGui.Checkbox("Show quest name by screen marker", ref QuestConfig.ShowQuestName);
                 ImGui.Checkbox("Show NPC/Object's name by screen mark", ref QuestConfig.ShowObjName);
             }
+            ImGui.Unindent();
         }
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)

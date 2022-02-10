@@ -4,6 +4,7 @@ using AetherCompass.Game;
 using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -214,7 +215,7 @@ namespace AetherCompass.Compasses
             foreach (var compass in AllAddedCompasses)
             {
                 compass.DrawConfigUi();
-                ImGuiNET.ImGui.NewLine();
+                ImGui.NewLine();
             }
         }
     }

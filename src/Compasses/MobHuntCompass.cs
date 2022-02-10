@@ -71,10 +71,12 @@ namespace AetherCompass.Compasses
 
         public override void DrawConfigUiExtra()
         {
-            ImGui.NewLine();
+            ImGui.BulletText("More options:");
+            ImGui.Indent();
             ImGui.Checkbox("Detect Rank S", ref MobHuntConfig.DetectS);
             ImGui.Checkbox("Detect Rank A", ref MobHuntConfig.DetectA);
             ImGui.Checkbox("Detect Rank B", ref MobHuntConfig.DetectB);
+            ImGui.Unindent();
         }
 
 
