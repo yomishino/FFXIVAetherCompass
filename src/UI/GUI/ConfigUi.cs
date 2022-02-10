@@ -144,8 +144,8 @@ namespace AetherCompass.UI.GUI
                 "You can configure this for each compass separately below.");
             ImGui.NewLine();
 
-            // Debug
 #if DEBUG
+            // Debug
             ImGuiEx.Checkbox("[DEBUG] Test all GameObjects", ref Plugin.Config.DebugTestAllGameObjects);
             ImGui.NewLine();
 #endif

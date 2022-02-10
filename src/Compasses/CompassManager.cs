@@ -65,7 +65,7 @@ namespace AetherCompass.Compasses
 
         public bool AddCompass(Compass c)
         {
-            switch (GetCompassType(c))
+            switch (c.CompassType)
             {
                 case CompassType.Standard:
                     if (!standardCompasses.Add(c)) return false;
@@ -91,7 +91,7 @@ namespace AetherCompass.Compasses
         {
             Plugin.DetailsWindow.UnregisterCompass(c);
             workingCompasses.Remove(c);
-            return GetCompassType(c) switch
+            return c.CompassType switch
             {
                 CompassType.Standard => standardCompasses.Remove(c),
                 CompassType.Experimental => experimentalCompasses.Remove(c),
@@ -101,10 +101,6 @@ namespace AetherCompass.Compasses
                 _ => false
             };
         }
-
-        private static CompassType GetCompassType(Compass c)
-            => (c.GetType().GetCustomAttributes(typeof(CompassTypeAttribute), false)[0] as CompassTypeAttribute)?
-                .Type ?? CompassType.Invalid;
 
 
         public void RegisterMapFlag(System.Numerics.Vector2 flagCoord)

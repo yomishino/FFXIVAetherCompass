@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
@@ -30,6 +31,18 @@ namespace AetherCompass.Compasses
 
         public abstract string CompassName { get; }
         public abstract string Description { get; }
+
+        private CompassType _compassType = CompassType.Unknown;
+        public CompassType CompassType
+        {
+            get
+            {
+                if (_compassType == CompassType.Unknown)
+                    _compassType = (GetType().GetCustomAttributes(typeof(CompassTypeAttribute), false)[0] as CompassTypeAttribute)?
+                        .Type ?? CompassType.Invalid;
+                return _compassType;
+            }
+        }
         
 
         private bool _compassEnabled = false;
@@ -245,12 +258,16 @@ namespace AetherCompass.Compasses
         #region Config UI
         public void DrawConfigUi()
         {
-            ImGuiEx.Checkbox($"{CompassName}", ref CompassConfig.Enabled);
+            var name = CompassType is CompassType.Experimental or CompassType.Debug
+                ? $"[{CompassType}] ".ToUpper() + CompassName : CompassName;
+            ImGuiEx.Checkbox(name, ref CompassConfig.Enabled);
             // Also dispose icons if disabled
             if (CompassConfig.Enabled != _compassEnabled) CompassEnabled = CompassConfig.Enabled;
             ImGui.Indent();
             ImGuiEx.IconTextCompass(nextSameLine: true);
             ImGui.TextWrapped(Description);
+            if (CompassType == CompassType.Experimental)
+                ImGui.TextDisabled("Experimental compasses may not work as expected.\nPlease enable with caution.");
             ImGui.Unindent();
             if (CompassConfig.Enabled)
             {

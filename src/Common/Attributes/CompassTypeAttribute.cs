@@ -15,9 +15,10 @@ namespace AetherCompass.Common.Attributes
 
     public enum CompassType : byte
     {
-        Invalid = 0,
+        Unknown = 0,
         Standard,
         Experimental,
-        Debug
+        Debug,
+        Invalid,
     }
 }
