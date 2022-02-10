@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
@@ -12,6 +13,7 @@ using Sheets = Lumina.Excel.GeneratedSheets;
 
 namespace AetherCompass.Compasses
 {
+    [CompassType(CompassType.Standard)]
     public class MobHuntCompass : Compass
     {
         public override string CompassName => "Mob Hunt Compass";
@@ -21,12 +23,11 @@ namespace AetherCompass.Compasses
         private static readonly System.Numerics.Vector4 infoTextColour = new(1, .6f, .6f, 1);
         private static readonly float infoTextShadowLightness = .1f;
 
-        private MobHuntCompassConfig MobHuntConfig => (MobHuntCompassConfig)compassConfig;
+        private protected override CompassConfig CompassConfig => Plugin.Config.MobHuntConfig;
+        private MobHuntCompassConfig MobHuntConfig => (MobHuntCompassConfig)CompassConfig;
 
 
-
-        public MobHuntCompass(MobHuntCompassConfig compassConfig)
-            : base(compassConfig) 
+        public MobHuntCompass() : base() 
         {
             InitNMDataMap();
         }

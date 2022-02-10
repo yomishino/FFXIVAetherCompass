@@ -1,10 +1,14 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Common.Attributes;
 using AetherCompass.Game;
 using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+
 using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
 
 
@@ -12,7 +16,12 @@ namespace AetherCompass.Compasses
 {
     public unsafe sealed class CompassManager
     {
-        private readonly HashSet<Compass> compasses = new();
+        private readonly HashSet<Compass> standardCompasses = new();
+        private readonly HashSet<Compass> experimentalCompasses = new();
+#if DEBUG
+        private readonly HashSet<Compass> debugCompasses = new();
+#endif
+
         private readonly HashSet<Compass> workingCompasses = new();
 
         private CancellationTokenSource cancellationTokenSrc = new();
@@ -34,9 +43,43 @@ namespace AetherCompass.Compasses
         private System.Numerics.Vector2 mapFlagCoord;
 
 
+        public IEnumerable<Compass> AllAddedCompasses
+            => standardCompasses.Union(experimentalCompasses)
+#if DEBUG
+            .Union(debugCompasses)
+#endif
+            ;
+
+
+        public void Init()
+        {
+            System.Reflection.Assembly.GetExecutingAssembly().GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(Compass)) && !t.IsAbstract).ToList()
+                .ForEach(t =>
+                {
+                    var ctor = t.GetConstructor(Type.EmptyTypes);
+                    if (ctor != null) AddCompass((Compass)ctor.Invoke(null));
+                });
+        }
+
         public bool AddCompass(Compass c)
         {
-            if (!compasses.Add(c)) return false;
+            switch (GetCompassType(c))
+            {
+                case CompassType.Standard:
+                    if (!standardCompasses.Add(c)) return false;
+                    break;
+                case CompassType.Experimental:
+                    if (!experimentalCompasses.Add(c)) return false;
+                    break;
+# if DEBUG
+                case CompassType.Debug:
+                    if (!debugCompasses.Add(c)) return false;
+                    break;
+#endif
+                default:
+                    throw new ArgumentException($"Compass {c.GetType().Name} has no valid compass type");
+            }
             if (!Plugin.DetailsWindow.RegisterCompass(c)) return false;
             if (c.IsEnabledInCurrentTerritory())
                 workingCompasses.Add(c);
@@ -45,11 +88,23 @@ namespace AetherCompass.Compasses
 
         public bool RemoveCompass(Compass c)
         {
-            if (!compasses.Contains(c)) return false;
             Plugin.DetailsWindow.UnregisterCompass(c);
             workingCompasses.Remove(c);
-            return compasses.Remove(c);
+            return GetCompassType(c) switch
+            {
+                CompassType.Standard => standardCompasses.Remove(c),
+                CompassType.Experimental => experimentalCompasses.Remove(c),
+#if DEBUG
+                CompassType.Debug => debugCompasses.Remove(c),
+#endif
+                _ => false
+            };
         }
+
+        private static CompassType GetCompassType(Compass c)
+            => (c.GetType().GetCustomAttributes(typeof(CompassTypeAttribute), false)[0] as CompassTypeAttribute)?
+                .Type ?? CompassType.Invalid;
+
 
         public void RegisterMapFlag(System.Numerics.Vector2 flagCoord)
         {
@@ -145,18 +200,18 @@ namespace AetherCompass.Compasses
             {
                 cancellationTokenSrc.Cancel();
                 workingCompasses.Clear();
-                foreach (var compass in compasses)
+                foreach (var compass in AllAddedCompasses)
                 {
                     if (compass.IsEnabledInCurrentTerritory())
                         workingCompasses.Add(compass);
                     compass.OnZoneChange();
                 }
-            } catch (System.ObjectDisposedException) { }
+            } catch (ObjectDisposedException) { }
         }
 
         public void DrawCompassConfigUi()
         {
-            foreach (var compass in compasses)
+            foreach (var compass in AllAddedCompasses)
             {
                 compass.DrawConfigUi();
                 ImGuiNET.ImGui.NewLine();

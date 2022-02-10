@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
@@ -8,17 +9,17 @@ using ImGuiNET;
 
 namespace AetherCompass.Compasses
 {
+    [CompassType(CompassType.Standard)]
     public class AetherCurrentCompass : Compass
     {
         public override string CompassName => "Aether Current Compass";
         public override string Description => "Detecting Aether Currents nearby.";
-        
+
+        private protected override CompassConfig CompassConfig => Plugin.Config.AetherCurrentConfig;
+
         private static System.Numerics.Vector4 infoTextColour = new(.8f, .95f, .75f, 1);
         private const float infoTextShadowLightness = .1f;
 
-
-        public AetherCurrentCompass(AetherCurrentCompassConfig compassConfig)
-            : base(compassConfig) { }
 
         public override bool IsEnabledInCurrentTerritory()
             => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1; // mostly normal wild field

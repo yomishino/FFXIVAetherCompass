@@ -83,18 +83,9 @@ namespace AetherCompass
         public Plugin()
         {
             Config = PluginInterface.GetPluginConfig() as PluginConfig ?? new();
-            
-            PluginCommands.AddCommands(this);
+            CompassManager.Init();
 
-            CompassManager.AddCompass(new AetherCurrentCompass(Config.AetherCurrentConfig));
-            CompassManager.AddCompass(new MobHuntCompass(Config.MobHuntConfig));
-            CompassManager.AddCompass(new GatheringPointCompass(Config.GatheringConfig));
-#if !RELEASE
-            CompassManager.AddCompass(new QuestCompass(Config.QuestConfig));
-#endif
-#if DEBUG
-            CompassManager.AddCompass(new DebugCompass(Config.DebugConfig));
-#endif
+            PluginCommands.AddCommands(this);
             
             Framework.Update += OnFrameworkUpdate;
             PluginInterface.UiBuilder.Draw += OnDrawUi;

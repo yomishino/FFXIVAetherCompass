@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
@@ -9,14 +10,13 @@ using ImGuiNET;
 
 namespace AetherCompass.Compasses
 {
+    [CompassType(CompassType.Debug)]
     public class DebugCompass : Compass
     {
         public override string CompassName => "Debug Compass"; 
         public override string Description => "For Debug";
-        
 
-        public DebugCompass(DebugCompassConfig compassConfig) 
-            : base(compassConfig) { }
+        private protected override CompassConfig CompassConfig => Plugin.Config.DebugConfig;
 
 
         public override bool IsEnabledInCurrentTerritory()

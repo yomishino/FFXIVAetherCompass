@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
 using AetherCompass.Game.SeFunctions;
 using AetherCompass.Configs;
@@ -14,14 +15,16 @@ using Sheets = Lumina.Excel.GeneratedSheets;
 
 namespace AetherCompass.Compasses
 {
+    [CompassType(CompassType.Experimental)]
     public class QuestCompass : Compass
     {
         public override string CompassName => "Quest Compass";
         public override string Description => "Detecting NPC/objects nearby relevant to your in-progress quests.\n" +
             "** Due to some limitations, Battle NPCs (that is, NPCs that can fight, whether by your side or against you)" +
             " will not be detected by the compass.";
-        
-        private QuestCompassConfig QuestConfig => (QuestCompassConfig)compassConfig;
+
+        private protected override CompassConfig CompassConfig => Plugin.Config.QuestConfig;
+        private QuestCompassConfig QuestConfig => (QuestCompassConfig)CompassConfig;
 
         private static readonly System.Reflection.PropertyInfo?[,] cachedQuestSheetToDoChildLocationMap = new System.Reflection.PropertyInfo[24, 7];
         private readonly Dictionary<uint, (Quest RelatedQuest, bool TodoRevealed)> objQuestMap = new();
@@ -29,7 +32,7 @@ namespace AetherCompass.Compasses
         private static readonly float infoTextShadowLightness = .1f;
 
 
-        public QuestCompass(QuestCompassConfig compassConfig) : base(compassConfig) 
+        public QuestCompass() : base() 
         {
             InitQuestSheetToDoChildLocationMap();
         }

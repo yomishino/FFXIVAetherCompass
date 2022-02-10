@@ -18,8 +18,6 @@ namespace AetherCompass.Compasses
 {
     public abstract class Compass
     {
-        private protected readonly CompassConfig compassConfig = null!;
-
         private bool ready = false;
 
         // Record last and 2nd last closest to prevent frequent notification when player is at a pos close to two objs
@@ -45,18 +43,19 @@ namespace AetherCompass.Compasses
             }
         }
 
-        public virtual bool MarkScreen => Plugin.Config.ShowScreenMark && compassConfig.MarkScreen;
-        public virtual bool ShowDetail => Plugin.Config.ShowDetailWindow && compassConfig.ShowDetail;
+        private protected abstract CompassConfig CompassConfig { get; }
 
-        public virtual bool NotifyChat => Plugin.Config.NotifyChat && compassConfig.NotifyChat;
-        public virtual bool NotifySe => Plugin.Config.NotifySe && compassConfig.NotifySe;
-        public virtual bool NotifyToast => Plugin.Config.NotifyToast && compassConfig.NotifyToast;
+        public virtual bool MarkScreen => Plugin.Config.ShowScreenMark && CompassConfig.MarkScreen;
+        public virtual bool ShowDetail => Plugin.Config.ShowDetailWindow && CompassConfig.ShowDetail;
+
+        public virtual bool NotifyChat => Plugin.Config.NotifyChat && CompassConfig.NotifyChat;
+        public virtual bool NotifySe => Plugin.Config.NotifySe && CompassConfig.NotifySe;
+        public virtual bool NotifyToast => Plugin.Config.NotifyToast && CompassConfig.NotifyToast;
 
 
-        public Compass(CompassConfig compassConfig)
+        public Compass()
         {
-            this.compassConfig = compassConfig;
-            _compassEnabled = compassConfig.Enabled;   // assign to field to avoid trigger Icon manager when init
+            _compassEnabled = CompassConfig.Enabled;   // assign to field to avoid trigger Icon manager when init
             ready = true;
         }
 
@@ -208,7 +207,7 @@ namespace AetherCompass.Compasses
                         msg.PrependText($"Found {GetClosestObjectiveDescription(closestObj)} at ");
                         msg.AppendText($", on {closestObj.CompassDirectionFromPlayer}, " +
                             $"{CompassUtil.DistanceToDescriptiveString(closestObj.Distance3D, false)} from you");
-                        Notifier.TryNotifyByChat(msg, NotifySe, compassConfig.NotifySeId);
+                        Notifier.TryNotifyByChat(msg, NotifySe, CompassConfig.NotifySeId);
                     }
                     if (NotifyToast)
                     {
@@ -246,51 +245,51 @@ namespace AetherCompass.Compasses
         #region Config UI
         public void DrawConfigUi()
         {
-            ImGuiEx.Checkbox($"Enable Compass: {CompassName}", ref compassConfig.Enabled);
+            ImGuiEx.Checkbox($"Enable Compass: {CompassName}", ref CompassConfig.Enabled);
             // Also dispose icons if disabled
-            if (compassConfig.Enabled != _compassEnabled) CompassEnabled = compassConfig.Enabled;
+            if (CompassConfig.Enabled != _compassEnabled) CompassEnabled = CompassConfig.Enabled;
             ImGui.Indent();
             ImGui.Indent();
             ImGuiEx.IconTextCompass(nextSameLine: true);
             ImGui.TextWrapped(Description);
             ImGui.Unindent();
-            if (compassConfig.Enabled)
+            if (CompassConfig.Enabled)
             {
                 ImGui.PushID($"{CompassName}");
                 if (ImGui.TreeNode($"Compass settings"))
                 {
                     if (Plugin.Config.ShowScreenMark)
                     {
-                        ImGuiEx.Checkbox("Mark detected objects on screen", ref compassConfig.MarkScreen,
+                        ImGuiEx.Checkbox("Mark detected objects on screen", ref CompassConfig.MarkScreen,
                             "Mark objects detected by this compass on screen, showing the direction and distance.");
                     }
                     if (Plugin.Config.ShowDetailWindow)
                     {
-                        ImGuiEx.Checkbox("Show objects details", ref compassConfig.ShowDetail,
+                        ImGuiEx.Checkbox("Show objects details", ref CompassConfig.ShowDetail,
                             "List details of objects detected by this compass in the Details Window.");
                     }
                     if (Plugin.Config.NotifyChat)
                     {
-                        ImGuiEx.Checkbox("Chat Notification", ref compassConfig.NotifyChat,
+                        ImGuiEx.Checkbox("Chat Notification", ref CompassConfig.NotifyChat,
                             "Allow this compass to send a chat message about an object detected.");
                         if (Plugin.Config.NotifySe)
                         {
-                            ImGuiEx.Checkbox("Sound Notification", ref compassConfig.NotifySe,
+                            ImGuiEx.Checkbox("Sound Notification", ref CompassConfig.NotifySe,
                                 "Also allow this compass to make sound when sending chat message notification.");
-                            if (compassConfig.NotifySe)
+                            if (CompassConfig.NotifySe)
                             {
-                                ImGuiEx.InputInt("Sound Effect ID", ref compassConfig.NotifySeId,
+                                ImGuiEx.InputInt("Sound Effect ID", ref CompassConfig.NotifySeId,
                                     "Input the Sound Effect ID for sound notification, from 1 to 16.\n\n" +
                                     "Sound Effect ID is the same as the game's macro sound effects <se.1>~<se.16>. " +
                                     "For example, if <se.1> is to be used, then enter \"1\" here.");
-                                if (compassConfig.NotifySeId < 1) compassConfig.NotifySeId = 1;
-                                if (compassConfig.NotifySeId > 16) compassConfig.NotifySeId = 16;
+                                if (CompassConfig.NotifySeId < 1) CompassConfig.NotifySeId = 1;
+                                if (CompassConfig.NotifySeId > 16) CompassConfig.NotifySeId = 16;
                             }
                         }
                     }
                     if (Plugin.Config.NotifyToast)
                     {
-                        ImGuiEx.Checkbox("Toast Notification", ref compassConfig.NotifyToast,
+                        ImGuiEx.Checkbox("Toast Notification", ref CompassConfig.NotifyToast,
                             "Allow this compass to make a Toast notification about an object detected.");
                     }
                     DrawConfigUiExtra();

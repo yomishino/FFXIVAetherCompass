@@ -1,4 +1,5 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
@@ -14,19 +15,18 @@ using Sheets = Lumina.Excel.GeneratedSheets;
 
 namespace AetherCompass.Compasses
 {
+    [CompassType(CompassType.Standard)]
     public class GatheringPointCompass : Compass
     {
         public override string CompassName => "Gathering Point Compass";
         public override string Description => "Detecting nearby gathering points";
 
-        private GatheringPointCompassConfig GatheringConfig => (GatheringPointCompassConfig)compassConfig;
+        private protected override CompassConfig CompassConfig => Plugin.Config.GatheringConfig;
+        private GatheringPointCompassConfig GatheringConfig => (GatheringPointCompassConfig)CompassConfig;
 
         private static readonly Vector4 infoTextColour = new(.55f, .98f, 1, 1);
         private static readonly float infoTextShadowLightness = .1f;
 
-
-        public GatheringPointCompass(GatheringPointCompassConfig compassConfig)
-            : base(compassConfig) { }
 
         public override bool IsEnabledInCurrentTerritory()
             => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1
