@@ -20,6 +20,7 @@ namespace AetherCompass.Compasses
     public abstract class Compass
     {
         private bool ready = false;
+        private CancellationTokenSource? cts = null;
 
         // Record last and 2nd last closest to prevent frequent notification when player is at a pos close to two objs
         private CachedCompassObjective? closestObj;
@@ -99,8 +100,10 @@ namespace AetherCompass.Compasses
             ProcessClosestObjOnLoopEnd();
         }
 
-        public unsafe void ProcessLoop(ObjectInfo** infoArray, int count, CancellationToken token)
+        public unsafe void ProcessLoop(ObjectInfo** infoArray, int count)
         {
+            cts = new();
+            var token = cts.Token;
             Task.Run(() =>
             {
                 ProcessOnLoopStart();
@@ -118,20 +121,23 @@ namespace AetherCompass.Compasses
                 ProcessOnLoopEnd();
             }, token).ContinueWith(t =>
             {
-                if (t.Exception != null)
+                if (t.IsFaulted)
                 {
-                    foreach (var e in t.Exception.InnerExceptions)
+                    foreach (var e in t.Exception!.InnerExceptions)
                     {
-                        if (e is OperationCanceledException or ObjectDisposedException) continue;
+                        if (e is ObjectDisposedException) continue;
                         Plugin.LogError(e.ToString());
                     }
                 }
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                ResetCancellation();
+            }, CancellationToken.None);
         }
 
 #if DEBUG
-        public unsafe void ProcessLoopDebugAllObjects(GameObject** GameObjectList, int count, CancellationToken token)
+        public unsafe void ProcessLoopDebugAllObjects(GameObject** GameObjectList, int count)
         {
+            cts = new();
+            var token = cts.Token;
             Task.Run(() =>
             {
                 ProcessOnLoopStart();
@@ -148,15 +154,16 @@ namespace AetherCompass.Compasses
                 ProcessOnLoopEnd();
             }, token).ContinueWith(t =>
             {
-                if (t.Exception != null)
+                if (t.IsFaulted)
                 {
-                    foreach (var e in t.Exception.InnerExceptions)
+                    foreach (var e in t.Exception!.InnerExceptions)
                     {
-                        if (e is OperationCanceledException or ObjectDisposedException) continue;
+                        if (e is ObjectDisposedException) continue;
                         Plugin.LogError(e.ToString());
                     }
                 }
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                ResetCancellation();
+            }, CancellationToken.None);
         }
 #endif
 
@@ -173,29 +180,6 @@ namespace AetherCompass.Compasses
             {
                 var action = CreateMarkScreenAction(objective);
                 Plugin.Overlay.AddDrawAction(action);
-            }
-        }
-
-        private void ProcessObjectiveInLoop(CachedCompassObjective objective, CancellationToken token)
-        {
-            try
-            {
-                Task.Run(() =>
-                {
-                    ProcessObjectiveInLoop(objective);
-                }, token).ContinueWith(t =>
-                {
-                    if (t.Exception != null)
-                    {
-                        foreach (var e in t.Exception.InnerExceptions)
-                            Plugin.LogError(e.ToString());
-                    }
-                }, TaskContinuationOptions.OnlyOnFaulted);
-            }
-            catch (AggregateException e) 
-            { 
-                if (e.InnerException is not (TaskCanceledException or ObjectDisposedException))
-                    throw;
             }
         }
 
@@ -241,6 +225,13 @@ namespace AetherCompass.Compasses
         public virtual void Reset()
         {
             closestObj = null;
+            ResetCancellation();
+        }
+
+        private void ResetCancellation()
+        {
+            cts?.Dispose();
+            cts = null;
         }
 
 

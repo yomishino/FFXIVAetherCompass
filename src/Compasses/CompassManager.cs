@@ -25,8 +25,6 @@ namespace AetherCompass.Compasses
 
         private readonly HashSet<Compass> workingCompasses = new();
 
-        private CancellationTokenSource cancellationTokenSrc = new();
-
 
         private unsafe static UI3DModule* UI3DModule => ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
 
@@ -111,11 +109,6 @@ namespace AetherCompass.Compasses
 
         public void OnTick()
         {
-            var lastCancellationTokenSrc = cancellationTokenSrc;
-            if (!cancellationTokenSrc.IsCancellationRequested)
-                cancellationTokenSrc.Cancel();
-            cancellationTokenSrc = new();
-
             Plugin.Overlay.Clear();
             Plugin.DetailsWindow.Clear();
 
@@ -141,18 +134,16 @@ namespace AetherCompass.Compasses
                     {
 #if DEBUG
                         if (debugTestAll)
-                            compass.ProcessLoopDebugAllObjects((GameObject**)array, count, cancellationTokenSrc.Token);
+                            compass.ProcessLoopDebugAllObjects((GameObject**)array, count);
                         else
 #endif
-                            compass.ProcessLoop((ObjectInfo**)array, count, cancellationTokenSrc.Token);
+                            compass.ProcessLoop((ObjectInfo**)array, count);
                     }
 
                 }
             }
 
             ProcessFlagOnTickEnd();
-
-            lastCancellationTokenSrc.Dispose();
         }
 
         private void ProcessFlagOnTickEnd()
@@ -195,7 +186,6 @@ namespace AetherCompass.Compasses
         {
             try
             {
-                cancellationTokenSrc.Cancel();
                 workingCompasses.Clear();
                 foreach (var compass in AllAddedCompasses)
                 {
