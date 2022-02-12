@@ -79,7 +79,7 @@ namespace AetherCompass
         }
         internal static bool InConfig;
 
-
+        
         public Plugin()
         {
             Config = PluginInterface.GetPluginConfig() as PluginConfig ?? new();

@@ -8,7 +8,6 @@ using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
 
@@ -36,7 +35,6 @@ namespace AetherCompass.Compasses
 #if DEBUG
         private unsafe static readonly GameObjectManager* gameObjMgr = GameObjectManager.Instance();
 #endif
-
 
         private bool hasMapFlagToProcess;
         private System.Numerics.Vector2 mapFlagCoord;
@@ -87,6 +85,7 @@ namespace AetherCompass.Compasses
 
         public bool RemoveCompass(Compass c)
         {
+            c.Reset();
             Plugin.DetailsWindow.UnregisterCompass(c);
             workingCompasses.Remove(c);
             return c.CompassType switch
@@ -115,7 +114,7 @@ namespace AetherCompass.Compasses
             if (workingCompasses.Count > 0)
             {
                 foreach (var compass in workingCompasses)
-                    if (compass.CompassEnabled) compass.Reset();
+                    if (compass.CompassEnabled) compass.CancelLastUpdate();
 
 #if DEBUG
                 var debugTestAll = gameObjMgr != null && Plugin.Config.DebugTestAllGameObjects;

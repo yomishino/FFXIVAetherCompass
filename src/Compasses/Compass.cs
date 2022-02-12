@@ -93,11 +93,13 @@ namespace AetherCompass.Compasses
         }
 
         public virtual void ProcessOnLoopStart()
-        { }
+        {
+            ProcessClosestObj();
+        }
 
         public virtual void ProcessOnLoopEnd()
         {
-            ProcessClosestObjOnLoopEnd();
+            //ProcessClosestObj();
         }
 
         public unsafe void ProcessLoop(ObjectInfo** infoArray, int count)
@@ -183,7 +185,7 @@ namespace AetherCompass.Compasses
             }
         }
 
-        private unsafe void ProcessClosestObjOnLoopEnd()
+        private unsafe void ProcessClosestObj()
         {
             if (ready)
             {
@@ -220,13 +222,11 @@ namespace AetherCompass.Compasses
                     closestObjLastChangedTime = DateTime.UtcNow;
                 }
             }
+            closestObj = null;
         }
 
-        public virtual void Reset()
-        {
-            closestObj = null;
-            ResetCancellation();
-        }
+        public void CancelLastUpdate()
+            => cts?.Cancel();
 
         private void ResetCancellation()
         {
@@ -234,6 +234,10 @@ namespace AetherCompass.Compasses
             cts = null;
         }
 
+        public virtual void Reset()
+        {
+            closestObj = null;
+        }
 
         public async virtual void OnZoneChange()
         {
