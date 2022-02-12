@@ -121,9 +121,9 @@ namespace AetherCompass.Common
             float my = WorldPositionToMapCoord(worldPos.Z, scale, offsetYCoord);
             float mz = WorldPositionToMapCoordZ(worldPos.Y, offsetZCoord);
             // Also truncate coords to one decimal place seems give closer results
-            mx = TruncateToOneDecimalPlace(mx);
-            my = TruncateToOneDecimalPlace(my);
-            mz = TruncateToOneDecimalPlace(mz);
+            mx = MathUtil.TruncateToOneDecimalPlace(mx);
+            my = MathUtil.TruncateToOneDecimalPlace(my);
+            mz = MathUtil.TruncateToOneDecimalPlace(mz);
             return new Vector3(mx, my, mz);
         }
 
@@ -136,9 +136,6 @@ namespace AetherCompass.Common
         // and *subtract* it from worldPos.Y
         private static float WorldPositionToMapCoordZ(float worldY, short offset = 0)
         => (worldY - offset) / 100f;
-
-        private static float TruncateToOneDecimalPlace(float v)
-            => MathF.Truncate(v * 10) / 10f;
 
         public static Vector3 GetMapCoordInCurrentMap(Vector3 worldPos)
         {

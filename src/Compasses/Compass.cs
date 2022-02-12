@@ -344,67 +344,81 @@ namespace AetherCompass.Compasses
             if (icon == null) info = "(Failed to load icon)\n" + info;
             var drawPos = UiHelper.GetScreenCentre();
             return DrawAction.Combine(important: true,
-                GenerateScreenMarkerIconDrawAction(icon, drawPos, IconManager.MarkerIconSize, true, scale, 1, out drawPos),
+                GenerateScreenMarkerIconDrawAction(icon, drawPos, IconManager.MarkerIconSize, scale, 1, out drawPos),
                 GenerateExtraInfoDrawAction(info, scale, new(1, 1, 1, 1), 0, drawPos, IconManager.MarkerIconSize, 0, out _));
         }
+
+        protected static readonly Vector2 BaseMarkerSize 
+            = IconManager.MarkerIconSize + IconManager.DirectionScreenIndicatorIconSize;
         
         protected static DrawAction? GenerateDefaultScreenMarkerDrawAction(CachedCompassObjective obj,
             ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
             Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos, bool important = false)
         {
             Vector3 hitboxPosAdjusted = new(obj.Position.X, obj.Position.Y + obj.GameObjectHeight + .5f, obj.Position.Z);
-            bool inFrontOfCamera = UiHelper.WorldToScreenPos(hitboxPosAdjusted, out lastDrawEndPos);
-            lastDrawEndPos = PushToSideOnXIfNeeded(lastDrawEndPos, inFrontOfCamera);
+            bool inFrontOfCamera = UiHelper.WorldToScreenPos(hitboxPosAdjusted, out var screenPos);
+            screenPos = PushToSideOnXIfNeeded(screenPos, inFrontOfCamera);
+            bool insideMainViewport = UiHelper.IsScreenPosInsideMainViewport(screenPos);
+            float rotationFromUpward = UiHelper.GetAngleOnScreen(screenPos);
+
+            var scaledBaseMarkerSize = BaseMarkerSize * Plugin.Config.ScreenMarkSizeScale;
+
+            lastDrawEndPos = UiHelper.GetConstrainedScreenPos(screenPos, Plugin.Config.ScreenMarkConstraint, scaledBaseMarkerSize / 4);
+
+            if (!insideMainViewport)
+                rotationFromUpward = -rotationFromUpward;
+            else
+            {
+                // Flip the direction indicator when the indicator originally points towards centre
+                // but need to be flipped due to the screen constraint pushing the whole marker inwards
+                if (lastDrawEndPos.X > screenPos.X && rotationFromUpward < 0
+                    || lastDrawEndPos.X < screenPos.X && rotationFromUpward > 0)
+                    rotationFromUpward = MathUtil.PI2 - rotationFromUpward;
+                if (lastDrawEndPos.Y > screenPos.Y && Math.Abs(rotationFromUpward) > MathUtil.PIOver2
+                    || lastDrawEndPos.Y < screenPos.Y && MathF.Abs(rotationFromUpward) < MathUtil.PIOver2)
+                    rotationFromUpward = MathF.PI - rotationFromUpward;
+                if (rotationFromUpward > MathF.PI) rotationFromUpward -= MathUtil.PI2;
+                if (rotationFromUpward < -MathF.PI) rotationFromUpward += MathUtil.PI2;
+            }
 
             // Direction indicator
             var directionIconDrawAction = GenerateDirectionIconDrawAction(lastDrawEndPos,
-                Plugin.Config.ScreenMarkConstraint, Plugin.Config.ScreenMarkSizeScale,
-                IconManager.DirectionScreenIndicatorIconColour,
-                out float rotationFromUpward, out lastDrawEndPos);
+                rotationFromUpward, Plugin.Config.ScreenMarkSizeScale, 
+                IconManager.DirectionScreenIndicatorIconColour, out lastDrawEndPos);
             // Marker
             var markerIconDrawAction = GenerateScreenMarkerIconDrawAction(icon, lastDrawEndPos,
-                iconSizeRaw, true, Plugin.Config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
+                iconSizeRaw, Plugin.Config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
             // Altitude diff
             var altDiffIconDrawAction = markerIconDrawAction == null ? null
                 : GenerateAltitudeDiffIconDrawAction(obj.AltitudeDiff, lastDrawEndPos, 
-                    true, Plugin.Config.ScreenMarkSizeScale, iconAlpha, out _);
+                    Plugin.Config.ScreenMarkSizeScale, iconAlpha, out _);
             // Extra info
             var extraInfoDrawAction = GenerateExtraInfoDrawAction(info, Plugin.Config.ScreenMarkSizeScale,
                 infoTextColour, textShadowLightness, lastDrawEndPos, iconSizeRaw, rotationFromUpward, out _);
             return DrawAction.Combine(important, directionIconDrawAction, markerIconDrawAction, altDiffIconDrawAction, extraInfoDrawAction);
         }
 
-        protected static DrawAction? GenerateDirectionIconDrawAction(Vector2 screenPosRaw,
-            Vector4 screenMarkConstraint, float scale, uint colour, 
-            out float rotationFromUpward, out Vector2 drawEndPos)
+        protected static DrawAction? GenerateDirectionIconDrawAction(Vector2 drawPos, 
+            float rotationFromUpward, float scale, uint colour, out Vector2 drawEndPos)
         {
-            drawEndPos = screenPosRaw;
-            rotationFromUpward = 0;
             var icon = IconManager.DirectionScreenIndicatorIcon;
-            var iconSize = IconManager.DirectionScreenIndicatorIconSize * scale;
-            rotationFromUpward = UiHelper.GetAngleOnScreen(drawEndPos);
-            // Flip the direction indicator along X when not inside viewport;
-            if (!UiHelper.IsScreenPosInsideMainViewport(drawEndPos))
-                rotationFromUpward = -rotationFromUpward;
-            drawEndPos = UiHelper.GetConstrainedScreenPos(screenPosRaw, screenMarkConstraint, iconSize / 4);
-            drawEndPos -= iconSize / 2;
-            (var p1, var p2, var p3, var p4) = UiHelper.GetRotatedPointsOnScreen(drawEndPos, iconSize, rotationFromUpward);
-            var iconCentre = (p1 + p3) / 2;
-            drawEndPos = new Vector2(iconCentre.X + iconSize.Y / 2 * MathF.Sin(rotationFromUpward),
-                iconCentre.Y + iconSize.X / 2 * MathF.Cos(rotationFromUpward));
-            return icon == null ? null 
+            var iconHalfSize = IconManager.DirectionScreenIndicatorIconSize * scale / 2;
+            (var p1, var p2, var p3, var p4) = UiHelper.GetRotatedRectPointsOnScreen(
+                drawPos, iconHalfSize, rotationFromUpward);
+            //var iconCentre = (p1 + p3) / 2;
+            drawEndPos = new Vector2(drawPos.X + iconHalfSize.X * MathF.Sin(rotationFromUpward),
+                drawPos.Y + iconHalfSize.Y * MathF.Cos(rotationFromUpward));
+            return icon == null ? null
                 : new(() => ImGui.GetWindowDrawList().AddImageQuad(icon.ImGuiHandle,
                     p1, p2, p3, p4, new(0, 0), new(1, 0), new(1, 1), new(0, 1), colour));
         }
 
         protected static DrawAction? GenerateScreenMarkerIconDrawAction(
-            ImGuiScene.TextureWrap? icon, Vector2 drawScreenPos, Vector2 iconSizeRaw, 
-            bool posIsRaw, float scale, float alpha, out Vector2 drawEndPos)
+            ImGuiScene.TextureWrap? icon, Vector2 screenPosRaw, Vector2 iconSizeRaw, 
+            float scale, float alpha, out Vector2 drawEndPos)
         {
             var iconSize = iconSizeRaw * scale;
-            drawEndPos = drawScreenPos;
-            if (posIsRaw)
-                drawEndPos -= iconSize / 2;
+            drawEndPos = screenPosRaw - iconSize / 2;
             var iconDrawPos = drawEndPos;
             return icon == null ? null 
                 : new(() => ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle, 
@@ -413,33 +427,28 @@ namespace AetherCompass.Compasses
         }
 
         protected static DrawAction? GenerateAltitudeDiffIconDrawAction(float altDiff, 
-            Vector2 screenPos, bool posIsRaw, float scale, float alpha, out Vector2 drawEndPos)
+            Vector2 screenPosRaw, float scale, float alpha, out Vector2 drawEndPos)
         {
-            drawEndPos = screenPos;
-
+            drawEndPos = screenPosRaw;
             ImGuiScene.TextureWrap? icon = null;
             if (altDiff > 5) icon = IconManager.AltitudeHigherIcon;
             if (altDiff < -5) icon = IconManager.AltitudeLowerIcon;
             if (icon == null) return null;
-            var iconSize = IconManager.AltitudeIconSize * scale;
-            if (posIsRaw)
-                drawEndPos -= iconSize / 2;
-            var iconDrawPos = drawEndPos;
-            drawEndPos += iconSize / 2;
-            return new(() => ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle, 
-                iconDrawPos, iconDrawPos+ iconSize, new(0, 0), new(1, 1), 
+            var iconHalfSize = IconManager.AltitudeIconSize * scale / 2;
+            return new(() => ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle,
+                screenPosRaw - iconHalfSize, screenPosRaw + iconHalfSize, new(0, 0), new(1, 1), 
                 ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, alpha))));
         }
 
         protected static DrawAction? GenerateExtraInfoDrawAction(string info, float scale,
             Vector4 colour, float shadowLightness, Vector2 markerScreenPos,
-            Vector2 markerSizeRaw, float directionRotationFromUpward, out Vector2 drawEndPos)
+            Vector2 markerSizeRaw, float rotationFromUpward, out Vector2 drawEndPos)
         {
             drawEndPos = markerScreenPos;
             if (string.IsNullOrEmpty(info)) return null;
             var fontsize = ImGui.GetFontSize() * scale;
             drawEndPos.Y += 2;  // make it slighly lower
-            if (directionRotationFromUpward > -.95f)
+            if (rotationFromUpward > -.2f)
             {
                 // direction indicator would be on left side, so just draw text on right
                 drawEndPos.X += markerSizeRaw.X * scale + 2;

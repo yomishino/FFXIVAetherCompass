@@ -1,4 +1,5 @@
-﻿using AetherCompass.Game.SeFunctions;
+﻿using AetherCompass.Common;
+using AetherCompass.Game.SeFunctions;
 using Dalamud.Interface;
 using ImGuiNET;
 using System;
@@ -16,8 +17,8 @@ namespace AetherCompass.UI.GUI
         {
             var pos = ImGuiHelpers.MainViewport.Pos;
             var size = ImGuiHelpers.MainViewport.Size;
-            return screenPos.X > pos.X && screenPos.X < pos.X + size.X
-                && screenPos.Y > pos.Y && screenPos.Y < pos.Y + size.Y;
+            return MathUtil.IsBetween(screenPos.X, pos.X, pos.X + size.X) 
+                && MathUtil.IsBetween(screenPos.Y, pos.Y, pos.Y + size.Y);
         }
 
         public static bool WorldToScreenPos(Vector3 worldPos, out Vector2 screenPos)
@@ -26,12 +27,12 @@ namespace AetherCompass.UI.GUI
         internal static bool WorldToScreenPos(Vector3 worldPos, out Vector2 screenPos, out Vector3 pCoordsRaw)
             => Projection.WorldToScreen(worldPos, out screenPos, out pCoordsRaw);
 
-        public static Vector2 GetConstrainedScreenPos(Vector2 screenPosUL, Vector4 screenConstraint, Vector2 extraConstraint)
+        public static Vector2 GetConstrainedScreenPos(Vector2 screenPos, Vector4 screenConstraint, Vector2 extraConstraint)
         {
             var constraintUL = ImGuiHelpers.MainViewport.Pos + extraConstraint;
             var constraintBR = ImGuiHelpers.MainViewport.Pos + ImGuiHelpers.MainViewport.Size - extraConstraint;
-            var x = MathF.Max(constraintUL.X + screenConstraint.X, MathF.Min(constraintBR.X - screenConstraint.Z, screenPosUL.X));
-            var y = MathF.Max(constraintUL.Y + screenConstraint.Z, MathF.Min(constraintBR.Y - screenConstraint.Y, screenPosUL.Y));
+            var x = Math.Clamp(screenPos.X, constraintUL.X + screenConstraint.X, constraintBR.X - screenConstraint.Z);
+            var y = Math.Clamp(screenPos.Y, constraintUL.Y + screenConstraint.W, constraintBR.Y - screenConstraint.Y);
             return new Vector2(x, y);
         }
 
@@ -43,29 +44,27 @@ namespace AetherCompass.UI.GUI
             => GetAngleOnScreen(GetScreenCentre(), point, upwards);
 
         public static (Vector2 P1, Vector2 P2, Vector2 P3, Vector2 P4)
-            GetRectCornerPointsOnScreen(Vector2 screenPosUL, Vector2 size)
+            GetRectPointsOnScreen(Vector2 screenPos, Vector2 rectHalfSize)
         {
-            // p1~p4 is UL, DL, DR, DU of the image
-            Vector2 p1 = screenPosUL;
-            Vector2 p2 = new(screenPosUL.X + size.X, screenPosUL.Y);
-            Vector2 p3 = screenPosUL + size;
-            Vector2 p4 = new(screenPosUL.X, screenPosUL.Y + size.Y);
+            // p1~p4 is UL, UR, BR, BL of the image
+            Vector2 p1 = screenPos - rectHalfSize;
+            Vector2 p2 = new(screenPos.X + rectHalfSize.X, screenPos.Y - rectHalfSize.Y);
+            Vector2 p3 = screenPos + rectHalfSize;
+            Vector2 p4 = new(screenPos.X - rectHalfSize.X, screenPos.Y + rectHalfSize.Y);
             return (p1, p2, p3, p4);
         }
 
         // rotation = 0 points upwards to make things intuitive
         public static (Vector2 P1, Vector2 P2, Vector2 P3, Vector2 P4)
-            GetRotatedPointsOnScreen(Vector2 screenPosUL, Vector2 size, float rotation)
+            GetRotatedRectPointsOnScreen(Vector2 screenPos, Vector2 rectHalfSize, float rotation)
         {
-            var (p1, p2, p3, p4) = GetRectCornerPointsOnScreen(screenPosUL, size);
-
-            Vector2 p0 = screenPosUL + size / 2;
+            var (p1, p2, p3, p4) = GetRectPointsOnScreen(screenPos, rectHalfSize);
 
             // Rotate
-            p1 = RotatePointOnPlane(p1, p0, rotation);
-            p2 = RotatePointOnPlane(p2, p0, rotation);
-            p3 = RotatePointOnPlane(p3, p0, rotation);
-            p4 = RotatePointOnPlane(p4, p0, rotation);
+            p1 = RotatePointOnPlane(p1, screenPos, rotation);
+            p2 = RotatePointOnPlane(p2, screenPos, rotation);
+            p3 = RotatePointOnPlane(p3, screenPos, rotation);
+            p4 = RotatePointOnPlane(p4, screenPos, rotation);
 
             return (p1, p2, p3, p4);
         }
@@ -74,27 +73,11 @@ namespace AetherCompass.UI.GUI
         {
             p -= rotationCentre;
             var a = MathF.Atan2(p.X, p.Y);
-            var di = MathF.Sqrt(p.X * p.X + p.Y * p.Y);
+            var di = Vector2.Distance(p, Vector2.Zero);
             return new Vector2(
                 di * MathF.Sin(a + rotation) + rotationCentre.X,
                 di * MathF.Cos(a + rotation) + rotationCentre.Y);
         }
-
-        //public static Direction GetDirectionOnScreen(Vector2 origin, Vector2 point)
-        //{
-        //    var theta = GetAngleOnScreen(origin, point);
-        //    if (float.IsNaN(theta)) return Direction.O;
-        //    Direction d = 0;
-        //    if (MathF.Abs(theta) <= 3 * MathF.PI / 8) d |= Direction.Down;
-        //    if (MathF.Abs(theta) > 5 * MathF.PI / 8) d |= Direction.Up;
-        //    if (MathF.PI / 8 < theta && theta <= 7 * MathF.PI / 8) d |= Direction.Right;
-        //    if (-7 * MathF.PI / 8 < theta && theta <= -MathF.PI / 8) d |= Direction.Left;
-        //    return d;
-        //}
-
-        //public static Direction GetDirectionOnScreen(Vector2 point)
-        //    => GetDirectionOnScreen(GetScreenCentre(), point);
-
 
         public static Vector4 GenerateShadowColour(Vector4 colour, float lightness)
         {
