@@ -51,14 +51,14 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
             if (objective.IsEmpty()) return null;
-            var icon = IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
+            var icon = Plugin.IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
             string descr = $"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}";
             return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
                     .9f, descr, infoTextColour, infoTextShadowLightness, out _,
                     important: false);
         }
 
-        private protected override void DisposeCompassUsedIcons() => IconManager.DisposeGatheringPointCompassIcons();
+        private protected override void DisposeCompassUsedIcons() => Plugin.IconManager.DisposeGatheringPointCompassIcons();
 
         private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
             => objective.Name;

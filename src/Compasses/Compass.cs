@@ -331,7 +331,7 @@ namespace AetherCompass.Compasses
 
         internal static DrawAction? GenerateConfigDummyMarkerDrawAction(string info, float scale)
         {
-            var icon = IconManager.ConfigDummyMarkerIcon;
+            var icon = Plugin.IconManager.ConfigDummyMarkerIcon;
             if (icon == null) info = "(Failed to load icon)\n" + info;
             var drawPos = UiHelper.GetScreenCentre();
             return DrawAction.Combine(important: true,
@@ -392,7 +392,7 @@ namespace AetherCompass.Compasses
         protected static DrawAction? GenerateDirectionIconDrawAction(Vector2 drawPos, 
             float rotationFromUpward, float scale, uint colour, out Vector2 drawEndPos)
         {
-            var icon = IconManager.DirectionScreenIndicatorIcon;
+            var icon = Plugin.IconManager.DirectionScreenIndicatorIcon;
             var iconHalfSize = IconManager.DirectionScreenIndicatorIconSize * scale / 2;
             (var p1, var p2, var p3, var p4) = UiHelper.GetRotatedRectPointsOnScreen(
                 drawPos, iconHalfSize, rotationFromUpward);
@@ -422,8 +422,8 @@ namespace AetherCompass.Compasses
         {
             drawEndPos = screenPosRaw;
             ImGuiScene.TextureWrap? icon = null;
-            if (altDiff > 5) icon = IconManager.AltitudeHigherIcon;
-            if (altDiff < -5) icon = IconManager.AltitudeLowerIcon;
+            if (altDiff > 5) icon = Plugin.IconManager.AltitudeHigherIcon;
+            if (altDiff < -5) icon = Plugin.IconManager.AltitudeLowerIcon;
             if (icon == null) return null;
             var iconHalfSize = IconManager.AltitudeIconSize * scale / 2;
             return new(() => ImGui.GetWindowDrawList().AddImage(icon.ImGuiHandle,

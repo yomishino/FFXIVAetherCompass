@@ -46,7 +46,7 @@ namespace AetherCompass.Compasses
             => !nmDataMap.TryGetValue(objective.DataId, out var data) ? string.Empty : data.GetNMName();
 
         private protected override void DisposeCompassUsedIcons()
-            => IconManager.DisposeMobHuntCompassIcons();
+            => Plugin.IconManager.DisposeMobHuntCompassIcons();
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
             => objective.IsEmpty() || !nmDataMap.TryGetValue(objective.DataId, out var nmData) ? null : new(() =>
@@ -64,7 +64,7 @@ namespace AetherCompass.Compasses
         {
             if (objective.IsEmpty() || !nmDataMap.TryGetValue(objective.DataId, out var nmData)) return null;
             string descr = $"{nmData.Name}\nRank: {nmData.Rank}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
-            return GenerateDefaultScreenMarkerDrawAction(objective, IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
+            return GenerateDefaultScreenMarkerDrawAction(objective, Plugin.IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
                 .9f, descr, infoTextColour, infoTextShadowLightness, out _, 
                 important: nmData.Rank == NMRank.S || nmData.Rank == NMRank.A);
         }

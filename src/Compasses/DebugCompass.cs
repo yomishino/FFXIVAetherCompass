@@ -71,8 +71,8 @@ namespace AetherCompass.Compasses
             string info = $"name={objective.Name}\n" +
                             $"worldPos={objective.Position}, dist={objective.Distance3D:0.0}\n" +
                             $"sPosUnfixed=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, raw=<{pCoordsRaw.X:0.0}, {pCoordsRaw.Y:0.0}, {pCoordsRaw.Z:0.0}>";
-            return GenerateDefaultScreenMarkerDrawAction(objective, 
-                IconManager.DebugMarkerIcon, IconManager.MarkerIconSize, .9f, info, new(1, 1, 1, 1), 0, out _);
+            return GenerateDefaultScreenMarkerDrawAction(objective,
+                Plugin.IconManager.DebugMarkerIcon, IconManager.MarkerIconSize, .9f, info, new(1, 1, 1, 1), 0, out _);
         }
     }
 }

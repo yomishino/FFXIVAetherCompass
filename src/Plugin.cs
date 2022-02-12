@@ -56,6 +56,7 @@ namespace AetherCompass
             "Aether Compass";
 #endif
 
+        internal static readonly IconManager IconManager = new();
         internal static readonly CompassManager CompassManager = new();
         internal static readonly CompassOverlay Overlay = new();
         internal static readonly CompassDetailsWindow DetailsWindow = new();
@@ -223,7 +224,7 @@ namespace AetherCompass
             //config.Save();
 
             PluginCommands.RemoveCommands();
-            IconManager.DisposeAllIcons();
+            IconManager.Dispose();
 
             ClientState.TerritoryChanged -= OnZoneChange;
 

@@ -50,7 +50,7 @@ namespace AetherCompass.Compasses
             => objective.Name + " (Quest)";
 
         private protected override void DisposeCompassUsedIcons()
-            => IconManager.DisposeQuestCompassIcons();
+            => Plugin.IconManager.DisposeQuestCompassIcons();
 
         public override void ProcessOnLoopStart()
         {
@@ -127,8 +127,8 @@ namespace AetherCompass.Compasses
             if (!objQuestMap.TryGetValue(objective.DataId, out var mappedInfo)) return null;
             var qRow = GetQuestRow(mappedInfo.RelatedQuest.QuestID);
             var icon = qRow == null || qRow.EventIconType.Value == null
-                ? IconManager.DefaultQuestMarkerIcon
-                : IconManager.GetQuestMarkerIcon(qRow.EventIconType.Value.NpcIconAvailable, qRow.EventIconType.Value.IconRange, mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
+                ? Plugin.IconManager.DefaultQuestMarkerIcon
+                : Plugin.IconManager.GetQuestMarkerIcon(qRow.EventIconType.Value.NpcIconAvailable, qRow.EventIconType.Value.IconRange, mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
             var descr = 
                 (mappedInfo.TodoRevealed ? "★ " : "")
                 + (QuestConfig.ShowObjName ? $"{objective.Name}, " : "")

@@ -25,7 +25,7 @@ namespace AetherCompass.Compasses
             => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1; // mostly normal wild field
 
         private protected override void DisposeCompassUsedIcons()
-            => IconManager.DisposeAetherCurrentCompassIcons();
+            => Plugin.IconManager.DisposeAetherCurrentCompassIcons();
 
         private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective _)
             => "Aether Current";
@@ -49,7 +49,7 @@ namespace AetherCompass.Compasses
         {
             if (objective.IsEmpty()) return null;
             return GenerateDefaultScreenMarkerDrawAction(objective,
-                IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, .9f,
+                Plugin.IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, .9f,
                 $"{objective.Name}\n{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}",
                 infoTextColour, infoTextShadowLightness, out _, important: objective.Distance3D < 60);
         }
