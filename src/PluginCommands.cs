@@ -12,12 +12,10 @@ namespace AetherCompass
             Plugin.CommandManager.AddHandler(MainCommand, new CommandInfo((cmd, args) => ProcessMainCommand(cmd, args))
             {
                 HelpMessage = "Toggle the plugin between enabled/disabled when no options provided\n" +
-                    "\tOptions:\n" +
-                    $"\t\ton: Enable the plugin\n" +
-                    $"\t\toff: Disable the plugin\n" +
-                    $"\t\tmark: Toggle enabled/disabled for marking detected objects on screen\n" +
-                    $"\t\tdetail: Toggle enabled/disabled for showing Object Detail Window\n" +
-                    $"\t\tconfig: Open the Configuration window",
+                    $"{MainCommand} [on|off] → Enable/Disable the plugin\n" +
+                    $"{MainCommand} mark → Toggle enabled/disabled for marking detected objects on screen\n" +
+                    $"{MainCommand} detail → Toggle enabled/disabled for showing Object Detail Window\n" +
+                    $"{MainCommand} config → Open the Configuration window",
                 ShowInHelp = true
             });
         }
