@@ -13,8 +13,7 @@ Currently supports detecting:
 - Aether Currents
 - Mob Hunt Elite Marks (Notorious Monsters)
 - Gathering Points
-
-... and more are on the way.
+- *\[Experimental\] Quest-related NPCs/Objects*
 
 **NOTE:** Because most objects/NPCs are not loaded 
 when they are too faraway or when there are too many entities nearby (such as too many player characters), 
