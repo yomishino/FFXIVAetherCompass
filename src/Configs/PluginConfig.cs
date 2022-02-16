@@ -37,9 +37,9 @@ namespace AetherCompass.Configs
 #if DEBUG
         [JsonIgnore]
         public bool DebugTestAllGameObjects = false;
+#endif
         [JsonIgnore]
         public DebugCompassConfig DebugConfig { get; private set; } = new();
-#endif
 
         public void CheckValueValidity(Vector2 screenSize)
         {
