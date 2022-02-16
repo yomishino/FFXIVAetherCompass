@@ -69,11 +69,11 @@ namespace AetherCompass.Compasses
                 case CompassType.Experimental:
                     if (!experimentalCompasses.Add(c)) return false;
                     break;
-# if DEBUG
                 case CompassType.Debug:
+# if DEBUG
                     if (!debugCompasses.Add(c)) return false;
-                    break;
 #endif
+                    break;
                 default:
                     throw new ArgumentException($"Compass {c.GetType().Name} has no valid compass type");
             }
