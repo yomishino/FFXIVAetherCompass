@@ -353,32 +353,16 @@ namespace AetherCompass.Compasses
             Vector3 hitboxPosAdjusted = new(obj.Position.X, obj.Position.Y + obj.GameObjectHeight + .5f, obj.Position.Z);
             bool inFrontOfCamera = UiHelper.WorldToScreenPos(hitboxPosAdjusted, out var screenPos);
             screenPos = PushToSideOnXIfNeeded(screenPos, inFrontOfCamera);
-            bool insideMainViewport = UiHelper.IsScreenPosInsideMainViewport(screenPos);
-            float rotationFromUpward = UiHelper.GetAngleOnScreen(screenPos);
+            float flippedOnScreenRotation = UiHelper.GetAngleOnScreen(screenPos, true);
 
             var scaledBaseMarkerSize = BaseMarkerSize * Plugin.Config.ScreenMarkSizeScale;
 
             lastDrawEndPos = UiHelper.GetConstrainedScreenPos(screenPos, Plugin.Config.ScreenMarkConstraint, scaledBaseMarkerSize / 4);
 
-            if (!insideMainViewport)
-                rotationFromUpward = -rotationFromUpward;
-            else
-            {
-                // Flip the direction indicator when the indicator originally points towards centre
-                // but need to be flipped due to the screen constraint pushing the whole marker inwards
-                if (lastDrawEndPos.X > screenPos.X && rotationFromUpward < 0
-                    || lastDrawEndPos.X < screenPos.X && rotationFromUpward > 0)
-                    rotationFromUpward = MathUtil.PI2 - rotationFromUpward;
-                if (lastDrawEndPos.Y > screenPos.Y && Math.Abs(rotationFromUpward) > MathUtil.PIOver2
-                    || lastDrawEndPos.Y < screenPos.Y && MathF.Abs(rotationFromUpward) < MathUtil.PIOver2)
-                    rotationFromUpward = MathF.PI - rotationFromUpward;
-                if (rotationFromUpward > MathF.PI) rotationFromUpward -= MathUtil.PI2;
-                if (rotationFromUpward < -MathF.PI) rotationFromUpward += MathUtil.PI2;
-            }
 
             // Direction indicator
             var directionIconDrawAction = GenerateDirectionIconDrawAction(lastDrawEndPos,
-                rotationFromUpward, Plugin.Config.ScreenMarkSizeScale, 
+                flippedOnScreenRotation, Plugin.Config.ScreenMarkSizeScale, 
                 IconManager.DirectionScreenIndicatorIconColour, out lastDrawEndPos);
             // Marker
             var markerIconDrawAction = GenerateScreenMarkerIconDrawAction(icon, lastDrawEndPos,
@@ -389,20 +373,20 @@ namespace AetherCompass.Compasses
                     Plugin.Config.ScreenMarkSizeScale, iconAlpha, out _);
             // Extra info
             var extraInfoDrawAction = GenerateExtraInfoDrawAction(info, Plugin.Config.ScreenMarkSizeScale,
-                infoTextColour, textShadowLightness, lastDrawEndPos, iconSizeRaw, rotationFromUpward, out _);
+                infoTextColour, textShadowLightness, lastDrawEndPos, iconSizeRaw, flippedOnScreenRotation, out _);
             return DrawAction.Combine(important, directionIconDrawAction, markerIconDrawAction, altDiffIconDrawAction, extraInfoDrawAction);
         }
 
         protected static DrawAction? GenerateDirectionIconDrawAction(Vector2 drawPos, 
-            float rotationFromUpward, float scale, uint colour, out Vector2 drawEndPos)
+            float rotation, float scale, uint colour, out Vector2 drawEndPos)
         {
             var icon = Plugin.IconManager.DirectionScreenIndicatorIcon;
             var iconHalfSize = IconManager.DirectionScreenIndicatorIconSize * scale / 2;
             (var p1, var p2, var p3, var p4) = UiHelper.GetRotatedRectPointsOnScreen(
-                drawPos, iconHalfSize, rotationFromUpward);
+                drawPos, iconHalfSize, rotation);
             //var iconCentre = (p1 + p3) / 2;
-            drawEndPos = new Vector2(drawPos.X + iconHalfSize.X * MathF.Sin(rotationFromUpward),
-                drawPos.Y + iconHalfSize.Y * MathF.Cos(rotationFromUpward));
+            drawEndPos = new Vector2(drawPos.X + iconHalfSize.X * MathF.Sin(rotation),
+                drawPos.Y + iconHalfSize.Y * MathF.Cos(rotation));
             return icon == null ? null
                 : new(() => ImGui.GetWindowDrawList().AddImageQuad(icon.ImGuiHandle,
                     p1, p2, p3, p4, new(0, 0), new(1, 0), new(1, 1), new(0, 1), colour));
@@ -437,13 +421,13 @@ namespace AetherCompass.Compasses
 
         protected static DrawAction? GenerateExtraInfoDrawAction(string info, float scale,
             Vector4 colour, float shadowLightness, Vector2 markerScreenPos,
-            Vector2 markerSizeRaw, float rotationFromUpward, out Vector2 drawEndPos)
+            Vector2 markerSizeRaw, float rotation, out Vector2 drawEndPos)
         {
             drawEndPos = markerScreenPos;
             if (string.IsNullOrEmpty(info)) return null;
             var fontsize = ImGui.GetFontSize() * scale;
             drawEndPos.Y += 2;  // make it slighly lower
-            if (rotationFromUpward > -.2f)
+            if (rotation > -.2f)
             {
                 // direction indicator would be on left side, so just draw text on right
                 drawEndPos.X += markerSizeRaw.X * scale + 2;

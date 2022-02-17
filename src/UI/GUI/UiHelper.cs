@@ -36,12 +36,12 @@ namespace AetherCompass.UI.GUI
             return new Vector2(x, y);
         }
 
-        // upwards = true if rotation = 0 points upwards
-        public static float GetAngleOnScreen(Vector2 origin, Vector2 point, bool upwards = true)
-            => MathF.Atan2(point.X - origin.X, upwards ? (origin.Y - point.Y) : (point.Y - origin.Y));
+        public static float GetAngleOnScreen(Vector2 origin, Vector2 point, bool flipped = false)
+            => flipped ? MathF.Atan2(origin.X - point.X, origin.Y - point.Y)
+            : MathF.Atan2(point.X - origin.X, point.Y - origin.Y);
 
-        public static float GetAngleOnScreen(Vector2 point, bool upwards = true)
-            => GetAngleOnScreen(GetScreenCentre(), point, upwards);
+        public static float GetAngleOnScreen(Vector2 point, bool flipped = false)
+            => GetAngleOnScreen(GetScreenCentre(), point, flipped);
 
         public static (Vector2 P1, Vector2 P2, Vector2 P3, Vector2 P4)
             GetRectPointsOnScreen(Vector2 screenPos, Vector2 rectHalfSize)
