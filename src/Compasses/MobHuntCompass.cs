@@ -32,6 +32,11 @@ namespace AetherCompass.Compasses
             InitNMDataMap();
         }
 
+        protected override unsafe CachedCompassObjective CreateCompassObjective(GameObject* obj)
+            => obj != null && nmDataMap.TryGetValue(obj->DataID, out var data) && data.IsValid
+            ? new MobHunCachedCompassObjective(obj, data.Rank, CompassUtil.IsHostileCharacter(obj))
+            : new MobHunCachedCompassObjective(obj, 0, false);
+        
         public override bool IsEnabledInCurrentTerritory()
             => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1;
 
@@ -39,41 +44,44 @@ namespace AetherCompass.Compasses
             => o != null && nmDataMap.TryGetValue(o->DataID, out var data) && data.IsValid
             && ((data.Rank == NMRank.S && MobHuntConfig.DetectS)
                 || (data.Rank == NMRank.A && MobHuntConfig.DetectA)
-                || (data.Rank == NMRank.B && MobHuntConfig.DetectB))
+                || (data.Rank == NMRank.B && !CompassUtil.IsHostileCharacter(o) && MobHuntConfig.DetectB)
+                || (data.Rank == NMRank.B && CompassUtil.IsHostileCharacter(o) && MobHuntConfig.DetectSSMinion))
             && CompassUtil.IsCharacterAlive(o);
 
         private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
-            => !nmDataMap.TryGetValue(objective.DataId, out var data) ? string.Empty : data.GetNMName();
+            => objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective
+            ? string.Empty : $"{mhObjective.Name} (Rank {mhObjective.Rank})";
 
         private protected override void DisposeCompassUsedIcons()
             => Plugin.IconManager.DisposeMobHuntCompassIcons();
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
-            => objective.IsEmpty() || !nmDataMap.TryGetValue(objective.DataId, out var nmData) ? null : new(() =>
+            => objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective ? null : new(() =>
             {
-                ImGui.Text(nmData.GetNMName());
-                ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(objective.CurrentMapCoord)} (approx.)");
-                ImGui.BulletText($"{objective.CurrentMapCoord},  " +
-                    $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}");
-                ImGui.BulletText(CompassUtil.AltitudeDiffToDescriptiveString(objective.AltitudeDiff));
-                DrawFlagButton($"##{(long)objective.GameObject}", objective.CurrentMapCoord);
+                ImGui.Text($"{mhObjective.Name}, Rank {mhObjective.Rank}");
+                ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(mhObjective.CurrentMapCoord)} (approx.)");
+                ImGui.BulletText($"{mhObjective.CurrentMapCoord},  " +
+                    $"{CompassUtil.DistanceToDescriptiveString(mhObjective.Distance3D, false)}");
+                ImGui.BulletText(CompassUtil.AltitudeDiffToDescriptiveString(mhObjective.AltitudeDiff));
+                DrawFlagButton($"##{(long)mhObjective.GameObject}", mhObjective.CurrentMapCoord);
                 ImGui.Separator();
             });
 
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
-            if (objective.IsEmpty() || !nmDataMap.TryGetValue(objective.DataId, out var nmData)) return null;
-            string descr = $"{nmData.Name}\nRank: {nmData.Rank}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
+            if (objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective) return null;
+            string descr = $"{mhObjective.Name}\nRank {mhObjective.Rank}, {CompassUtil.DistanceToDescriptiveString(mhObjective.Distance3D, true)}";
             return GenerateDefaultScreenMarkerDrawAction(objective, Plugin.IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
                 .9f, descr, infoTextColour, infoTextShadowLightness, out _, 
-                important: nmData.Rank == NMRank.S || nmData.Rank == NMRank.A);
+                important: mhObjective.Rank == NMRank.S || mhObjective.Rank == NMRank.A || mhObjective.IsSSMinion);
         }
 
         public override void DrawConfigUiExtra()
         {
             ImGui.BulletText("More options:");
             ImGui.Indent();
-            ImGui.Checkbox("Detect Rank S", ref MobHuntConfig.DetectS);
+            ImGui.Checkbox("Detect Rank S / Rank SS", ref MobHuntConfig.DetectS);
+            ImGui.Checkbox("Detect SS Minions", ref MobHuntConfig.DetectSSMinion);
             ImGui.Checkbox("Detect Rank A", ref MobHuntConfig.DetectA);
             ImGui.Checkbox("Detect Rank B", ref MobHuntConfig.DetectB);
             ImGui.Unindent();
@@ -99,32 +107,27 @@ namespace AetherCompass.Compasses
         class NMData
         {
             public readonly uint BNpcDataId;
-            public readonly uint NMSheetId;
+            public readonly uint NMSheetRowId;
             public readonly NMRank Rank;
-            public readonly string Name = null!;
             public readonly bool IsValid;
 
-            public NMData(uint nmSheetId)
+            public NMData(uint nmSheetRowId)
             {
-                NMSheetId = nmSheetId;
+                NMSheetRowId = nmSheetRowId;
                 if (NMSheet == null) return;
-                var row = NMSheet.GetRow(nmSheetId);
+                var row = NMSheet.GetRow(nmSheetRowId);
                 if (row == null) return;
                 BNpcDataId = row.BNpcBase.Row;
                 Rank = (NMRank)row.Rank;
-                Name = row.BNpcName.Value?.Singular ?? string.Empty;
                 IsValid = true;
             }
-
-            public string GetNMName(bool showRank = true)
-                => Name + (showRank ? $"(Rank: {Rank})" : string.Empty);
         }
+    }
 
-        enum NMRank : byte
-        {
-            B = 1,
-            A = 2,
-            S = 3,
-        }
+    public enum NMRank : byte
+    {
+        B = 1,
+        A = 2,
+        S = 3,
     }
 }

@@ -18,6 +18,9 @@ namespace AetherCompass.Common
             //: MemoryHelper.ReadSeString((IntPtr)o->Name, 64).TextValue;  
             : Marshal.PtrToStringUTF8((IntPtr)o->Name) ?? string.Empty;
 
+        public static string ToTitleCase(string s)
+            => System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(s);
+
         public unsafe static byte GetCharacterLevel(GameObject* o)
             => o != null && o->IsCharacter() ? ((Character*)o)->Level : byte.MinValue;
 
@@ -25,6 +28,10 @@ namespace AetherCompass.Common
         // Better than checking hp; hp>0 seems still true when bnpc dead but not removed 
         public unsafe static bool IsCharacterAlive(GameObject* o)
             => o != null && o->IsCharacter() && (Marshal.ReadByte((IntPtr)o + 0x197C) & 2) == 0;
+
+        public unsafe static bool IsHostileCharacter(GameObject* o)
+            => o != null && o->IsCharacter() && (((Character*)o)->StatusFlags & 1) != 0;
+
 
         public unsafe static float Get3DDistanceFromPlayer(GameObject* o)
             => o == null ? float.NaN : Get3DDistanceFromPlayer(o->Position);
