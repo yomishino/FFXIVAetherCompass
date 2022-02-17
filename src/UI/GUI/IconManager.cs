@@ -39,6 +39,13 @@ namespace AetherCompass.UI.GUI
 
         public const uint MobHuntMarkerIconId = 61710;
         internal TextureWrap? MobHuntMarkerIcon => iconMap[MobHuntMarkerIconId];
+        internal TextureWrap? MobHuntRankSMarkerIcon => iconMap[MobHuntMarkerIconId];
+        internal TextureWrap? MobHuntRankSSMinionMarkerIcon => iconMap[MobHuntMarkerIconId];
+        public const uint MobHuntRankAMarkerIconId = 61709;
+        internal TextureWrap? MobHuntRankAMarkerIcon => iconMap[MobHuntRankAMarkerIconId];
+        public const uint MobHuntRankBMarkerIconId = 61704;
+        internal TextureWrap? MobHuntRankBMarkerIcon => iconMap[MobHuntRankBMarkerIconId];
+
 
         private static readonly HashSet<uint> gatheringMarkerIconIds = new();
         internal TextureWrap? GetGatheringMarkerIcon(uint iconId)
@@ -47,10 +54,11 @@ namespace AetherCompass.UI.GUI
             return iconMap[iconId];
         }
 
-        // NPC AnnounceIcon starts from 71200; see lumina sheet EventIconType
+        // NPC AnnounceIcon starts from 71200
+        // Refer to Excel sheet EventIconType, 
         // For types whose IconRange is 6, the 3rd is in-progress and 5th is last seq (checkmark icon),
         // because +0 is the dummy, so 1st icon in the range would start from +1.
-        // Each type has availabled and locked ver, but rn idk how to accurately tell if a quest is avail or locked
+        // Each type has available and locked ver, but rn idk how to accurately tell if a quest is avail or locked
         public const uint DefaultQuestMarkerIconId = 71223;
         internal TextureWrap? DefaultQuestMarkerIcon => iconMap[DefaultQuestMarkerIconId];
 
@@ -93,7 +101,10 @@ namespace AetherCompass.UI.GUI
         internal void DisposeMobHuntCompassIcons()
         {
             iconMap.Remove(MobHuntMarkerIconId);
-        }
+            iconMap.Remove(MobHuntRankAMarkerIconId);
+            iconMap.Remove(MobHuntRankBMarkerIconId);
+
+    }
 
         internal void DisposeGatheringPointCompassIcons()
         {

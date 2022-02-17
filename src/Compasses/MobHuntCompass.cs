@@ -8,6 +8,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Lumina.Excel;
 using ImGuiNET;
 using System.Collections.Generic;
+using System.Numerics;
 
 using Sheets = Lumina.Excel.GeneratedSheets;
 
@@ -20,7 +21,7 @@ namespace AetherCompass.Compasses
         public override string Description => "Detecting Elite Marks (Notorious Monsters) nearby.";
         
         private readonly Dictionary<uint, NMData> nmDataMap = new(); // BnpcDataId => NMData
-        private static readonly System.Numerics.Vector4 infoTextColour = new(1, .6f, .6f, 1);
+        private static readonly Vector4 infoTextColour = new(1, .6f, .6f, 1);
         private static readonly float infoTextShadowLightness = .1f;
 
         private protected override CompassConfig CompassConfig => Plugin.Config.MobHuntConfig;
@@ -71,8 +72,17 @@ namespace AetherCompass.Compasses
         {
             if (objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective) return null;
             string descr = $"{mhObjective.Name}\nRank: {mhObjective.Rank}, {CompassUtil.DistanceToDescriptiveString(mhObjective.Distance3D, true)}";
-            return GenerateDefaultScreenMarkerDrawAction(objective, Plugin.IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
-                .9f, descr, infoTextColour, infoTextShadowLightness, out _, 
+            var icon = mhObjective.Rank switch
+            {
+                NMRank.S => Plugin.IconManager.MobHuntRankSMarkerIcon,
+                NMRank.A => Plugin.IconManager.MobHuntRankAMarkerIcon,
+                NMRank.B => mhObjective.IsSSMinion
+                    ? Plugin.IconManager.MobHuntRankSSMinionMarkerIcon
+                    : Plugin.IconManager.MobHuntRankBMarkerIcon,
+                _ => null
+            };
+            return GenerateDefaultScreenMarkerDrawAction(objective, icon, 
+                IconManager.MarkerIconSize, .9f, descr, infoTextColour, infoTextShadowLightness, out _, 
                 important: mhObjective.Rank == NMRank.S || mhObjective.Rank == NMRank.A || mhObjective.IsSSMinion);
         }
 
