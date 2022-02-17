@@ -13,6 +13,6 @@
   ],
   "ImageUrls": "",
   "IconUrl": "https://raw.githubusercontent.com/yomishino/FFXIVAetherCompass/master/res/img/icon.png",
-  "Changelog": "- Configuration window redesigned\n - Fix an issue where \"Set flag on map\" may not set flag on correct positions on certain maps \n- Performance update \n- Minor adjustment to screen markers for off-screen objects",
+  "Changelog": "- Mob hunt marks of different ranks now have different icons when marked on screen \n- SS Minions are now separated from ordinary B Ranks in Mob Hunt Compass; note however, that detecting SS Minions is not tested yet \n- Names of the mob hunt marks should now be displayed exactly as the names on their nameplates, including being in title case",
   "DalamudApiLevel": 5
 }
