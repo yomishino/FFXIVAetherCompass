@@ -50,7 +50,7 @@ namespace AetherCompass.Compasses
 
         private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
             => objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective
-            ? string.Empty : $"{mhObjective.Name} (Rank {mhObjective.Rank})";
+            ? string.Empty : $"{mhObjective.Name} (Rank: {mhObjective.Rank})";
 
         private protected override void DisposeCompassUsedIcons()
             => Plugin.IconManager.DisposeMobHuntCompassIcons();
@@ -58,7 +58,7 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
             => objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective ? null : new(() =>
             {
-                ImGui.Text($"{mhObjective.Name}, Rank {mhObjective.Rank}");
+                ImGui.Text($"{mhObjective.Name}, Rank: {mhObjective.Rank}");
                 ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(mhObjective.CurrentMapCoord)} (approx.)");
                 ImGui.BulletText($"{mhObjective.CurrentMapCoord},  " +
                     $"{CompassUtil.DistanceToDescriptiveString(mhObjective.Distance3D, false)}");
@@ -70,7 +70,7 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
             if (objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective) return null;
-            string descr = $"{mhObjective.Name}\nRank {mhObjective.Rank}, {CompassUtil.DistanceToDescriptiveString(mhObjective.Distance3D, true)}";
+            string descr = $"{mhObjective.Name}\nRank: {mhObjective.Rank}, {CompassUtil.DistanceToDescriptiveString(mhObjective.Distance3D, true)}";
             return GenerateDefaultScreenMarkerDrawAction(objective, Plugin.IconManager.MobHuntMarkerIcon, IconManager.MarkerIconSize,
                 .9f, descr, infoTextColour, infoTextShadowLightness, out _, 
                 important: mhObjective.Rank == NMRank.S || mhObjective.Rank == NMRank.A || mhObjective.IsSSMinion);
@@ -80,10 +80,10 @@ namespace AetherCompass.Compasses
         {
             ImGui.BulletText("More options:");
             ImGui.Indent();
-            ImGui.Checkbox("Detect Rank S / Rank SS", ref MobHuntConfig.DetectS);
+            ImGui.Checkbox("Detect S Ranks / SS Ranks", ref MobHuntConfig.DetectS);
             ImGui.Checkbox("Detect SS Minions", ref MobHuntConfig.DetectSSMinion);
-            ImGui.Checkbox("Detect Rank A", ref MobHuntConfig.DetectA);
-            ImGui.Checkbox("Detect Rank B", ref MobHuntConfig.DetectB);
+            ImGui.Checkbox("Detect A Ranks", ref MobHuntConfig.DetectA);
+            ImGui.Checkbox("Detect B Ranks", ref MobHuntConfig.DetectB);
             ImGui.Unindent();
         }
 
