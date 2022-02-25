@@ -1,4 +1,5 @@
-﻿using Dalamud.Configuration;
+﻿using AetherCompass.Common;
+using Dalamud.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Numerics;
@@ -14,9 +15,10 @@ namespace AetherCompass.Configs
         public bool ShowScreenMark = false;
         public float ScreenMarkSizeScale = 1;
         [JsonIgnore]
-        public const float ScreenMarkSizeScaleMin = .1f;
+        public static readonly (float Min, float Max) ScreenMarkSizeBound = (.1f, 10);
+        public float ScreenMarkTextRelSizeScale = 1;
         [JsonIgnore]
-        public const float ScreenMarkSizeScaleMax = 10;
+        public static readonly (float Min, float Max) ScreenMarkTextRelSizeBound = (.5f, 2);
         // L,D,R,U; how much to squeeze into centre on each side, so generally should be positive
         public Vector4 ScreenMarkConstraint = new(80, 80, 80, 80);
         [JsonIgnore]
@@ -43,25 +45,35 @@ namespace AetherCompass.Configs
 
         public void CheckValueValidity(Vector2 screenSize)
         {
-            if (ScreenMarkSizeScale < .1f) ScreenMarkSizeScale = .1f;
-            if (ScreenMarkSizeScale > 10) ScreenMarkSizeScale = 10;
+            ScreenMarkSizeScale = MathUtil.Clamp(ScreenMarkSizeScale, 
+                ScreenMarkSizeBound.Min, ScreenMarkSizeBound.Max);
+            ScreenMarkTextRelSizeScale = MathUtil.Clamp(ScreenMarkTextRelSizeScale, 
+                ScreenMarkTextRelSizeBound.Min, ScreenMarkTextRelSizeBound.Max);
 
-            if (ScreenMarkConstraint.X < ScreenMarkConstraintMin) 
-                ScreenMarkConstraint.X = ScreenMarkConstraintMin;
-            if (ScreenMarkConstraint.Y < ScreenMarkConstraintMin) 
-                ScreenMarkConstraint.Y = ScreenMarkConstraintMin;
-            if (ScreenMarkConstraint.Z < ScreenMarkConstraintMin) 
-                ScreenMarkConstraint.Z = ScreenMarkConstraintMin;
-            if (ScreenMarkConstraint.W < ScreenMarkConstraintMin) 
-                ScreenMarkConstraint.W = ScreenMarkConstraintMin;
-            if (ScreenMarkConstraint.X > screenSize.X / 2 - 10) 
-                ScreenMarkConstraint.X = screenSize.X / 2 - 10;
-            if (ScreenMarkConstraint.Y > screenSize.Y / 2 - 10) 
-                ScreenMarkConstraint.Y = screenSize.Y / 2 - 10;
-            if (ScreenMarkConstraint.Z > screenSize.X / 2 - 10)
-                ScreenMarkConstraint.Z = screenSize.X / 2 - 10;
-            if (ScreenMarkConstraint.W > screenSize.Y / 2 - 10)
-                ScreenMarkConstraint.W = screenSize.Y / 2 - 10;
+            ScreenMarkConstraint.X = MathUtil.Clamp(ScreenMarkConstraint.X,
+                ScreenMarkConstraintMin, screenSize.X / 2 - 10);
+            ScreenMarkConstraint.Y = MathUtil.Clamp(ScreenMarkConstraint.Y,
+                ScreenMarkConstraintMin, screenSize.Y / 2 - 10);
+            ScreenMarkConstraint.Z = MathUtil.Clamp(ScreenMarkConstraint.Z,
+                ScreenMarkConstraintMin, screenSize.X / 2 - 10);
+            ScreenMarkConstraint.W = MathUtil.Clamp(ScreenMarkConstraint.W,
+                ScreenMarkConstraintMin, screenSize.Y / 2 - 10);
+            //if (ScreenMarkConstraint.X < ScreenMarkConstraintMin) 
+            //    ScreenMarkConstraint.X = ScreenMarkConstraintMin;
+            //if (ScreenMarkConstraint.Y < ScreenMarkConstraintMin) 
+            //    ScreenMarkConstraint.Y = ScreenMarkConstraintMin;
+            //if (ScreenMarkConstraint.Z < ScreenMarkConstraintMin) 
+            //    ScreenMarkConstraint.Z = ScreenMarkConstraintMin;
+            //if (ScreenMarkConstraint.W < ScreenMarkConstraintMin) 
+            //    ScreenMarkConstraint.W = ScreenMarkConstraintMin;
+            //if (ScreenMarkConstraint.X > screenSize.X / 2 - 10) 
+            //    ScreenMarkConstraint.X = screenSize.X / 2 - 10;
+            //if (ScreenMarkConstraint.Y > screenSize.Y / 2 - 10) 
+            //    ScreenMarkConstraint.Y = screenSize.Y / 2 - 10;
+            //if (ScreenMarkConstraint.Z > screenSize.X / 2 - 10)
+            //    ScreenMarkConstraint.Z = screenSize.X / 2 - 10;
+            //if (ScreenMarkConstraint.W > screenSize.Y / 2 - 10)
+            //    ScreenMarkConstraint.W = screenSize.Y / 2 - 10;
 
             AetherCurrentConfig.CheckValueValidity();
             MobHuntConfig.CheckValueValidity();

@@ -67,8 +67,9 @@ namespace AetherCompass.UI.GUI
                     new(displayArea.X, displayArea.W), new(displayArea.Z, displayArea.Y),
                     ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1)), 0, ImDrawFlags.Closed, 4));
             Plugin.Overlay.AddDrawAction(Compass.GenerateConfigDummyMarkerDrawAction(
-                    $"Marker size scale: {Plugin.Config.ScreenMarkSizeScale:0.00}",
-                    Plugin.Config.ScreenMarkSizeScale));
+                    $"Marker size scale: {Plugin.Config.ScreenMarkSizeScale:0.00}, " +
+                    $"Text rel size scale: {Plugin.Config.ScreenMarkTextRelSizeScale:0.0}",
+                    Plugin.Config.ScreenMarkSizeScale, Plugin.Config.ScreenMarkTextRelSizeScale));
         }
 
 
@@ -84,7 +85,10 @@ namespace AetherCompass.UI.GUI
             {
                 ImGui.TreePush();
                 ImGuiEx.DragFloat("Marker size scale", 100, ref Plugin.Config.ScreenMarkSizeScale,
-                    .01f, PluginConfig.ScreenMarkSizeScaleMin, PluginConfig.ScreenMarkSizeScaleMax);
+                    .01f, PluginConfig.ScreenMarkSizeBound.Min, PluginConfig.ScreenMarkSizeBound.Max);
+                ImGuiEx.DragFloat("Marker text size scale", 100, ref Plugin.Config.ScreenMarkTextRelSizeScale,
+                    .1f, PluginConfig.ScreenMarkTextRelSizeBound.Min, PluginConfig.ScreenMarkTextRelSizeBound.Max, "%.1f",
+                    tooltip: "Set the size scale for the markers' label text, relative to the marker size");
                 var viewport = ImGui.GetMainViewport().Pos;
                 var vsize = ImGui.GetMainViewport().Size;
                 Vector4 displayArea = GetDisplayAreaFromConfigScreenMarkConstraint();

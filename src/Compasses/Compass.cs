@@ -333,14 +333,15 @@ namespace AetherCompass.Compasses
                 Plugin.CompassManager.RegisterMapFlag(new(mapCoordToFlag.X, mapCoordToFlag.Y));
         }
 
-        internal static DrawAction? GenerateConfigDummyMarkerDrawAction(string info, float scale)
+        internal static DrawAction? GenerateConfigDummyMarkerDrawAction(string info, float markerSizeScale, float textRelSizeScale)
         {
             var icon = Plugin.IconManager.ConfigDummyMarkerIcon;
             if (icon == null) info = "(Failed to load icon)\n" + info;
             var drawPos = UiHelper.GetScreenCentre();
             return DrawAction.Combine(important: true,
-                GenerateScreenMarkerIconDrawAction(icon, drawPos, IconManager.MarkerIconSize, scale, 1, out drawPos),
-                GenerateExtraInfoDrawAction(info, scale, new(1, 1, 1, 1), 0, drawPos, IconManager.MarkerIconSize, 0, out _));
+                GenerateScreenMarkerIconDrawAction(icon, drawPos, IconManager.MarkerIconSize, markerSizeScale, 1, out drawPos),
+                GenerateExtraInfoDrawAction(info, markerSizeScale, textRelSizeScale, 
+                    new(1, 1, 1, 1), 0, drawPos, IconManager.MarkerIconSize, 0, out _));
         }
 
         protected static readonly Vector2 BaseMarkerSize 
@@ -372,7 +373,8 @@ namespace AetherCompass.Compasses
                 : GenerateAltitudeDiffIconDrawAction(obj.AltitudeDiff, lastDrawEndPos, 
                     Plugin.Config.ScreenMarkSizeScale, iconAlpha, out _);
             // Extra info
-            var extraInfoDrawAction = GenerateExtraInfoDrawAction(info, Plugin.Config.ScreenMarkSizeScale,
+            var extraInfoDrawAction = GenerateExtraInfoDrawAction(info, 
+                Plugin.Config.ScreenMarkSizeScale, Plugin.Config.ScreenMarkTextRelSizeScale,
                 infoTextColour, textShadowLightness, lastDrawEndPos, iconSizeRaw, flippedOnScreenRotation, out _);
             return DrawAction.Combine(important, directionIconDrawAction, markerIconDrawAction, altDiffIconDrawAction, extraInfoDrawAction);
         }
@@ -419,28 +421,30 @@ namespace AetherCompass.Compasses
                 ImGui.ColorConvertFloat4ToU32(new(1, 1, 1, alpha))));
         }
 
-        protected static DrawAction? GenerateExtraInfoDrawAction(string info, float scale,
+        protected static DrawAction? GenerateExtraInfoDrawAction(string info, 
+            float markerSizeScale, float textRelSizeScale,
             Vector4 colour, float shadowLightness, Vector2 markerScreenPos,
             Vector2 markerSizeRaw, float rotation, out Vector2 drawEndPos)
         {
             drawEndPos = markerScreenPos;
             if (string.IsNullOrEmpty(info)) return null;
-            var fontsize = ImGui.GetFontSize() * scale;
-            drawEndPos.Y += 2;  // make it slighly lower
+            var textSizeScale = markerSizeScale * textRelSizeScale;
+            var fontsize = ImGui.GetFontSize() * textSizeScale;
+            var textsize = UiHelper.GetTextSize(info, ImGui.GetFont(), fontsize);
+            drawEndPos.Y += (markerSizeRaw.Y * markerSizeScale - textsize.Y) / 2 + markerSizeScale / textRelSizeScale;  // make it slighly lower
             if (rotation > -.2f)
             {
                 // direction indicator would be on left side, so just draw text on right
-                drawEndPos.X += markerSizeRaw.X * scale + 2;
+                drawEndPos.X += markerSizeRaw.X * markerSizeScale + 2;
             }
             else
             {
                 // direction indicator would be on right side, so draw text on the left
-                var size = UiHelper.GetTextSize(info, ImGui.GetFont(), fontsize);
-                drawEndPos.X -= size.X + 2;
+                drawEndPos.X -= textsize.X + 2;
             }
             var textDrawPos = drawEndPos;
             return new(() => UiHelper.DrawTextWithShadow(ImGui.GetWindowDrawList(), info, 
-                textDrawPos, ImGui.GetFont(), ImGui.GetFontSize(), scale, colour, shadowLightness));
+                textDrawPos, ImGui.GetFont(), ImGui.GetFontSize(), textSizeScale, colour, shadowLightness));
         }
 
         private protected static Vector2 PushToSideOnXIfNeeded(Vector2 drawPos, bool posInFrontOfCamera)
