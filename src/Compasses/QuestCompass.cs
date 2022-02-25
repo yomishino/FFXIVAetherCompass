@@ -91,7 +91,6 @@ namespace AetherCompass.Compasses
                 "In either case, NPC/objects that are known to be quest objectives will have a \"★\" mark by their names.");
             if (MarkScreen)
             {
-                ImGui.Checkbox("Show NPC/Object's name by screen marker", ref QuestConfig.ShowObjName);
                 ImGui.Checkbox("Show quest name by screen marker", ref QuestConfig.ShowQuestName);
                 if (QuestConfig.ShowQuestName)
                     ImGuiEx.Checkbox("Show screen marker text in one line", ref QuestConfig.MarkerTextInOneLine,
@@ -135,10 +134,9 @@ namespace AetherCompass.Compasses
             var qRow = GetQuestRow(mappedInfo.RelatedQuest.QuestID);
             var icon = qRow == null || qRow.EventIconType.Value == null
                 ? Plugin.IconManager.DefaultQuestMarkerIcon
-                : Plugin.IconManager.GetQuestMarkerIcon(qRow.EventIconType.Value.NpcIconAvailable, qRow.EventIconType.Value.IconRange, mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
-            var descr = "";
-            if (mappedInfo.TodoRevealed) descr += "★ ";
-            if (QuestConfig.ShowObjName) descr += $"{objective.Name}";
+                : Plugin.IconManager.GetQuestMarkerIcon(qRow.EventIconType.Value.NpcIconAvailable, 
+                    qRow.EventIconType.Value.IconRange, mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
+            var descr = (mappedInfo.TodoRevealed ? "★ " : "") + $"{objective.Name}";
             if (QuestConfig.ShowQuestName)
             {
                 var questName = GetQuestName(mappedInfo.RelatedQuest.QuestID);
@@ -148,9 +146,10 @@ namespace AetherCompass.Compasses
                         questName = questName.Substring(0, ScreenMarkerQuestNameMaxLength) + "..";
                     descr += $" (Quest: {questName}), {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
                 }
-                else
-                    descr += $", {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}\n(Quest: {questName})";
+                else descr += $", {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}" +
+                        $"\n(Quest: {questName})";
             }
+            else descr += $", {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
             return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
                 .9f, descr, infoTextColour, infoTextShadowLightness, out _,
                 important: objective.Distance3D < 55 || mappedInfo.RelatedQuest.IsPriority);

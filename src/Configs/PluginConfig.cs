@@ -58,22 +58,6 @@ namespace AetherCompass.Configs
                 ScreenMarkConstraintMin, screenSize.X / 2 - 10);
             ScreenMarkConstraint.W = MathUtil.Clamp(ScreenMarkConstraint.W,
                 ScreenMarkConstraintMin, screenSize.Y / 2 - 10);
-            //if (ScreenMarkConstraint.X < ScreenMarkConstraintMin) 
-            //    ScreenMarkConstraint.X = ScreenMarkConstraintMin;
-            //if (ScreenMarkConstraint.Y < ScreenMarkConstraintMin) 
-            //    ScreenMarkConstraint.Y = ScreenMarkConstraintMin;
-            //if (ScreenMarkConstraint.Z < ScreenMarkConstraintMin) 
-            //    ScreenMarkConstraint.Z = ScreenMarkConstraintMin;
-            //if (ScreenMarkConstraint.W < ScreenMarkConstraintMin) 
-            //    ScreenMarkConstraint.W = ScreenMarkConstraintMin;
-            //if (ScreenMarkConstraint.X > screenSize.X / 2 - 10) 
-            //    ScreenMarkConstraint.X = screenSize.X / 2 - 10;
-            //if (ScreenMarkConstraint.Y > screenSize.Y / 2 - 10) 
-            //    ScreenMarkConstraint.Y = screenSize.Y / 2 - 10;
-            //if (ScreenMarkConstraint.Z > screenSize.X / 2 - 10)
-            //    ScreenMarkConstraint.Z = screenSize.X / 2 - 10;
-            //if (ScreenMarkConstraint.W > screenSize.Y / 2 - 10)
-            //    ScreenMarkConstraint.W = screenSize.Y / 2 - 10;
 
             AetherCurrentConfig.CheckValueValidity();
             MobHuntConfig.CheckValueValidity();

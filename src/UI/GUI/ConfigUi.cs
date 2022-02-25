@@ -67,7 +67,7 @@ namespace AetherCompass.UI.GUI
                     new(displayArea.X, displayArea.W), new(displayArea.Z, displayArea.Y),
                     ImGui.ColorConvertFloat4ToU32(new(1, 0, 0, 1)), 0, ImDrawFlags.Closed, 4));
             Plugin.Overlay.AddDrawAction(Compass.GenerateConfigDummyMarkerDrawAction(
-                    $"Marker size scale: {Plugin.Config.ScreenMarkSizeScale:0.00}, " +
+                    $"Marker size scale: {Plugin.Config.ScreenMarkSizeScale:0.00},\n" +
                     $"Text rel size scale: {Plugin.Config.ScreenMarkTextRelSizeScale:0.0}",
                     Plugin.Config.ScreenMarkSizeScale, Plugin.Config.ScreenMarkTextRelSizeScale));
         }

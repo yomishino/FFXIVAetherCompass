@@ -9,7 +9,6 @@ namespace AetherCompass.Configs
         //public bool DetectEnemy = true;
         public bool HideHidden = true;
         public bool ShowQuestName = true;
-        public bool ShowObjName = true;
         public bool ShowAllRelated = true;
         public bool MarkerTextInOneLine = false;
 
@@ -21,7 +20,6 @@ namespace AetherCompass.Configs
             //DetectEnemy = qc.DetectEnemy;
             HideHidden = qc.HideHidden;
             ShowQuestName = qc.ShowQuestName;
-            ShowObjName = qc.ShowObjName;
             ShowAllRelated = qc.ShowAllRelated;
             MarkerTextInOneLine = qc.MarkerTextInOneLine;
         }
