@@ -51,7 +51,7 @@ namespace AetherCompass.Compasses
 
         private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
             => objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective
-            ? string.Empty : $"{mhObjective.Name} (Rank: {mhObjective.Rank})";
+            ? string.Empty : $"{mhObjective.Name} (Rank: {mhObjective.GetExtendedRank()})";
 
         private protected override void DisposeCompassUsedIcons()
             => Plugin.IconManager.DisposeMobHuntCompassIcons();
@@ -59,7 +59,7 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
             => objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective ? null : new(() =>
             {
-                ImGui.Text($"{mhObjective.Name}, Rank: {mhObjective.Rank}");
+                ImGui.Text($"{mhObjective.Name}, Rank: {mhObjective.GetExtendedRank()}");
                 ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(mhObjective.CurrentMapCoord)} (approx.)");
                 ImGui.BulletText($"{mhObjective.CurrentMapCoord},  " +
                     $"{CompassUtil.DistanceToDescriptiveString(mhObjective.Distance3D, false)}");
@@ -71,7 +71,8 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
             if (objective.IsEmpty() || objective is not MobHunCachedCompassObjective mhObjective) return null;
-            string descr = $"{mhObjective.Name}\nRank: {mhObjective.Rank}, {CompassUtil.DistanceToDescriptiveString(mhObjective.Distance3D, true)}";
+            string descr = $"{mhObjective.Name} (Rank: {mhObjective.GetExtendedRank()}), " +
+                $"{CompassUtil.DistanceToDescriptiveString(mhObjective.Distance3D, true)}";
             var icon = mhObjective.Rank switch
             {
                 NMRank.S => Plugin.IconManager.MobHuntRankSMarkerIcon,

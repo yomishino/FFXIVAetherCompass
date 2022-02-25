@@ -11,6 +11,7 @@ namespace AetherCompass.Configs
         public bool ShowQuestName = true;
         public bool ShowObjName = true;
         public bool ShowAllRelated = true;
+        public bool MarkerTextInOneLine = false;
 
         public override void Load(CompassConfig config)
         {
@@ -22,6 +23,7 @@ namespace AetherCompass.Configs
             ShowQuestName = qc.ShowQuestName;
             ShowObjName = qc.ShowObjName;
             ShowAllRelated = qc.ShowAllRelated;
+            MarkerTextInOneLine = qc.MarkerTextInOneLine;
         }
     }
 }

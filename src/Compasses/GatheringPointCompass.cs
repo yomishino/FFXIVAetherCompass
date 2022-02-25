@@ -52,7 +52,8 @@ namespace AetherCompass.Compasses
         {
             if (objective.IsEmpty()) return null;
             var icon = Plugin.IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
-            string descr = $"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}";
+            string descr = $"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}, " +
+                $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
             return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
                     .9f, descr, infoTextColour, infoTextShadowLightness, out _,
                     important: false);

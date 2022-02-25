@@ -50,7 +50,7 @@ namespace AetherCompass.Compasses
             if (objective.IsEmpty()) return null;
             return GenerateDefaultScreenMarkerDrawAction(objective,
                 Plugin.IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, .9f,
-                $"{objective.Name}\n{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}",
+                $"{objective.Name}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}",
                 infoTextColour, infoTextShadowLightness, out _, important: objective.Distance3D < 60);
         }
 

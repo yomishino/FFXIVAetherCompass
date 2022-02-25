@@ -31,6 +31,9 @@ namespace AetherCompass.Compasses
         private static readonly System.Numerics.Vector4 infoTextColour = new(.98f, .77f, .35f, 1);
         private static readonly float infoTextShadowLightness = .1f;
 
+        private static int ScreenMarkerQuestNameMaxLength
+            => Plugin.ClientState.ClientLanguage == Dalamud.ClientLanguage.Japanese ? 8 : 16;
+
 
         public QuestCompass() : base() 
         {
@@ -85,11 +88,15 @@ namespace AetherCompass.Compasses
                 "be detected by this compass, even if they may not be the objectives of the quests.\n" +
                 "Additionally, for quests that require looking for NPC/objects in a certain area, " +
                 "enabling this option may reveal the objectives' locations.\n\n" +
-                "In either case, NPC/objects that are known to be quest objectives will have a \"★\" mark by their names");
+                "In either case, NPC/objects that are known to be quest objectives will have a \"★\" mark by their names.");
             if (MarkScreen)
             {
+                ImGui.Checkbox("Show NPC/Object's name by screen marker", ref QuestConfig.ShowObjName);
                 ImGui.Checkbox("Show quest name by screen marker", ref QuestConfig.ShowQuestName);
-                ImGui.Checkbox("Show NPC/Object's name by screen mark", ref QuestConfig.ShowObjName);
+                if (QuestConfig.ShowQuestName)
+                    ImGuiEx.Checkbox("Show screen marker text in one line", ref QuestConfig.MarkerTextInOneLine,
+                        "Display the whole label text in one line.\n" +
+                        "May only display part of the quest name to avoid the text being too long.");
             }
             ImGui.Unindent();
         }
@@ -108,7 +115,7 @@ namespace AetherCompass.Compasses
                 if (qItem != null)
                 {
                     ImGui.BulletText(
-                        $"JournalGenre: {qItem.JournalGenre.Row}," +
+                        $"JournalGenre: {qItem.JournalGenre.Value?.Name ?? string.Empty} #{qItem.JournalGenre.Row}, " +
                         $"Type: {qItem.Type}");
                 }
 #endif
@@ -129,14 +136,20 @@ namespace AetherCompass.Compasses
             var icon = qRow == null || qRow.EventIconType.Value == null
                 ? Plugin.IconManager.DefaultQuestMarkerIcon
                 : Plugin.IconManager.GetQuestMarkerIcon(qRow.EventIconType.Value.NpcIconAvailable, qRow.EventIconType.Value.IconRange, mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
-            var descr = 
-                (mappedInfo.TodoRevealed ? "★ " : "")
-                + (QuestConfig.ShowObjName ? $"{objective.Name}, " : "")
-                + CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true);
+            var descr = "";
+            if (mappedInfo.TodoRevealed) descr += "★ ";
+            if (QuestConfig.ShowObjName) descr += $"{objective.Name}";
             if (QuestConfig.ShowQuestName)
             {
                 var questName = GetQuestName(mappedInfo.RelatedQuest.QuestID);
-                if (questName != null) descr += $"\n(Quest: {questName})";
+                if (QuestConfig.MarkerTextInOneLine)
+                {
+                    if (questName.Length > ScreenMarkerQuestNameMaxLength)
+                        questName = questName.Substring(0, ScreenMarkerQuestNameMaxLength) + "..";
+                    descr += $" (Quest: {questName}), {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
+                }
+                else
+                    descr += $", {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}\n(Quest: {questName})";
             }
             return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
                 .9f, descr, infoTextColour, infoTextShadowLightness, out _,
@@ -179,8 +192,8 @@ namespace AetherCompass.Compasses
 
         private static Sheets.Quest? GetQuestRow(ushort questId)
             => QuestSheet?.GetRow(QuestIdToQuestRowId(questId));
-        private static string? GetQuestName(ushort questId)
-            => GetQuestRow(questId)?.Name?.ToString();
+        private static string GetQuestName(ushort questId)
+            => GetQuestRow(questId)?.Name?.RawString ?? string.Empty;
 
 
         // ActorSpawn, ActorDespawn, Listener, etc.
