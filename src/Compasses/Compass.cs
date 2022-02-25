@@ -432,6 +432,7 @@ namespace AetherCompass.Compasses
             var fontsize = ImGui.GetFontSize() * textSizeScale;
             var textsize = UiHelper.GetTextSize(info, ImGui.GetFont(), fontsize);
             drawEndPos.Y += (markerSizeRaw.Y * markerSizeScale - textsize.Y) / 2 + markerSizeScale / textRelSizeScale;  // make it slighly lower
+            bool rightAligned = false;
             if (rotation > -.2f)
             {
                 // direction indicator would be on left side, so just draw text on right
@@ -441,10 +442,11 @@ namespace AetherCompass.Compasses
             {
                 // direction indicator would be on right side, so draw text on the left
                 drawEndPos.X -= textsize.X + 2;
+                rightAligned = true;
             }
             var textDrawPos = drawEndPos;
-            return new(() => UiHelper.DrawTextWithShadow(ImGui.GetWindowDrawList(), info, 
-                textDrawPos, ImGui.GetFont(), ImGui.GetFontSize(), textSizeScale, colour, shadowLightness));
+            return new(() => UiHelper.DrawMultilineTextWithShadow(ImGui.GetWindowDrawList(), info,
+                textDrawPos, ImGui.GetFont(), ImGui.GetFontSize(), textSizeScale, colour, shadowLightness, rightAligned));
         }
 
         private protected static Vector2 PushToSideOnXIfNeeded(Vector2 drawPos, bool posInFrontOfCamera)

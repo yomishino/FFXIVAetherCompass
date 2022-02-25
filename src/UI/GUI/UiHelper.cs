@@ -98,8 +98,7 @@ namespace AetherCompass.UI.GUI
             {
                 float lineW = 0;
                 foreach (var c in s)
-                    // ImFontPtr.FindGlyph(c).AdvanceX will not get the correct result, it usually gives larger result; idk why
-                    lineW += c < font.IndexAdvanceX.Size ? font.IndexAdvanceX[c] : font.FallbackAdvanceX;
+                    lineW += GetGlyphAdvanceX(c, font);
                 maxLineW = MathF.Max(maxLineW, lineW);
                 lineCount++;
             }
@@ -123,6 +122,37 @@ namespace AetherCompass.UI.GUI
             pos.Y -= scale;
             drawList.AddText(font, fontsize, pos, col_uint, text);
         }
+
+        public static void DrawMultilineTextWithShadow(ImDrawListPtr drawList, string text, 
+            Vector2 pos, ImFontPtr font, float fontsizeRaw, float scale, Vector4 colour, 
+            float shadowLightness, bool rightAligned = false)
+        {
+            if (!rightAligned)
+            {
+                DrawTextWithShadow(drawList, text, pos, font, fontsizeRaw, scale, colour, shadowLightness);
+                return;
+            }
+            var fontsize = fontsizeRaw * scale;
+            var lines = text.Split('\n');
+            var lineTextSize = new Vector2[lines.Length];
+            var maxSizeX = float.MinValue;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                lineTextSize[i] = GetTextSize(lines[i], font, fontsize);
+                maxSizeX = MathF.Max(maxSizeX, lineTextSize[i].X);
+            }
+            var linePos = pos;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                linePos.X = pos.X + maxSizeX - lineTextSize[i].X;
+                DrawTextWithShadow(drawList, lines[i], linePos, font, fontsizeRaw, scale, colour, shadowLightness);
+                linePos.Y += lineTextSize[i].Y;
+            }
+        }
+
+        // ImFontPtr.FindGlyph(c).AdvanceX will not get the correct result, it usually gives larger result; idk why
+        private static float GetGlyphAdvanceX(char c, ImFontPtr font)
+            => c < font.IndexAdvanceX.Size ? font.IndexAdvanceX[c] : font.FallbackAdvanceX;
     }
 
 }
