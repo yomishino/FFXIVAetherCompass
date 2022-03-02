@@ -20,8 +20,8 @@ namespace AetherCompass.Compasses
     {
         public override string CompassName => "Quest Compass";
         public override string Description => "Detecting NPC/objects nearby relevant to your in-progress quests.\n" +
-            "** Due to some limitations, Battle NPCs (that is, NPCs that can fight, whether by your side or against you)" +
-            " will not be detected by the compass.";
+            "** Currently limited functionality: battle NPCs will not be detected, " +
+            "and the compass sometimes gives inaccurate or, although more rarely, incorrect information.";
 
         private protected override CompassConfig CompassConfig => Plugin.Config.QuestConfig;
         private QuestCompassConfig QuestConfig => (QuestCompassConfig)CompassConfig;
