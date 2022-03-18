@@ -1,5 +1,6 @@
 ﻿using AetherCompass.Configs;
 using AetherCompass.Compasses;
+using AetherCompass.Game;
 using ImGuiNET;
 using System.Numerics;
 
@@ -114,7 +115,7 @@ namespace AetherCompass.UI.GUI
                 if (Plugin.Config.HideScreenMarkIfNameplateInsideDisplayArea)
                 {
                     ImGui.TreePush();
-                    ImGuiEx.DragInt("Hide only when object is within", "y",
+                    ImGuiEx.DragInt("Hide only when object is within", Language.Unit.Yalm,
                         50, ref Plugin.Config.HideScreenMarkEnabledDistance, 1, 
                         PluginConfig.HideScreenMarkEnabledDistanceBound.Min, 
                         PluginConfig.HideScreenMarkEnabledDistanceBound.Max,

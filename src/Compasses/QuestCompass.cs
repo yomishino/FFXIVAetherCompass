@@ -31,8 +31,8 @@ namespace AetherCompass.Compasses
         private static readonly System.Numerics.Vector4 infoTextColour = new(.98f, .77f, .35f, 1);
         private static readonly float infoTextShadowLightness = .1f;
 
-        private static int ScreenMarkerQuestNameMaxLength
-            => Plugin.ClientState.ClientLanguage == Dalamud.ClientLanguage.Japanese ? 8 : 16;
+        private static readonly int ScreenMarkerQuestNameMaxLength
+            = Language.GetAdjustedTextMaxLength(16);
 
 
         public QuestCompass() : base() 

@@ -50,9 +50,7 @@ namespace AetherCompass.Common
         }
 
         public static string DistanceToDescriptiveString(float dist, bool integer)
-            => (integer ? $"{dist:0}" : $"{dist:0.0}")
-            + (Plugin.ClientState.ClientLanguage == Dalamud.ClientLanguage.Japanese
-                ? "m" : "y");
+            => (integer ? $"{dist:0}" : $"{dist:0.0}") + Language.Unit.Yalm;
 
         public static string Get3DDistanceFromPlayerDescriptive(Vector3 gameObjPos, bool integer)
             => DistanceToDescriptiveString(Get3DDistanceFromPlayer(gameObjPos), integer);
