@@ -1,5 +1,6 @@
 ﻿using AetherCompass.Common;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using static FFXIVClientStructs.FFXIV.Client.UI.UI3DModule;
 using System;
 using System.Numerics;
 
@@ -17,7 +18,8 @@ namespace AetherCompass.Compasses.Objectives
         public readonly CompassDirection CompassDirectionFromPlayer;
         public readonly float GameObjectHeight;
         public readonly Vector3 CurrentMapCoord;
-
+        public readonly Vector3 NormalisedNameplatePos;
+        
 
         public CachedCompassObjective(GameObject* obj)
         {
@@ -36,6 +38,15 @@ namespace AetherCompass.Compasses.Objectives
             }
             else
                 Name = string.Empty;
+        }
+
+        public CachedCompassObjective(ObjectInfo* info)
+            : this(info != null ? info->GameObject : null)
+        {
+            if (info != null)
+            {
+                NormalisedNameplatePos = info->NamePlatePos;
+            }
         }
 
         public bool IsCacheFor(GameObject* obj) => IsCacheFor((IntPtr)obj);

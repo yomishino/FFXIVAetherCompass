@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using Sheets = Lumina.Excel.GeneratedSheets;
+using FFXIVClientStructs.FFXIV.Client.UI;
 
 namespace AetherCompass.Compasses
 {
@@ -37,7 +38,16 @@ namespace AetherCompass.Compasses
             => obj != null && nmDataMap.TryGetValue(obj->DataID, out var data) && data.IsValid
             ? new MobHunCachedCompassObjective(obj, data.Rank, CompassUtil.IsHostileCharacter(obj))
             : new MobHunCachedCompassObjective(obj, 0, false);
-        
+
+        protected override unsafe CachedCompassObjective CreateCompassObjective(UI3DModule.ObjectInfo* info)
+        {
+            var obj = info != null ? info->GameObject : null;
+            if (obj == null) return new MobHunCachedCompassObjective(obj, 0, false);
+            return nmDataMap.TryGetValue(obj->DataID, out var data) && data.IsValid
+                ? new MobHunCachedCompassObjective(info, data.Rank, CompassUtil.IsHostileCharacter(obj))
+                : new MobHunCachedCompassObjective(info, 0, false);
+        }
+
         public override bool IsEnabledInCurrentTerritory()
             => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1;
 

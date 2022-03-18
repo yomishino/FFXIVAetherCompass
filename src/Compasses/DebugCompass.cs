@@ -5,6 +5,7 @@ using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 
 
@@ -37,7 +38,10 @@ namespace AetherCompass.Compasses
 
         protected override unsafe CachedCompassObjective CreateCompassObjective(GameObject* obj)
             => new DebugCachedCompassObjective(obj);
-        
+
+        protected override unsafe CachedCompassObjective CreateCompassObjective(UI3DModule.ObjectInfo* info)
+            => new DebugCachedCompassObjective(info);
+
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
         {
             if (objective.IsEmpty() || objective is not DebugCachedCompassObjective debugObjective) return null;
@@ -53,6 +57,7 @@ namespace AetherCompass.Compasses
                 ImGui.BulletText($"Direction: {debugObjective.CompassDirectionFromPlayer}, {debugObjective.RotationFromPlayer:0.00}");
                 ImGui.BulletText($"Position: {debugObjective.Position}");
                 ImGui.BulletText($"MapCoord: {CompassUtil.MapCoordToFormattedString(debugObjective.CurrentMapCoord)}");
+                ImGui.BulletText($"Normalised Nameplate Pos: {objective.NormalisedNameplatePos}");
 
                 DrawFlagButton(((long)debugObjective.GameObject).ToString(), debugObjective.CurrentMapCoord);
 
@@ -68,9 +73,12 @@ namespace AetherCompass.Compasses
             UiHelper.WorldToScreenPos(objective.Position, out var screenPos, out var pCoordsRaw);
             screenPos.Y -= ImGui.GetMainViewport().Size.Y / 50; // slightly raise it up from hitbox screen pos
 
-            string info = $"name={objective.Name}\n" +
-                            $"worldPos={objective.Position}, dist={objective.Distance3D:0.0}\n" +
-                            $"sPosUnfixed=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, raw=<{pCoordsRaw.X:0.0}, {pCoordsRaw.Y:0.0}, {pCoordsRaw.Z:0.0}>";
+            string info = $"name={objective.Name}, " +
+                $"worldPos=<{objective.Position.X:0.00}, {objective.Position.Y:0.00}, {objective.Position.Z:0.00}, " +
+                $"dist={objective.Distance3D:0.0}\n" +
+                $"sPosUnfixed=<{screenPos.X:0.0}, {screenPos.Y:0.0}>, " +
+                $"raw=<{pCoordsRaw.X:0.0}, {pCoordsRaw.Y:0.0}, {pCoordsRaw.Z:0.0}>\n" +
+                $"npPos=<{objective.NormalisedNameplatePos.X:0.0}, {objective.NormalisedNameplatePos.Y:0.0}, {objective.NormalisedNameplatePos.Z:0.0}>";
             return GenerateDefaultScreenMarkerDrawAction(objective,
                 Plugin.IconManager.DebugMarkerIcon, IconManager.MarkerIconSize, .9f, info, new(1, 1, 1, 1), 0, out _);
         }

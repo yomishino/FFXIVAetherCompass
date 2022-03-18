@@ -27,13 +27,37 @@ namespace AetherCompass.UI.GUI
         internal static bool WorldToScreenPos(Vector3 worldPos, out Vector2 screenPos, out Vector3 pCoordsRaw)
             => Projection.WorldToScreen(worldPos, out screenPos, out pCoordsRaw);
 
-        public static Vector2 GetConstrainedScreenPos(Vector2 screenPos, Vector4 screenConstraint, Vector2 extraConstraint)
+        // NDC used in UI3DModule.ObjectInfo for object screen positions
+        public static Vector3 TranslateNormalisedCoordinates(
+            Vector3 pos3norm, bool reverseY = true)
+        {
+            var mSizeHalf = ImGuiHelpers.MainViewport.Size / 2;
+            var mCentrePos = ImGuiHelpers.MainViewport.Pos + mSizeHalf;
+            return new(mCentrePos.X + pos3norm.X * mSizeHalf.X, 
+                reverseY ? mCentrePos.Y - pos3norm.Y * mSizeHalf.Y 
+                    : mCentrePos.Y + pos3norm.Y * mSizeHalf.Y, 
+                pos3norm.Z);
+        }
+
+        public static Vector2 GetConstrainedScreenPos(
+            Vector2 screenPos, Vector4 screenConstraint, Vector2 extraConstraint)
         {
             var constraintUL = ImGuiHelpers.MainViewport.Pos + extraConstraint;
             var constraintBR = ImGuiHelpers.MainViewport.Pos + ImGuiHelpers.MainViewport.Size - extraConstraint;
             var x = Math.Clamp(screenPos.X, constraintUL.X + screenConstraint.X, constraintBR.X - screenConstraint.Z);
             var y = Math.Clamp(screenPos.Y, constraintUL.Y + screenConstraint.W, constraintBR.Y - screenConstraint.Y);
             return new Vector2(x, y);
+        }
+
+        public static bool IsScreenPosInsideConstraint(
+            Vector2 screenPos, Vector4 screenConstraint, Vector2 extraConstraint)
+        {
+            var constraintUL = ImGuiHelpers.MainViewport.Pos 
+                + new Vector2(screenConstraint.X, screenConstraint.W) + extraConstraint;
+            var constraintBR = ImGuiHelpers.MainViewport.Pos + ImGuiHelpers.MainViewport.Size 
+                - new Vector2(screenConstraint.Z, screenConstraint.Y) - extraConstraint;
+            return MathUtil.IsBetween(screenPos.X, constraintUL.X, constraintBR.X, true)
+                && MathUtil.IsBetween(screenPos.Y, constraintUL.Y, constraintBR.Y, true);
         }
 
         public static float GetAngleOnScreen(Vector2 origin, Vector2 point, bool flipped = false)

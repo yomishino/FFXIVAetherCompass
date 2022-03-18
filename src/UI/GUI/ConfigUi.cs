@@ -104,6 +104,24 @@ namespace AetherCompass.UI.GUI
                     displayArea.W - viewport.Y); // U
                 ImGui.Text($"(* The full screen display area is " +
                     $"<{viewport.X:0}, {viewport.Y + vsize.Y:0}, {viewport.X + vsize.X:0}, {viewport.Y:0}> )");
+                ImGuiEx.Checkbox("Hide marker when nameplate is inside the marker display area", 
+                    ref Plugin.Config.HideScreenMarkIfNameplateInsideDisplayArea,
+                    "If enabled, markers will be hidden if the nameplate is inside the marker display area as set above\n" +
+                    "AND if the nameplate is also of certain size.\n\n" +
+                    "NOTE: if these two conditions are met but the nameplate is also hidden from view " +
+                    "due to it being behind other objects (e.g. a wall), \n" +
+                    "the plugin will not know this and will continue to hide the markers.");
+                if (Plugin.Config.HideScreenMarkIfNameplateInsideDisplayArea)
+                {
+                    ImGui.TreePush();
+                    ImGuiEx.DragInt("Hide only when object is within", "y",
+                        50, ref Plugin.Config.HideScreenMarkEnabledDistance, 1, 
+                        PluginConfig.HideScreenMarkEnabledDistanceBound.Min, 
+                        PluginConfig.HideScreenMarkEnabledDistanceBound.Max,
+                        "Markers will be hidden only when the object is also\n" +
+                        "within this distance from player's character.");
+                    ImGui.TreePop();
+                }
                 ImGui.TreePop();
             }
             ImGui.NewLine();

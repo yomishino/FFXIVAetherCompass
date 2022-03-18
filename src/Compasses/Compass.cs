@@ -85,6 +85,9 @@ namespace AetherCompass.Compasses
         protected unsafe virtual CachedCompassObjective CreateCompassObjective(GameObject* obj)
             => new(obj);
 
+        protected unsafe virtual CachedCompassObjective CreateCompassObjective(ObjectInfo* info)
+            => new(info);
+
         public unsafe virtual void UpdateClosestObjective(CachedCompassObjective objective)
         {
             if (closestObj == null) closestObj = objective;
@@ -116,7 +119,7 @@ namespace AetherCompass.Compasses
                     var obj = info != null ? info->GameObject : null;
                     if (obj == null || obj->ObjectKind == (byte)ObjectKind.Pc) continue;
                     if (!IsObjective(obj)) continue;
-                    var objective = CreateCompassObjective(obj);
+                    var objective = CreateCompassObjective(info);
                     ProcessObjectiveInLoop(objective);
                 }
                 if (token.IsCancellationRequested) token.ThrowIfCancellationRequested();
@@ -149,6 +152,7 @@ namespace AetherCompass.Compasses
                     var obj = GameObjectList[i];
                     if (obj == null) continue;
                     if (!IsObjective(obj)) continue;
+                    // no info about nameplate pos here though
                     var objective = CreateCompassObjective(obj);
                     ProcessObjectiveInLoop(objective);
                 }
@@ -180,8 +184,16 @@ namespace AetherCompass.Compasses
             }
             if (MarkScreen)
             {
-                var action = CreateMarkScreenAction(objective);
-                Plugin.Overlay.AddDrawAction(action);
+                if (
+#if DEBUG
+                    Plugin.Config.DebugTestAllGameObjects ||
+#endif
+                    !Plugin.Config.HideScreenMarkIfNameplateInsideDisplayArea 
+                    || !ShouldHideMarkerFor(objective))
+                {
+                    var action = CreateMarkScreenAction(objective);
+                    Plugin.Overlay.AddDrawAction(action);
+                }
             }
         }
 
@@ -325,7 +337,7 @@ namespace AetherCompass.Compasses
         #endregion
 
 
-        #region Helpers
+        #region Drawing Helpers
 
         protected void DrawFlagButton(string id, Vector3 mapCoordToFlag)
         {
@@ -461,7 +473,26 @@ namespace AetherCompass.Compasses
             }
             return drawPos;
         }
-
         #endregion
+
+
+        // y-axis is reversed (up is + instead of -) in NDC for nameplates
+        private static Vector3 TranslateNormalisedNameplatePos3D(Vector3 pos3norm)
+            => UiHelper.TranslateNormalisedCoordinates(pos3norm, true);
+
+        private static Vector2 TranslateNormalisedNameplatePos2D(Vector3 pos3norm)
+        {
+            var pos = TranslateNormalisedNameplatePos3D(pos3norm);
+            return new(pos.X, pos.Y);
+        }
+
+        private static bool IsNameplatePosInsideConstraint(CachedCompassObjective objective)
+            => UiHelper.IsScreenPosInsideConstraint(
+                TranslateNormalisedNameplatePos2D(objective.NormalisedNameplatePos),
+                Plugin.Config.ScreenMarkConstraint, new(0, 0));
+
+        private static bool ShouldHideMarkerFor(CachedCompassObjective objective)
+            => IsNameplatePosInsideConstraint(objective)
+            && objective.Distance3D < Plugin.Config.HideScreenMarkEnabledDistance;
     }
 }

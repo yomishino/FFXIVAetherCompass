@@ -14,15 +14,19 @@ namespace AetherCompass.Configs
         public bool Enabled = false;
         public bool ShowScreenMark = false;
         public float ScreenMarkSizeScale = 1;
+        public float ScreenMarkTextRelSizeScale = 1;
         [JsonIgnore]
         public static readonly (float Min, float Max) ScreenMarkSizeBound = (.1f, 10);
-        public float ScreenMarkTextRelSizeScale = 1;
         [JsonIgnore]
         public static readonly (float Min, float Max) ScreenMarkTextRelSizeBound = (.5f, 2);
         // L,D,R,U; how much to squeeze into centre on each side, so generally should be positive
         public Vector4 ScreenMarkConstraint = new(80, 80, 80, 80);
         [JsonIgnore]
         public const float ScreenMarkConstraintMin = 2;
+        public bool HideScreenMarkIfNameplateInsideDisplayArea = false;
+        public int HideScreenMarkEnabledDistance = 30;
+        [JsonIgnore]
+        public static readonly (int Min, int Max) HideScreenMarkEnabledDistanceBound = (5, 50);
         public bool ShowDetailWindow = false;
         public bool HideDetailInContents = false;
         public bool HideInEvent = false;
@@ -58,6 +62,11 @@ namespace AetherCompass.Configs
                 ScreenMarkConstraintMin, screenSize.X / 2 - 10);
             ScreenMarkConstraint.W = MathUtil.Clamp(ScreenMarkConstraint.W,
                 ScreenMarkConstraintMin, screenSize.Y / 2 - 10);
+
+            HideScreenMarkEnabledDistance 
+                = (int)MathUtil.Clamp(HideScreenMarkEnabledDistance, 
+                    HideScreenMarkEnabledDistanceBound.Min, 
+                    HideScreenMarkEnabledDistanceBound.Max);
 
             AetherCurrentConfig.CheckValueValidity();
             MobHuntConfig.CheckValueValidity();

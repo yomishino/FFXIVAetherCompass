@@ -43,6 +43,17 @@ namespace AetherCompass.UI.GUI
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
         }
 
+        public static void DragInt(string label, string unit, int itemWidth, 
+            ref int v, int v_spd, int v_min, int v_max, string? tooltip = null)
+        {
+            ImGui.Text(label + ": ");
+            if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(itemWidth * ImGuiHelpers.GlobalScale);
+            ImGui.DragInt($"{unit}##{label}", ref v, v_spd, v_min, v_max);
+            if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
+        }
+
         public static void DragFloat(string label, int itemWidth, ref float v, float v_spd, float v_min, float v_max, string v_fmt = "%.2f", string? tooltip = null)
         {
             ImGui.Text(label + ": ");
