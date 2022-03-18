@@ -13,6 +13,6 @@
   ],
   "ImageUrls": "",
   "IconUrl": "https://raw.githubusercontent.com/yomishino/FFXIVAetherCompass/master/res/img/icon.png",
-  "Changelog": "- Quest Compass has been added as an experimental compass. \nNote: It has been available for quite some time in test builds across several versions. Not much has changed since then in terms of functionality though, and no changes to it from the previous test build. It is included in stable version now so you don't have to install test builds simply for this one compass if you happen to be using it.\n\n------------\n\nOther major (and not so major) changes since v1.2.0.2 (as the stable release has skipped several minor versions):\n\n- Update to Mob Hunt Compass: detecting SS Minions separated from detecting ordinary B Ranks, different icons on screen for different ranks \n- Configuration window redesigned\n- Update to performance\n- Update to visuals regarding marking-on-screen: adjustable label text size, one-line label text, better marker positioning and arrangement, right-alignment for text when placed on the left-hand side of icons, and so on\n- Bug fixes including incorrect flag positions set by the \"Set flag on map\" button on some maps and lowercased mob hunt mark names",
+  "Changelog": "- New settings for on-screen marker visibility",
   "DalamudApiLevel": 5
 }
