@@ -35,6 +35,8 @@ namespace AetherCompass.Configs
         public bool NotifySe = false;
         public bool NotifyToast = false;
 
+        public bool ShowSponsor = false;
+
         public AetherCurrentCompassConfig AetherCurrentConfig { get; private set; } = new();
         public MobHuntCompassConfig MobHuntConfig { get; private set; } = new();
         public GatheringPointCompassConfig GatheringConfig { get; private set; } = new();

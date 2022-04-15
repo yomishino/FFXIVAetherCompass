@@ -2,6 +2,7 @@
 using AetherCompass.Compasses;
 using AetherCompass.Game;
 using ImGuiNET;
+using System.Diagnostics;
 using System.Numerics;
 
 namespace AetherCompass.UI.GUI
@@ -172,6 +173,28 @@ namespace AetherCompass.UI.GUI
             ImGuiEx.Checkbox("[DEBUG] Test all GameObjects", ref Plugin.Config.DebugTestAllGameObjects);
             ImGui.NewLine();
 #endif
+
+            ImGui.Checkbox("Show Sponsor/Support button", ref Plugin.Config.ShowSponsor);
+            if (Plugin.Config.ShowSponsor)
+            {
+                ImGui.Indent();
+                ImGui.PushStyleColor(ImGuiCol.Button, 0xFF000000 | 0x005E5BFF);
+                ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0xDD000000 | 0x005E5BFF);
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0xAA000000 | 0x005E5BFF);
+                if (ImGuiEx.Button("Buy Yomishino a Coffee",
+                    "You can support me and buy me a coffee if you want.\n" +
+                    "(Will open external link to Ko-fi in your browser)"))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "https://ko-fi.com/yomishino",
+                        UseShellExecute = true
+                    });
+                }
+                ImGui.PopStyleColor(3);
+                ImGui.Unindent();
+            }
+            ImGui.NewLine();
         }
 
         private static Vector4 GetDisplayAreaFromConfigScreenMarkConstraint()

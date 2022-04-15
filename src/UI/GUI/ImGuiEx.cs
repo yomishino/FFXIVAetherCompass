@@ -33,6 +33,13 @@ namespace AetherCompass.UI.GUI
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
         }
 
+        public static bool Button(string label, string? tooltip = null)
+        {
+            var r = ImGui.Button(label);
+            if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
+            return r;
+        }
+
         public static void InputInt(string label, int itemWidth, ref int v, string? tooltip = null)
         {
             ImGui.Text(label + ": ");
