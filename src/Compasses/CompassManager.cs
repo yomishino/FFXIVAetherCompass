@@ -3,7 +3,6 @@ using AetherCompass.Common.Attributes;
 using AetherCompass.Game;
 using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
 using System;
 using System.Collections.Generic;
@@ -25,17 +24,7 @@ namespace AetherCompass.Compasses
         private readonly HashSet<Compass> workingCompasses = new();
 
 
-        private unsafe static UI3DModule* UI3DModule => ((UIModule*)Plugin.GameGui.GetUIModule())->GetUI3DModule();
-
-        // Those that would be rendered on screen
-        private unsafe static ObjectInfo** SortedObjectInfoPointerArray
-            => UI3DModule != null ? (ObjectInfo**)UI3DModule->SortedObjectInfoPointerArray : null;
-        private unsafe static int SortedObjectInfoCount => UI3DModule != null ? UI3DModule->SortedObjectInfoCount : 0;
-
-#if DEBUG
-        private unsafe static readonly GameObjectManager* gameObjMgr = GameObjectManager.Instance();
-#endif
-
+        
         private bool hasMapFlagToProcess;
         private System.Numerics.Vector2 mapFlagCoord;
 
@@ -117,12 +106,16 @@ namespace AetherCompass.Compasses
                     if (compass.CompassEnabled) compass.CancelLastUpdate();
 
 #if DEBUG
-                var debugTestAll = gameObjMgr != null && Plugin.Config.DebugTestAllGameObjects;
-                void* array = debugTestAll ? gameObjMgr->ObjectListFiltered : SortedObjectInfoPointerArray;
-                int count = debugTestAll ? gameObjMgr->ObjectListFilteredCount : SortedObjectInfoCount;
+                var debugTestAll = Plugin.Config.DebugTestAllGameObjects;
+                void* array = debugTestAll 
+                    ? GameObjects.ObjectListFiltered 
+                    : GameObjects.SortedObjectInfoPointerArray;
+                int count = debugTestAll 
+                    ? GameObjects.ObjectListFilteredCount 
+                    : GameObjects.SortedObjectInfoCount;
 #else
-                var array = SortedObjectInfoPointerArray;
-                var count = SortedObjectInfoCount;
+                var array = GameObjects.SortedObjectInfoPointerArray;
+                var count = GameObjects.SortedObjectInfoCount;
 #endif
 
                 if (array == null) return;

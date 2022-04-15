@@ -3,9 +3,10 @@ using Excel = Lumina.Excel.GeneratedSheets;
 
 namespace AetherCompass.Game
 {
-    public static class ZoneWatcher
+    internal static class ZoneWatcher
     {
-        public static Lumina.Excel.ExcelSheet<Excel.PlaceName>? PlaceName = Plugin.DataManager.GetExcelSheet<Excel.PlaceName>();
+        public static readonly Lumina.Excel.ExcelSheet<Excel.PlaceName>? PlaceName 
+            = Plugin.DataManager.GetExcelSheet<Excel.PlaceName>();
 
         public static Excel.TerritoryType? CurrentTerritoryType { get; private set; }
         public static Excel.TerritoryTypeTransient? CurrentTerritoryTypeTransient { get; private set; }

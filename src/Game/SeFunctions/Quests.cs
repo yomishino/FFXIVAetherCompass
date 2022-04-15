@@ -1,23 +1,16 @@
-﻿using System;
+﻿using FFXIVClientStructs.FFXIV.Client.Game;
+using System;
 using System.Runtime.InteropServices;
 
 namespace AetherCompass.Game.SeFunctions
 {
-    // https://github.com/aers/FFXIVClientStructs/blob/main/FFXIVClientStructs/FFXIV/Client/Game/QuestManager.cs
-    public static class Quests
+    internal unsafe static class Quests
     {
-        private delegate IntPtr getQuestManagerDelegate();
-        private readonly static getQuestManagerDelegate? GetQuestManager;
-
+        private readonly static IntPtr questManagerPtr;
+        private readonly static Quest* questListArray;
 
         public unsafe static Quest* GetQuestListArray()
-        {
-            int offsetQuestArray = 0x10;
-            if (GetQuestManager == null) return null;
-            var qm = GetQuestManager.Invoke();
-            if (qm == IntPtr.Zero) return null;
-            return (Quest*)(qm + offsetQuestArray);
-        }
+            => questListArray;
 
         public const int QuestListArrayLength = 30;
 
@@ -50,9 +43,9 @@ namespace AetherCompass.Game.SeFunctions
 
         static Quests()
         {
-            var addrGetQuestManager = Plugin.SigScanner.ScanText("E8 ?? ?? ?? ?? 66 BA 10 0C");
-            if (addrGetQuestManager != IntPtr.Zero)
-                GetQuestManager = Marshal.GetDelegateForFunctionPointer<getQuestManagerDelegate>(addrGetQuestManager);
+            questManagerPtr = (IntPtr)QuestManager.Instance();
+            if (questManagerPtr != IntPtr.Zero)
+                questListArray = (Quest*)(questManagerPtr + 0x10);
         }
     }
 
