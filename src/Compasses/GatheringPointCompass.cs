@@ -39,7 +39,7 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
             => objective.IsEmpty() ? null : new(() =>
             {
-                ImGui.Text($"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}");
+                ImGui.Text($"{GetGatheringLevelDescription(objective.DataId)} {objective.Name}");
                 ImGui.BulletText($"{CompassUtil.MapCoordToFormattedString(objective.CurrentMapCoord)} (approx.)");
                 ImGui.BulletText($"{objective.CompassDirectionFromPlayer},  " +
                     $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, false)}");
@@ -52,7 +52,7 @@ namespace AetherCompass.Compasses
         {
             if (objective.IsEmpty()) return null;
             var icon = Plugin.IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
-            string descr = $"Lv{GetGatheringLevel(objective.DataId)} {objective.Name}, " +
+            string descr = $"{GetGatheringLevelDescription(objective.DataId)} {objective.Name}, " +
                 $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
             return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
                     .9f, descr, infoTextColour, infoTextShadowLightness, out _,
@@ -111,6 +111,12 @@ namespace AetherCompass.Compasses
             return gatherPointBase == null ? byte.MinValue : gatherPointBase.GatheringLevel;
         }
 
+        private static string GetGatheringLevelDescription(uint dataId)
+        {
+            var lv = GetGatheringLevel(dataId);
+            // Lv? in diadem etc. is Lv1 in excel
+            return lv > 1 ? $"Lv{lv}" : $"Lv??";
+        }
 
         #region FUTURE/ ExportedGatheringPoint
 #if FUTURE
