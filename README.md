@@ -19,6 +19,7 @@ Currently supports detecting:
 when they are too faraway or when there are too many entities nearby (such as too many player characters), 
 they will not be detected in this case.
 
+
 ## Installation
 
 [XIVLauncher](https://github.com/goatcorp/FFXIVQuickLauncher) is required to install and run the plugin.
@@ -27,4 +28,8 @@ Add my [Dalamud plugin repo](https://github.com/yomishino/MyDalamudPlugins) to D
 
 Once added, look for the plugin "Aether Compass" in Plugin Installer's available plugins.
 
+
+## Special Thanks
+
+[Lumas Arkfrost](https://github.com/ArkfrostLumas) - For the plugin icon
 
