@@ -122,7 +122,7 @@ namespace AetherCompass.UI.GUI
             {
                 float lineW = 0;
                 foreach (var c in s)
-                    lineW += GetGlyphAdvanceX(c, font);
+                    lineW += font.GetCharAdvance(c);
                 maxLineW = MathF.Max(maxLineW, lineW);
                 lineCount++;
             }
@@ -173,10 +173,6 @@ namespace AetherCompass.UI.GUI
                 linePos.Y += lineTextSize[i].Y;
             }
         }
-
-        // ImFontPtr.FindGlyph(c).AdvanceX will not get the correct result, it usually gives larger result; idk why
-        private static float GetGlyphAdvanceX(char c, ImFontPtr font)
-            => c < font.IndexAdvanceX.Size ? font.IndexAdvanceX[c] : font.FallbackAdvanceX;
     }
 
 }
