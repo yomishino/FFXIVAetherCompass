@@ -108,7 +108,7 @@ namespace AetherCompass.Compasses
             return new(() =>
             {
                 ImGui.Text($"{objective.Name} {(mappedInfo.TodoRevealed ? "★" : "")}");
-                ImGui.BulletText($"Quest: {GetQuestName(questId)}");
+                ImGui.BulletText($"Quest: {Language.SanitizeText(GetQuestName(questId))}");
 #if DEBUG
                 var qItem = GetQuestRow(questId);
                 if (qItem != null)
@@ -139,11 +139,11 @@ namespace AetherCompass.Compasses
             var descr = (mappedInfo.TodoRevealed ? "★ " : "") + $"{objective.Name}";
             if (QuestConfig.ShowQuestName)
             {
-                var questName = GetQuestName(mappedInfo.RelatedQuest.QuestID);
+                var questName = Language.SanitizeText(GetQuestName(mappedInfo.RelatedQuest.QuestID));
                 if (QuestConfig.MarkerTextInOneLine)
                 {
                     if (questName.Length > ScreenMarkerQuestNameMaxLength)
-                        questName = questName.Substring(0, ScreenMarkerQuestNameMaxLength) + "..";
+                        questName = questName[..ScreenMarkerQuestNameMaxLength] + "..";
                     descr += $" (Quest: {questName}), {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
                 }
                 else descr += $", {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}" +

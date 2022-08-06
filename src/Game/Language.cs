@@ -1,4 +1,5 @@
 ﻿using static Dalamud.ClientLanguage;
+using Dalamud.Game.Text.Sanitizer;
 
 namespace AetherCompass.Game
 {
@@ -9,6 +10,11 @@ namespace AetherCompass.Game
 
         public static int GetAdjustedTextMaxLength(int maxLengthEN)
             => ClientLanguage == Japanese ? maxLengthEN / 2 : maxLengthEN;
+
+        private static readonly Sanitizer sanitizer = new(ClientLanguage);
+
+        public static string SanitizeText(string rawString) 
+            => sanitizer.Sanitize(rawString, ClientLanguage);
 
         public static class Unit
         {
