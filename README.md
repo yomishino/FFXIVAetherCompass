@@ -1,5 +1,6 @@
 # Aether Compass
 
+> <img src="./res/img/icon_by_arkfrostlumas.png" width="96"/>
 > Have you ever run into something when looking at your compass ... oooops!
 
 _Aether Compass_ is an FFXIV Dalamud plugin that has a compass (a set of compasses, actually) 
