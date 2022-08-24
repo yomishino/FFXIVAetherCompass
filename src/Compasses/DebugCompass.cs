@@ -31,7 +31,9 @@ namespace AetherCompass.Compasses
             //|| o->ObjectKind == (byte)ObjectKind.EventNpc
             || o->ObjectKind == (byte)ObjectKind.GatheringPoint
             || o->ObjectKind == (byte)ObjectKind.Aetheryte
-            || o->ObjectKind == (byte)ObjectKind.AreaObject);
+            || o->ObjectKind == (byte)ObjectKind.AreaObject
+            || o->ObjectKind == (byte)ObjectKind.CardStand
+            );
 
         private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective _)
             => "Debug Obj";

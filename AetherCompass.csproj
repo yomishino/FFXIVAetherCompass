@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <Authors>yomishino</Authors>
-    <Version>1.4.3.0</Version>
+    <Version>1.4.3.1</Version>
     <Description>An FFXIV Dalamud plugin providing a set of compasses that detect and mark certain nearby objects/NPCs.</Description>
     <PackageProjectUrl></PackageProjectUrl>
     <Configurations>Debug;Release;TestRelease</Configurations>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Platforms>x64</Platforms>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
@@ -17,6 +17,7 @@
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <OutputPath></OutputPath>
+    <NoWarn>CA1416</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -31,7 +32,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DalamudPackager" Version="2.1.7" />
+    <PackageReference Include="DalamudPackager" Version="2.1.8" />
     <Reference Include="Dalamud">
       <HintPath Condition="Exists('$(DalamudLibPath)')">$(DalamudLibPath)\Dalamud.dll</HintPath>
       <Private>false</Private>
@@ -73,5 +74,7 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>
