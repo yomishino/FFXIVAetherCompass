@@ -13,13 +13,18 @@ namespace AetherCompass.UI.GUI
         public static Vector2 GetScreenCentre()
             => ImGuiHelpers.MainViewport.GetCenter();
 
-        public static bool IsScreenPosInsideMainViewport(Vector2 screenPos)
+        // offset is L/B/R/T, added directly to the position of each side of viewport
+        public static bool IsScreenPosInsideMainViewport(
+            Vector2 screenPos, Vector4 offset)
         {
             var pos = ImGuiHelpers.MainViewport.Pos;
             var size = ImGuiHelpers.MainViewport.Size;
-            return MathUtil.IsBetween(screenPos.X, pos.X, pos.X + size.X) 
-                && MathUtil.IsBetween(screenPos.Y, pos.Y, pos.Y + size.Y);
+            return MathUtil.IsBetween(screenPos.X, pos.X + offset.X, pos.X + size.X + offset.Z) 
+                && MathUtil.IsBetween(screenPos.Y, pos.Y + offset.W, pos.Y + size.Y + offset.Y);
         }
+
+        public static bool IsScreenPosInsideMainViewport(Vector2 screenPos)
+            => IsScreenPosInsideMainViewport(screenPos, new(0, 0, 0, 0));
 
         public static bool WorldToScreenPos(Vector3 worldPos, out Vector2 screenPos)
             => Projection.WorldToScreen(worldPos, out screenPos);

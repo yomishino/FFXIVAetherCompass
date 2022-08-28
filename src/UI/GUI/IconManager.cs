@@ -12,6 +12,14 @@ namespace AetherCompass.UI.GUI
     {
         private readonly ConcurrentIconMap iconMap = new();
 
+        public void DisposeAllIcons() => iconMap.Clear();
+        public void Dispose() => DisposeAllIcons();
+
+
+        #region Common Icons
+
+        public const uint DefaultMarkerIconId = 25948;
+        internal TextureWrap? DefaultMarkerIcon => iconMap[DefaultMarkerIconId];
 
         public const uint AltitudeHigherIconId = 60954;
         internal TextureWrap? AltitudeHigherIcon => iconMap[AltitudeHigherIconId];
@@ -30,12 +38,35 @@ namespace AetherCompass.UI.GUI
 
         public static readonly Vector2 MarkerIconSize = new(30, 30);
 
-        public const uint ConfigDummyMarkerIconId = 25948;
+        public const uint ConfigDummyMarkerIconId = DefaultMarkerIconId;
         internal TextureWrap? ConfigDummyMarkerIcon => iconMap[ConfigDummyMarkerIconId];
         internal TextureWrap? DebugMarkerIcon => ConfigDummyMarkerIcon;
 
+        //private static void DisposeCommonIcons()
+        //{
+        //    iconMap.Remove(AltitudeHigherIconId);
+        //    iconMap.Remove(AltitudeLowerIconId);
+        //    iconMap.Remove(DirectionScreenIndicatorIconId);
+        //    iconMap.Remove(ConfigDummyMarkerIconId);
+        //}
+
+        #endregion
+
+
+        #region Aether Current Icons
+
         public const uint AetherCurrentMarkerIconId = 60033;
         internal TextureWrap? AetherCurrentMarkerIcon => iconMap[AetherCurrentMarkerIconId];
+
+        internal void DisposeAetherCurrentCompassIcons()
+        {
+            iconMap.Remove(AetherCurrentMarkerIconId);
+        }
+
+        #endregion
+
+
+        #region Mob Hunt Icons
 
         public const uint MobHuntMarkerIconId = 61710;
         internal TextureWrap? MobHuntMarkerIcon => iconMap[MobHuntMarkerIconId];
@@ -46,13 +77,61 @@ namespace AetherCompass.UI.GUI
         public const uint MobHuntRankBMarkerIconId = 61704;
         internal TextureWrap? MobHuntRankBMarkerIcon => iconMap[MobHuntRankBMarkerIconId];
 
+        internal void DisposeMobHuntCompassIcons()
+        {
+            iconMap.Remove(MobHuntMarkerIconId);
+            iconMap.Remove(MobHuntRankAMarkerIconId);
+            iconMap.Remove(MobHuntRankBMarkerIconId);
+
+        }
+
+        #endregion
+
+
+        #region Gathering Point Icons
 
         private static readonly HashSet<uint> gatheringMarkerIconIds = new();
+
         internal TextureWrap? GetGatheringMarkerIcon(uint iconId)
         {
             gatheringMarkerIconIds.Add(iconId);
             return iconMap[iconId];
         }
+
+        internal void DisposeGatheringPointCompassIcons()
+        {
+            foreach (uint id in gatheringMarkerIconIds)
+                iconMap.Remove(id);
+        }
+
+        #endregion
+
+
+        #region Island Sanctuary Icons
+
+        public const uint IslandAnimalDefaultMarkerIconId = 63956;
+        internal TextureWrap? IslandAnimalDefaultMarkerIcon => iconMap[IslandAnimalDefaultMarkerIconId];
+
+        public static readonly Vector2 AnimalSpecificMarkerIconSize = new(25, 25);
+
+        private static readonly HashSet<uint> islandMarkerIconIds = new();
+        internal TextureWrap? GetIslandMarkerIcon(uint iconId)
+        {
+            islandMarkerIconIds.Add(iconId);
+            return iconMap[iconId];
+        }
+
+        internal void DisposeIslandCompassIcons()
+        {
+            iconMap.Remove(IslandAnimalDefaultMarkerIconId);
+            foreach (uint id in islandMarkerIconIds)
+                iconMap.Remove(id);
+        }
+
+        #endregion
+
+
+        #region Quest Icons
 
         // NPC AnnounceIcon starts from 71200
         // Refer to Excel sheet EventIconType, 
@@ -81,47 +160,12 @@ namespace AetherCompass.UI.GUI
                 _ => 1,
             };
 
-
-
-        #region Dispose
-
-        //private static void DisposeCommonIcons()
-        //{
-        //    iconMap.Remove(AltitudeHigherIconId);
-        //    iconMap.Remove(AltitudeLowerIconId);
-        //    iconMap.Remove(DirectionScreenIndicatorIconId);
-        //    iconMap.Remove(ConfigDummyMarkerIconId);
-        //}
-
-        internal void DisposeAetherCurrentCompassIcons()
-        {
-            iconMap.Remove(AetherCurrentMarkerIconId);
-        }
-
-        internal void DisposeMobHuntCompassIcons()
-        {
-            iconMap.Remove(MobHuntMarkerIconId);
-            iconMap.Remove(MobHuntRankAMarkerIconId);
-            iconMap.Remove(MobHuntRankBMarkerIconId);
-
-    }
-
-        internal void DisposeGatheringPointCompassIcons()
-        {
-            foreach (uint id in gatheringMarkerIconIds)
-                iconMap.Remove(id);
-        }
-
         internal void DisposeQuestCompassIcons()
         {
             iconMap.Remove(DefaultQuestMarkerIconId);
             foreach (uint id in questMarkerIconIds)
                 iconMap.Remove(id);
         }
-
-        public void DisposeAllIcons() => iconMap.Clear();
-
-        public void Dispose() => DisposeAllIcons();
 
         #endregion
     }
@@ -136,6 +180,7 @@ namespace AetherCompass.UI.GUI
         {
             get
             {
+                if (iconId == 0) return null;
                 if (map.TryGetValue(iconId, out var tex)) 
                     return tex.Value;
                 LoadIconAsync(iconId);
@@ -145,6 +190,7 @@ namespace AetherCompass.UI.GUI
 
         public bool Remove(uint id)
         {
+            if (id == 0) return false;
             var removed = map.TryRemove(id, out var tex);
             tex?.Value?.Dispose();
             return removed;

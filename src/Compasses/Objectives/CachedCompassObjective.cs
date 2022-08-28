@@ -11,6 +11,7 @@ namespace AetherCompass.Compasses.Objectives
         public readonly IntPtr GameObject;
         public readonly GameObjectID GameObjectId;
         public readonly string Name;
+        public readonly uint NpcId;
         public readonly uint DataId;
         public readonly Vector3 Position;
         public readonly float Distance3D; 
@@ -28,6 +29,7 @@ namespace AetherCompass.Compasses.Objectives
             {
                 GameObjectId = obj->GetObjectID();
                 Name = CompassUtil.GetName(obj);
+                NpcId = obj->GetNpcID();
                 DataId = obj->DataID;
                 Position = obj->Position;
                 Distance3D = CompassUtil.Get3DDistanceFromPlayer(Position);

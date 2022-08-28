@@ -7,7 +7,7 @@ namespace AetherCompass.Configs
     {
         public bool Enabled = false;
         public bool MarkScreen = true;
-        public bool ShowDetail = false;
+        public bool ShowDetail = true;
         public bool NotifyChat = false;
         public bool NotifySe = false;
         public int NotifySeId = 1;

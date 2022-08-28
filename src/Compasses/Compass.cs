@@ -361,10 +361,23 @@ namespace AetherCompass.Compasses
         
         protected static DrawAction? GenerateDefaultScreenMarkerDrawAction(CachedCompassObjective obj,
             ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
-            Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos, bool important = false)
+            Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos, 
+            bool important = false, bool showIfOutOfScreen = true)
         {
             Vector3 hitboxPosAdjusted = new(obj.Position.X, obj.Position.Y + obj.GameObjectHeight + .5f, obj.Position.Z);
             bool inFrontOfCamera = UiHelper.WorldToScreenPos(hitboxPosAdjusted, out var screenPos);
+            if (!showIfOutOfScreen)
+            {
+                // Allow some extra space;
+                // Also exclude those having screen position calculated to be
+                // inside viewport but actually are at the back
+                if (!UiHelper.IsScreenPosInsideMainViewport(screenPos, new(-20, 50, 20, -20))
+                    || !inFrontOfCamera && UiHelper.IsScreenPosInsideMainViewport(screenPos))
+                {
+                    lastDrawEndPos = new();
+                    return null;
+                }
+            }
             screenPos = PushToSideOnXIfNeeded(screenPos, inFrontOfCamera);
             float flippedOnScreenRotation = UiHelper.GetAngleOnScreen(screenPos, true);
 

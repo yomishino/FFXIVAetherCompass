@@ -7,7 +7,6 @@ namespace AetherCompass.Compasses.Objectives
     public unsafe class DebugCachedCompassObjective : CachedCompassObjective
     {
         public ObjectKind ObjectKind { get; private set; }
-        public uint NpcId { get; private set; }
         public float Distance2D { get; private set; }
         public float RotationFromPlayer { get; private set; }
 
@@ -28,7 +27,6 @@ namespace AetherCompass.Compasses.Objectives
             if (obj != null)
             {
                 ObjectKind = (ObjectKind)obj->ObjectKind;
-                NpcId = obj->GetNpcID();
                 Distance2D = CompassUtil.Get2DDistanceFromPlayer(obj);
                 RotationFromPlayer = CompassUtil.GetRotationFromPlayer(obj);
             }
