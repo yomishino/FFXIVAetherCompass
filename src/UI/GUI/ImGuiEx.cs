@@ -1,4 +1,5 @@
 ﻿using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using ImGuiNET;
 using System.Numerics;
 
@@ -40,6 +41,13 @@ namespace AetherCompass.UI.GUI
             return r;
         }
 
+        public static bool IconButton(FontAwesomeIcon icon, int id, string? tooltip = null)
+        {
+            var r = ImGuiComponents.IconButton(id, icon);
+            if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
+            return r;
+        }
+
         public static void InputInt(string label, int itemWidth, ref int v, string? tooltip = null)
         {
             ImGui.Text(label + ": ");
@@ -61,7 +69,8 @@ namespace AetherCompass.UI.GUI
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
         }
 
-        public static void DragFloat(string label, int itemWidth, ref float v, float v_spd, float v_min, float v_max, string v_fmt = "%.2f", string? tooltip = null)
+        public static void DragFloat(string label, int itemWidth, ref float v, float v_spd, 
+            float v_min, float v_max, string v_fmt = "%.2f", string? tooltip = null)
         {
             ImGui.Text(label + ": ");
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
@@ -71,7 +80,8 @@ namespace AetherCompass.UI.GUI
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);
         }
 
-        public static void DragFloat4(string label, ref Vector4 v, float v_spd, float v_min, float v_max, string v_fmt = "%.1f", string? tooltip = null)
+        public static void DragFloat4(string label, ref Vector4 v, float v_spd, 
+            float v_min, float v_max, string v_fmt = "%.1f", string? tooltip = null)
         {
             ImGui.Text(label + ": ");
             if (tooltip != null && ImGui.IsItemHovered()) ImGui.SetTooltip(tooltip);

@@ -2,7 +2,7 @@
 using AetherCompass.Compasses;
 using AetherCompass.Game;
 using ImGuiNET;
-
+using System.Numerics;
 
 namespace AetherCompass.UI.GUI
 {
@@ -50,9 +50,22 @@ namespace AetherCompass.UI.GUI
                     mapName = placeName;
                 if (!string.IsNullOrEmpty(mapName) && !string.IsNullOrEmpty(subName))
                     mapName += " > " + subName;
-                ImGuiEx.IconTextMapMarker(true);
 
-                ImGui.TextWrapped($"{mapName}");
+                if (ImGui.BeginTable("##Tbl_DetailWindowMapInfo", 2,
+                    ImGuiTableFlags.SizingStretchProp))
+                {
+                    ImGui.TableSetupColumn("##MapInfo", ImGuiTableColumnFlags.WidthStretch);
+                    ImGui.TableSetupColumn("##ConfigButton", ImGuiTableColumnFlags.WidthFixed);
+                    ImGui.TableNextColumn();
+                    ImGuiEx.IconTextMapMarker(true);
+                    ImGui.TextWrapped($"{mapName}");
+                    ImGui.TableNextColumn();
+                    if (ImGuiEx.IconButton(
+                        Dalamud.Interface.FontAwesomeIcon.Cog, 0, "Open Config"))
+                        Plugin.InConfig = true;
+                    ImGui.EndTable();
+                }
+
 #if DEBUG
                 ImGui.BulletText($"TerritoryType={ZoneWatcher.CurrentTerritoryType?.RowId ?? 0}");
                 ImGui.BulletText($"Map data: RowId={map.RowId}, SizeFactor={map.SizeFactor}, " +
@@ -85,6 +98,11 @@ namespace AetherCompass.UI.GUI
         {
             foreach (var q in drawActions.Values)
                 q.Clear();
+        }
+
+        private void DrawMapInfo()
+        {
+
         }
 
     }
