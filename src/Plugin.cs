@@ -3,7 +3,6 @@ global using System.Collections.Generic;
 global using static AetherCompass.PluginUtil;
 global using Sheets = Lumina.Excel.GeneratedSheets;
 using AetherCompass.Compasses;
-using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;

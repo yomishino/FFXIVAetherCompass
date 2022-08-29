@@ -1,8 +1,8 @@
 ﻿using AetherCompass.Common;
 using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
-using AetherCompass.Configs;
 using AetherCompass.Game;
+using AetherCompass.Compasses.Configs;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
@@ -111,8 +111,6 @@ namespace AetherCompass.Compasses
                 LogWarningExcelSheetNotLoaded(typeof(Sheets.NotoriousMonster).Name);
                 return;
             }
-            // TODO: for test, remove later
-            LogWarningExcelSheetNotLoaded(typeof(Sheets.NotoriousMonster).Name);
             foreach (var row in NMSheet)
             {
                 if (row.BNpcBase.Row != 0)

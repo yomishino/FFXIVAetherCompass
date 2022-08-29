@@ -1,4 +1,4 @@
-﻿namespace AetherCompass.Configs
+﻿namespace AetherCompass.Compasses.Configs
 {
     [Serializable]
     public class QuestCompassConfig : CompassConfig

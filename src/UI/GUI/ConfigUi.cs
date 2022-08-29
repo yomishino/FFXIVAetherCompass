@@ -1,5 +1,4 @@
 ﻿using AetherCompass.Compasses;
-using AetherCompass.Configs;
 using AetherCompass.Game;
 using ImGuiNET;
 using System.Diagnostics;

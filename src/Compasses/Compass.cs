@@ -1,7 +1,6 @@
 ﻿using AetherCompass.Common;
 using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
-using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;

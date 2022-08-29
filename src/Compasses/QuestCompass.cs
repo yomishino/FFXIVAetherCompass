@@ -1,9 +1,9 @@
 ﻿using AetherCompass.Common;
 using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
-using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.Game.SeFunctions;
+using AetherCompass.Compasses.Configs;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;

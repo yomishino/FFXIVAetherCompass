@@ -1,4 +1,4 @@
-﻿namespace AetherCompass.Configs
+﻿namespace AetherCompass.Compasses
 {
     [Serializable]
     public abstract class CompassConfig

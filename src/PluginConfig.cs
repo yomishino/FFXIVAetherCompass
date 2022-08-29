@@ -1,9 +1,10 @@
 ﻿using AetherCompass.Common;
+using AetherCompass.Compasses.Configs;
 using Dalamud.Configuration;
 using Newtonsoft.Json;
 using System.Numerics;
 
-namespace AetherCompass.Configs
+namespace AetherCompass
 {
     [Serializable]
     public class PluginConfig : IPluginConfiguration
@@ -51,9 +52,9 @@ namespace AetherCompass.Configs
 
         public void CheckValueValidity(Vector2 screenSize)
         {
-            ScreenMarkSizeScale = MathUtil.Clamp(ScreenMarkSizeScale, 
+            ScreenMarkSizeScale = MathUtil.Clamp(ScreenMarkSizeScale,
                 ScreenMarkSizeBound.Min, ScreenMarkSizeBound.Max);
-            ScreenMarkTextRelSizeScale = MathUtil.Clamp(ScreenMarkTextRelSizeScale, 
+            ScreenMarkTextRelSizeScale = MathUtil.Clamp(ScreenMarkTextRelSizeScale,
                 ScreenMarkTextRelSizeBound.Min, ScreenMarkTextRelSizeBound.Max);
 
             ScreenMarkConstraint.X = MathUtil.Clamp(ScreenMarkConstraint.X,
@@ -65,9 +66,9 @@ namespace AetherCompass.Configs
             ScreenMarkConstraint.W = MathUtil.Clamp(ScreenMarkConstraint.W,
                 ScreenMarkConstraintMin, screenSize.Y / 2 - 10);
 
-            HideScreenMarkEnabledDistance 
-                = (int)MathUtil.Clamp(HideScreenMarkEnabledDistance, 
-                    HideScreenMarkEnabledDistanceBound.Min, 
+            HideScreenMarkEnabledDistance
+                = (int)MathUtil.Clamp(HideScreenMarkEnabledDistance,
+                    HideScreenMarkEnabledDistanceBound.Min,
                     HideScreenMarkEnabledDistanceBound.Max);
 
             AetherCurrentConfig.CheckValueValidity();
