@@ -1,5 +1,4 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game;
-using System;
 using System.Runtime.InteropServices;
 
 namespace AetherCompass.Game.SeFunctions

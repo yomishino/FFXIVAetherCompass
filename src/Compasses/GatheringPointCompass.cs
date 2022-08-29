@@ -3,15 +3,11 @@ using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
-using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using Lumina.Excel;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
-using Sheets = Lumina.Excel.GeneratedSheets;
 
 namespace AetherCompass.Compasses
 {
@@ -21,8 +17,10 @@ namespace AetherCompass.Compasses
         public override string CompassName => "Gathering Point Compass";
         public override string Description => "Detecting nearby gathering points";
 
-        private protected override CompassConfig CompassConfig => Plugin.Config.GatheringConfig;
-        private GatheringPointCompassConfig GatheringConfig => (GatheringPointCompassConfig)CompassConfig;
+        private protected override CompassConfig CompassConfig 
+            => Plugin.Config.GatheringConfig;
+        private GatheringPointCompassConfig GatheringConfig 
+            => (GatheringPointCompassConfig)CompassConfig;
 
         private static readonly Vector4 infoTextColour = new(.55f, .98f, 1, 1);
         private static readonly float infoTextShadowLightness = .1f;
@@ -51,15 +49,13 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
             if (objective.IsEmpty()) return null;
-            var icon = Plugin.IconManager.GetGatheringMarkerIcon(GetGatheringPointIconId(objective.DataId));
+            var iconId = GetGatheringPointIconId(objective.DataId);
             string descr = $"{GetGatheringLevelDescription(objective.DataId)} {objective.Name}, " +
                 $"{CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
-            return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
-                    .9f, descr, infoTextColour, infoTextShadowLightness, out _,
-                    important: false);
+            return GenerateDefaultScreenMarkerDrawAction(objective, iconId, 
+                DefaultMarkerIconSize, .9f, descr, infoTextColour, 
+                infoTextShadowLightness, out _, important: false);
         }
-
-        private protected override void DisposeCompassUsedIcons() => Plugin.IconManager.DisposeGatheringPointCompassIcons();
 
         private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
             => objective.Name;
@@ -74,10 +70,13 @@ namespace AetherCompass.Compasses
         private static readonly ExcelSheet<Sheets.GatheringType>? GatheringTypeSheet
             = Plugin.DataManager.GetExcelSheet<Sheets.GatheringType>();
 
+
         // True for those that use special icon;
         private static bool IsSpecialGatheringPointType(GatheringPointType type)
-            => type == GatheringPointType.Unspoiled || type == GatheringPointType.Folklore
-            || type == GatheringPointType.SFShadow || type == GatheringPointType.DiademClouded;
+            => type == GatheringPointType.Unspoiled 
+            || type == GatheringPointType.Folklore
+            || type == GatheringPointType.SFShadow 
+            || type == GatheringPointType.DiademClouded;
 
         // gatheringPointType is GatheringPoint.Type, not GatheringType sheet rows
         private static bool IsSpecialGatheringPointType(byte gatheringPointType)
@@ -91,18 +90,22 @@ namespace AetherCompass.Compasses
         }
 
 
-        private static uint GetGatheringPointIconId(byte gatheringType, GatheringPointType gatheringPointType)
+        private static uint GetGatheringPointIconId(
+            byte gatheringType, GatheringPointType gatheringPointType)
         {
             var typeRow = GatheringTypeSheet?.GetRow(gatheringType);
             if (typeRow == null) return 0;
-            return (uint)(IsSpecialGatheringPointType(gatheringPointType) ? typeRow.IconOff : typeRow.IconMain);
+            return (uint)(IsSpecialGatheringPointType(gatheringPointType) 
+                ? typeRow.IconOff : typeRow.IconMain);
         }
 
         private static uint GetGatheringPointIconId(uint dataId)
         {
-            var gatherType = GatheringPointSheet?.GetRow(dataId)?.GatheringPointBase.Value?.GatheringType.Value;
+            var gatherType = GatheringPointSheet?.GetRow(dataId)?
+                .GatheringPointBase.Value?.GatheringType.Value;
             if (gatherType == null) return 0;
-            return (uint)(IsSpecialGatheringPoint(dataId) ? gatherType.IconOff : gatherType.IconMain);
+            return (uint)(IsSpecialGatheringPoint(dataId) 
+                ? gatherType.IconOff : gatherType.IconMain);
         }
 
         private static byte GetGatheringLevel(uint dataId)
@@ -220,6 +223,7 @@ namespace AetherCompass.Compasses
                 })?.Singular ?? string.Empty;
 #endif
         #endregion
+    
     }
 
 

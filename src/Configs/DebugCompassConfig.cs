@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AetherCompass.Configs
+﻿namespace AetherCompass.Configs
 {
     public class DebugCompassConfig : CompassConfig
     {

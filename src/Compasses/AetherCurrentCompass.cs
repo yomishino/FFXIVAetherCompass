@@ -3,9 +3,9 @@ using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
-using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
+
 
 namespace AetherCompass.Compasses
 {
@@ -20,12 +20,12 @@ namespace AetherCompass.Compasses
         private static System.Numerics.Vector4 infoTextColour = new(.8f, .95f, .75f, 1);
         private const float infoTextShadowLightness = .1f;
 
+        private const uint aetherCurrentMarkerIconId = 60033;
 
+        
         public override bool IsEnabledInCurrentTerritory()
             => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 1; // mostly normal wild field
 
-        private protected override void DisposeCompassUsedIcons()
-            => Plugin.IconManager.DisposeAetherCurrentCompassIcons();
 
         private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective _)
             => "Aether Current";
@@ -49,7 +49,7 @@ namespace AetherCompass.Compasses
         {
             if (objective.IsEmpty()) return null;
             return GenerateDefaultScreenMarkerDrawAction(objective,
-                Plugin.IconManager.AetherCurrentMarkerIcon, IconManager.MarkerIconSize, .9f,
+                aetherCurrentMarkerIconId, DefaultMarkerIconSize, .9f,
                 $"{objective.Name}, {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}",
                 infoTextColour, infoTextShadowLightness, out _, important: objective.Distance3D < 60);
         }

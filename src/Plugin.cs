@@ -1,4 +1,8 @@
-﻿using AetherCompass.Compasses;
+﻿global using System;
+global using System.Collections.Generic;
+global using static AetherCompass.PluginUtil;
+global using Sheets = Lumina.Excel.GeneratedSheets;
+using AetherCompass.Compasses;
 using AetherCompass.Configs;
 using AetherCompass.Game;
 using AetherCompass.UI;
@@ -6,9 +10,8 @@ using AetherCompass.UI.GUI;
 using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.IoC;
-using Dalamud.Logging;
 using Dalamud.Plugin;
-using System;
+
 
 namespace AetherCompass
 {
@@ -85,10 +88,6 @@ namespace AetherCompass
             Reload();
             OnZoneChange(null, ClientState.TerritoryType);  // update zone related stuff on init
         }
-
-        public static void LogDebug(string msg) => PluginLog.Debug(msg);
-
-        public static void LogError(string msg) => PluginLog.Error(msg);
 
         public static void ShowError(string chatMsg, string logMsg)
         {

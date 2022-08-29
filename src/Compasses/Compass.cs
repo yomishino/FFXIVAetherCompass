@@ -6,14 +6,12 @@ using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
 using ImGuiNET;
-using System;
+using ImGuiScene;
 using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
-
-
+using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
 
 namespace AetherCompass.Compasses
 {
@@ -28,10 +26,8 @@ namespace AetherCompass.Compasses
         private IntPtr closestObjPtrSecondLast;
         private DateTime closestObjLastChangedTime = DateTime.MinValue;
         private const int closestObjResetDelayInSec = 60;
-        
 
-        public abstract string CompassName { get; }
-        public abstract string Description { get; }
+        private readonly HashSet<uint> compassUsedIconIds = new();
 
         private CompassType _compassType = CompassType.Unknown;
         public CompassType CompassType
@@ -39,12 +35,12 @@ namespace AetherCompass.Compasses
             get
             {
                 if (_compassType == CompassType.Unknown)
-                    _compassType = (GetType().GetCustomAttributes(typeof(CompassTypeAttribute), false)[0] as CompassTypeAttribute)?
-                        .Type ?? CompassType.Invalid;
+                    _compassType 
+                        = (GetType().GetCustomAttributes(typeof(CompassTypeAttribute), false)[0] 
+                            as CompassTypeAttribute)?.Type ?? CompassType.Invalid;
                 return _compassType;
             }
         }
-        
 
         private bool _compassEnabled = false;
         public bool CompassEnabled
@@ -56,8 +52,6 @@ namespace AetherCompass.Compasses
                 _compassEnabled = value;
             }
         }
-
-        private protected abstract CompassConfig CompassConfig { get; }
 
         public virtual bool MarkScreen => Plugin.Config.ShowScreenMark && CompassConfig.MarkScreen;
         public virtual bool ShowDetail => Plugin.Config.ShowDetailWindow && CompassConfig.ShowDetail;
@@ -74,19 +68,31 @@ namespace AetherCompass.Compasses
         }
 
 
+        #region To be overriden by children
+
+        public abstract string CompassName { get; }
+        public abstract string Description { get; }
+
+        private protected abstract CompassConfig CompassConfig { get; }
+
         public abstract bool IsEnabledInCurrentTerritory();
         public unsafe abstract bool IsObjective(GameObject* o);
-        private protected unsafe abstract string GetClosestObjectiveDescription(CachedCompassObjective objective);
+        
+        protected unsafe virtual CachedCompassObjective CreateCompassObjective(GameObject* obj)
+            => new(obj);
+        protected unsafe virtual CachedCompassObjective CreateCompassObjective(ObjectInfo* info)
+            => new(info);
+
+        private protected unsafe abstract string 
+            GetClosestObjectiveDescription(CachedCompassObjective objective);
+
         public unsafe abstract DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective);
         public unsafe abstract DrawAction? CreateMarkScreenAction(CachedCompassObjective objective);
 
-        private protected abstract void DisposeCompassUsedIcons();
+        #endregion
 
-        protected unsafe virtual CachedCompassObjective CreateCompassObjective(GameObject* obj)
-            => new(obj);
 
-        protected unsafe virtual CachedCompassObjective CreateCompassObjective(ObjectInfo* info)
-            => new(info);
+        #region Object processing related - Optionally overriden by children
 
         public unsafe virtual void UpdateClosestObjective(CachedCompassObjective objective)
         {
@@ -94,6 +100,7 @@ namespace AetherCompass.Compasses
             else if (objective.Distance3D < closestObj.Distance3D)
                 closestObj = objective;
         }
+
 
         public virtual void ProcessOnLoopStart()
         {
@@ -104,6 +111,26 @@ namespace AetherCompass.Compasses
         {
             //ProcessClosestObj();
         }
+
+        public virtual void Reset()
+        {
+            closestObj = null;
+        }
+
+        public async virtual void OnZoneChange()
+        {
+            ready = false;
+            Reset();
+            closestObjPtrLast = IntPtr.Zero;
+            closestObjPtrSecondLast = IntPtr.Zero;
+            await Task.Delay(2500);
+            ready = true;
+        }
+
+        #endregion
+
+
+        #region Object processing during loop
 
         public unsafe void ProcessLoop(ObjectInfo** infoArray, int count)
         {
@@ -131,7 +158,7 @@ namespace AetherCompass.Compasses
                     foreach (var e in t.Exception!.InnerExceptions)
                     {
                         if (e is ObjectDisposedException) continue;
-                        Plugin.LogError(e.ToString());
+                        LogError(e.ToString());
                     }
                 }
                 ResetCancellation();
@@ -165,7 +192,7 @@ namespace AetherCompass.Compasses
                     foreach (var e in t.Exception!.InnerExceptions)
                     {
                         if (e is ObjectDisposedException) continue;
-                        Plugin.LogError(e.ToString());
+                        LogError(e.ToString());
                     }
                 }
                 ResetCancellation();
@@ -246,20 +273,7 @@ namespace AetherCompass.Compasses
             cts = null;
         }
 
-        public virtual void Reset()
-        {
-            closestObj = null;
-        }
-
-        public async virtual void OnZoneChange()
-        {
-            ready = false;
-            Reset();
-            closestObjPtrLast = IntPtr.Zero;
-            closestObjPtrSecondLast = IntPtr.Zero;
-            await Task.Delay(2500);
-            ready = true;
-        }
+        #endregion
 
 
         #region Config UI
@@ -356,11 +370,14 @@ namespace AetherCompass.Compasses
                     new(1, 1, 1, 1), 0, drawPos, IconManager.MarkerIconSize, 0, out _));
         }
 
-        protected static readonly Vector2 BaseMarkerSize 
-            = IconManager.MarkerIconSize + IconManager.DirectionScreenIndicatorIconSize;
+        protected static Vector2 DefaultMarkerIconSize
+            => IconManager.MarkerIconSize;
+
+        private static readonly Vector2 BaseMarkerSize 
+            = DefaultMarkerIconSize + IconManager.DirectionScreenIndicatorIconSize;
         
         protected static DrawAction? GenerateDefaultScreenMarkerDrawAction(CachedCompassObjective obj,
-            ImGuiScene.TextureWrap? icon, Vector2 iconSizeRaw, float iconAlpha, string info,
+            uint iconId, Vector2 iconSizeRaw, float iconAlpha, string info,
             Vector4 infoTextColour, float textShadowLightness, out Vector2 lastDrawEndPos, 
             bool important = false, bool showIfOutOfScreen = true)
         {
@@ -391,6 +408,7 @@ namespace AetherCompass.Compasses
                 flippedOnScreenRotation, Plugin.Config.ScreenMarkSizeScale, 
                 IconManager.DirectionScreenIndicatorIconColour, out lastDrawEndPos);
             // Marker
+            var icon = Plugin.IconManager.GetIcon(iconId);
             var markerIconDrawAction = GenerateScreenMarkerIconDrawAction(icon, lastDrawEndPos,
                 iconSizeRaw, Plugin.Config.ScreenMarkSizeScale, iconAlpha, out lastDrawEndPos);
             // Altitude diff
@@ -486,6 +504,13 @@ namespace AetherCompass.Compasses
             }
             return drawPos;
         }
+
+        private TextureWrap? GetMarkerIcon(uint iconId)
+        {
+            compassUsedIconIds.Add(iconId);
+            return Plugin.IconManager.GetIcon(iconId);
+        }
+
         #endregion
 
 
@@ -507,5 +532,11 @@ namespace AetherCompass.Compasses
         private static bool ShouldHideMarkerFor(CachedCompassObjective objective)
             => IsNameplatePosInsideConstraint(objective)
             && objective.Distance3D < Plugin.Config.HideScreenMarkEnabledDistance;
+
+        private void DisposeCompassUsedIcons()
+        {
+            Plugin.IconManager.DisposeIcons(compassUsedIconIds);
+            compassUsedIconIds.Clear();
+        }
     }
 }

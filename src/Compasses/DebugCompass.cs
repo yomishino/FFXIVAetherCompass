@@ -19,11 +19,11 @@ namespace AetherCompass.Compasses
 
         private protected override CompassConfig CompassConfig => Plugin.Config.DebugConfig;
 
+        private const uint markerIconId = IconManager.DefaultMarkerIconId;
+
 
         public override bool IsEnabledInCurrentTerritory()
             => ZoneWatcher.CurrentTerritoryType?.RowId != 0;
-
-        private protected override void DisposeCompassUsedIcons() { }
 
         public override unsafe bool IsObjective(GameObject* o)
             => o != null && (o->ObjectID == Plugin.ClientState.LocalPlayer?.ObjectId
@@ -35,14 +35,15 @@ namespace AetherCompass.Compasses
             || o->ObjectKind == (byte)ObjectKind.CardStand
             );
 
-        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective _)
-            => "Debug Obj";
-
         protected override unsafe CachedCompassObjective CreateCompassObjective(GameObject* obj)
             => new DebugCachedCompassObjective(obj);
 
         protected override unsafe CachedCompassObjective CreateCompassObjective(UI3DModule.ObjectInfo* info)
             => new DebugCachedCompassObjective(info);
+
+        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective _)
+            => "Debug Obj";
+
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
         {
@@ -82,7 +83,7 @@ namespace AetherCompass.Compasses
                 $"raw=<{pCoordsRaw.X:0.0}, {pCoordsRaw.Y:0.0}, {pCoordsRaw.Z:0.0}>\n" +
                 $"npPos=<{objective.NormalisedNameplatePos.X:0.0}, {objective.NormalisedNameplatePos.Y:0.0}, {objective.NormalisedNameplatePos.Z:0.0}>";
             return GenerateDefaultScreenMarkerDrawAction(objective,
-                Plugin.IconManager.DebugMarkerIcon, IconManager.MarkerIconSize, .9f, info, new(1, 1, 1, 1), 0, out _);
+                markerIconId, DefaultMarkerIconSize, .9f, info, new(1, 1, 1, 1), 0, out _);
         }
     }
 }

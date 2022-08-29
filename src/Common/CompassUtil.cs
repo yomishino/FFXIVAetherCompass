@@ -1,8 +1,6 @@
 ﻿using AetherCompass.Game;
-using Dalamud.Memory;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using System;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System.Numerics;
 using System.Runtime.InteropServices;
 

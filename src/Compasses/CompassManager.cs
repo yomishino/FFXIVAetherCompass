@@ -4,8 +4,6 @@ using AetherCompass.Game;
 using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
@@ -22,7 +20,6 @@ namespace AetherCompass.Compasses
 #endif
 
         private readonly HashSet<Compass> workingCompasses = new();
-
 
         
         private bool hasMapFlagToProcess;
@@ -156,7 +153,7 @@ namespace AetherCompass.Compasses
                 var fixedMapLink = FixedMapLinkPayload.FromMapCoord(terrId, ZoneWatcher.CurrentMapId,
                     mapFlagCoord.X, mapFlagCoord.Y, map.SizeFactor, map.OffsetX, map.OffsetY);
 #if DEBUG
-                Plugin.LogDebug($"Create MapLinkPayload from {mapFlagCoord}: {fixedMapLink}");
+                LogDebug($"Create MapLinkPayload from {mapFlagCoord}: {fixedMapLink}");
 #endif
                 //if (Plugin.GameGui.OpenMapWithMapLink(maplinkFix))
                 //{

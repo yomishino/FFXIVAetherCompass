@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AetherCompass.Common.Attributes
+﻿namespace AetherCompass.Common.Attributes
 {
     [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public sealed class CompassTypeAttribute : Attribute

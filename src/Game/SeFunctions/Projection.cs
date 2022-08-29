@@ -1,6 +1,5 @@
 ﻿using Dalamud.Interface;
 using Dalamud.Utility;
-using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 

@@ -1,9 +1,7 @@
-﻿using AetherCompass.Compasses;
-using AetherCompass.Common;
+﻿using AetherCompass.Common;
+using AetherCompass.Compasses;
 using AetherCompass.Game;
 using ImGuiNET;
-using System;
-using System.Collections.Generic;
 
 
 namespace AetherCompass.UI.GUI

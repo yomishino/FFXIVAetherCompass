@@ -1,5 +1,5 @@
-﻿using static Dalamud.ClientLanguage;
-using Dalamud.Game.Text.Sanitizer;
+﻿using Dalamud.Game.Text.Sanitizer;
+using static Dalamud.ClientLanguage;
 
 namespace AetherCompass.Game
 {

@@ -3,15 +3,10 @@ using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
 using AetherCompass.Configs;
 using AetherCompass.Game;
-using AetherCompass.UI.GUI;
-using Dalamud.Interface;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using ImGuiNET;
-using ImGuiScene;
 using Lumina.Excel;
-using System.Collections.Generic;
-using Sheets = Lumina.Excel.GeneratedSheets;
 
 
 namespace AetherCompass.Compasses
@@ -20,12 +15,12 @@ namespace AetherCompass.Compasses
     public class IslandSanctuaryCompass : Compass
     {
         public override string CompassName => "Island Sanctuary Compass";
-        public override string Description => "Detecting nearby gathering objects and animals in Island Sanctuary\n" +
+        public override string Description => 
+            "Detecting nearby gathering objects and animals in Island Sanctuary\n" +
             "** Warning: Be prepared to be overwhelmed by too many markers!";
 
         private protected override CompassConfig CompassConfig => Plugin.Config.IslandConfig;
         private IslandSanctuaryCompassConfig IslandConfig => (IslandSanctuaryCompassConfig)CompassConfig;
-
 
         private readonly Dictionary<uint, IslandGatheringObjectData> 
             islandGatherDict = new();   // npcId => data
@@ -39,13 +34,10 @@ namespace AetherCompass.Compasses
         private static readonly System.Numerics.Vector4 infoTextColourAnimal
             = new(.98f, .8f, .85f, 1);
         private static readonly float infoTextShadowLightness = .1f;
-
-
-        public IslandSanctuaryCompass() : base()
-        {
-            BuildIslandGatherDict();
-            BuildIslandAnimalDict();
-        }
+        
+        private const uint animalDefaultMarkerIconId = 63956;
+        private static readonly System.Numerics.Vector2 
+            animalSpecificMarkerIconSize = new(25, 25);
 
 
         // TerritoryType RowId = 1055; TerritoryIntendedUse = 49
@@ -63,7 +55,8 @@ namespace AetherCompass.Compasses
             return false;
         }
 
-        protected override unsafe CachedCompassObjective CreateCompassObjective(GameObject* obj)
+        protected override unsafe CachedCompassObjective 
+            CreateCompassObjective(GameObject* obj)
         {
             if (obj == null)
                 return new IslandCachedCompassObjective(obj, 0);
@@ -77,7 +70,8 @@ namespace AetherCompass.Compasses
             };
         }
 
-        protected override unsafe CachedCompassObjective CreateCompassObjective(UI3DModule.ObjectInfo* info)
+        protected override unsafe CachedCompassObjective 
+            CreateCompassObjective(UI3DModule.ObjectInfo* info)
         {
             var obj = info != null ? info->GameObject : null;
             if (obj == null) return new IslandCachedCompassObjective(obj, 0);
@@ -91,14 +85,13 @@ namespace AetherCompass.Compasses
             };
         }
 
-
-        private protected override void DisposeCompassUsedIcons() => Plugin.IconManager.DisposeIslandCompassIcons();
-
-        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
-            => objective.Name;
+        private protected override unsafe string 
+            GetClosestObjectiveDescription(CachedCompassObjective objective)
+                => objective.Name;
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
-            => objective.IsEmpty() || objective is not IslandCachedCompassObjective islObjective ? null : new(() =>
+            => objective.IsEmpty() || objective is not IslandCachedCompassObjective islObjective 
+            ? null : new(() =>
             {
                 if (islObjective.Type == IslandObjectType.Gathering)
                     ImGui.Text($"{islObjective.Name}, Type: {islObjective.Type}" +
@@ -115,10 +108,10 @@ namespace AetherCompass.Compasses
         public override unsafe DrawAction? CreateMarkScreenAction(CachedCompassObjective objective)
         {
             if (objective.IsEmpty() || objective is not IslandCachedCompassObjective islObjective) return null;
-            var icon = GetIslandMarkerIcon(islObjective);
+            var iconId = GetMarkerIconId(islObjective);
             var iconSize = islObjective.Type == IslandObjectType.Animal
                 && IslandConfig.UseAnimalSpecificIcons
-                ? IconManager.AnimalSpecificMarkerIconSize : IconManager.MarkerIconSize;
+                ? animalSpecificMarkerIconSize : DefaultMarkerIconSize;
             var textColour = islObjective.Type == IslandObjectType.Gathering
                 ? infoTextColourGather : infoTextColourAnimal;
             string descr = islObjective.Type switch
@@ -135,7 +128,7 @@ namespace AetherCompass.Compasses
                 IslandObjectType.Gathering => !IslandConfig.HideMarkerWhenNotInScreenGathering,
                 _ => false
             };
-            return GenerateDefaultScreenMarkerDrawAction(objective, icon, iconSize,
+            return GenerateDefaultScreenMarkerDrawAction(objective, iconId, iconSize,
                     .9f, descr, textColour, infoTextShadowLightness, out _,
                     important: false, showIfOutOfScreen: showIfOutOfScreen);
         }
@@ -215,12 +208,12 @@ namespace AetherCompass.Compasses
             var eObjNameSheet = EObjNameSheet;
             if (gatheringSheet == null)
             {
-                Plugin.LogError("Failed to load ExcelSheet: MJIGatheringObject");
+                LogWarningExcelSheetNotLoaded(typeof(Sheets.MJIGatheringObject).Name);
                 return;
             }
             if (EObjNameSheet == null)
             {
-                Plugin.LogError("Failed to load ExcelSheet: EobjName");
+                LogWarningExcelSheetNotLoaded(typeof(Sheets.EObjName).Name);
             }
             foreach (var row in gatheringSheet)
             {
@@ -247,7 +240,7 @@ namespace AetherCompass.Compasses
             var sheet = AnimalSheet;
             if (sheet == null)
             {
-                Plugin.LogError("Failed to load ExcelSheet: MJIAnimal");
+                LogWarningExcelSheetNotLoaded(typeof(Sheets.MJIAnimals).Name);
                 return;
             }
             foreach (var row in sheet)
@@ -261,16 +254,24 @@ namespace AetherCompass.Compasses
             => islandAnimalDict.TryGetValue(islObjective.DataId, out var data)
             ? data.IconId : 0;
 
-        private TextureWrap? GetIslandMarkerIcon(IslandCachedCompassObjective islObjective)
-            => Plugin.IconManager.GetIslandMarkerIcon(islObjective.Type switch
+        private uint GetMarkerIconId(IslandCachedCompassObjective islObjective)
+            => islObjective.Type switch
             {
                 IslandObjectType.Gathering => GetIslandGatherIconId(islObjective),
-                IslandObjectType.Animal 
+                IslandObjectType.Animal
                     => IslandConfig.UseAnimalSpecificIcons
                     ? GetIslandAnimalIconId(islObjective)
-                    : IconManager.IslandAnimalDefaultMarkerIconId,
-                _ => 0
-            });
+                    : animalDefaultMarkerIconId,
+                _ => 0u
+            };
+
+
+        public IslandSanctuaryCompass() : base()
+        {
+            BuildIslandGatherDict();
+            BuildIslandAnimalDict();
+        }
+
     }
 
 

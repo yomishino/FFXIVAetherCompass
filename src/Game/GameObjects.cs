@@ -1,6 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
-using System;
 using static FFXIVClientStructs.FFXIV.Client.UI.UI3DModule;
 
 namespace AetherCompass.Game
@@ -27,9 +26,9 @@ namespace AetherCompass.Game
 
         static GameObjects()
         {
-            Plugin.LogDebug($"UI3DModule @{(IntPtr)UI3DModule:X}");
-            Plugin.LogDebug($"SortedObjectInfoPointerArray @{(IntPtr)UI3DModule->SortedObjectInfoPointerArray:X}");
-            Plugin.LogDebug($"SortedObjectInfoCount = {SortedObjectInfoCount}");
+            LogDebug($"UI3DModule @{(IntPtr)UI3DModule:X}");
+            LogDebug($"SortedObjectInfoPointerArray @{(IntPtr)UI3DModule->SortedObjectInfoPointerArray:X}");
+            LogDebug($"SortedObjectInfoCount = {SortedObjectInfoCount}");
         }
 #endif
 

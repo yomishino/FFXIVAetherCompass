@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -12,6 +10,14 @@ namespace AetherCompass.UI.GUI
     {
         private readonly ConcurrentIconMap iconMap = new();
 
+        public TextureWrap? GetIcon(uint iconId) => iconMap[iconId];
+
+        public void DisposeIcons(HashSet<uint> iconIds)
+        {
+            foreach (var id in iconIds)
+                iconMap.Remove(id);
+        }
+        
         public void DisposeAllIcons() => iconMap.Clear();
         public void Dispose() => DisposeAllIcons();
 
@@ -40,7 +46,6 @@ namespace AetherCompass.UI.GUI
 
         public const uint ConfigDummyMarkerIconId = DefaultMarkerIconId;
         internal TextureWrap? ConfigDummyMarkerIcon => iconMap[ConfigDummyMarkerIconId];
-        internal TextureWrap? DebugMarkerIcon => ConfigDummyMarkerIcon;
 
         //private static void DisposeCommonIcons()
         //{
@@ -49,123 +54,6 @@ namespace AetherCompass.UI.GUI
         //    iconMap.Remove(DirectionScreenIndicatorIconId);
         //    iconMap.Remove(ConfigDummyMarkerIconId);
         //}
-
-        #endregion
-
-
-        #region Aether Current Icons
-
-        public const uint AetherCurrentMarkerIconId = 60033;
-        internal TextureWrap? AetherCurrentMarkerIcon => iconMap[AetherCurrentMarkerIconId];
-
-        internal void DisposeAetherCurrentCompassIcons()
-        {
-            iconMap.Remove(AetherCurrentMarkerIconId);
-        }
-
-        #endregion
-
-
-        #region Mob Hunt Icons
-
-        public const uint MobHuntMarkerIconId = 61710;
-        internal TextureWrap? MobHuntMarkerIcon => iconMap[MobHuntMarkerIconId];
-        internal TextureWrap? MobHuntRankSMarkerIcon => iconMap[MobHuntMarkerIconId];
-        internal TextureWrap? MobHuntRankSSMinionMarkerIcon => iconMap[MobHuntMarkerIconId];
-        public const uint MobHuntRankAMarkerIconId = 61709;
-        internal TextureWrap? MobHuntRankAMarkerIcon => iconMap[MobHuntRankAMarkerIconId];
-        public const uint MobHuntRankBMarkerIconId = 61704;
-        internal TextureWrap? MobHuntRankBMarkerIcon => iconMap[MobHuntRankBMarkerIconId];
-
-        internal void DisposeMobHuntCompassIcons()
-        {
-            iconMap.Remove(MobHuntMarkerIconId);
-            iconMap.Remove(MobHuntRankAMarkerIconId);
-            iconMap.Remove(MobHuntRankBMarkerIconId);
-
-        }
-
-        #endregion
-
-
-        #region Gathering Point Icons
-
-        private static readonly HashSet<uint> gatheringMarkerIconIds = new();
-
-        internal TextureWrap? GetGatheringMarkerIcon(uint iconId)
-        {
-            gatheringMarkerIconIds.Add(iconId);
-            return iconMap[iconId];
-        }
-
-        internal void DisposeGatheringPointCompassIcons()
-        {
-            foreach (uint id in gatheringMarkerIconIds)
-                iconMap.Remove(id);
-        }
-
-        #endregion
-
-
-        #region Island Sanctuary Icons
-
-        public const uint IslandAnimalDefaultMarkerIconId = 63956;
-        internal TextureWrap? IslandAnimalDefaultMarkerIcon => iconMap[IslandAnimalDefaultMarkerIconId];
-
-        public static readonly Vector2 AnimalSpecificMarkerIconSize = new(25, 25);
-
-        private static readonly HashSet<uint> islandMarkerIconIds = new();
-        internal TextureWrap? GetIslandMarkerIcon(uint iconId)
-        {
-            islandMarkerIconIds.Add(iconId);
-            return iconMap[iconId];
-        }
-
-        internal void DisposeIslandCompassIcons()
-        {
-            iconMap.Remove(IslandAnimalDefaultMarkerIconId);
-            foreach (uint id in islandMarkerIconIds)
-                iconMap.Remove(id);
-        }
-
-        #endregion
-
-
-        #region Quest Icons
-
-        // NPC AnnounceIcon starts from 71200
-        // Refer to Excel sheet EventIconType, 
-        // For types whose IconRange is 6, the 3rd is in-progress and 5th is last seq (checkmark icon),
-        // because +0 is the dummy, so 1st icon in the range would start from +1.
-        // Each type has available and locked ver, but rn idk how to accurately tell if a quest is avail or locked
-        public const uint DefaultQuestMarkerIconId = 71223;
-        internal TextureWrap? DefaultQuestMarkerIcon => iconMap[DefaultQuestMarkerIconId];
-
-        private readonly HashSet<uint> questMarkerIconIds = new();
-
-        internal TextureWrap? GetQuestMarkerIcon(uint iconId)
-        {
-            questMarkerIconIds.Add(iconId);
-            return iconMap[iconId];
-        }
-
-        internal TextureWrap? GetQuestMarkerIcon(uint baseIconId, byte iconRange, bool questLastSeq = false)
-            => GetQuestMarkerIcon(GetQuestMarkerIconId(baseIconId, iconRange, questLastSeq));
-
-        private static uint GetQuestMarkerIconId(uint baseIconId, byte iconRange, bool questLastSeq = false)
-            => baseIconId + iconRange switch
-            {
-                6 => questLastSeq ? 5u : 3u,
-                1 => 0,
-                _ => 1,
-            };
-
-        internal void DisposeQuestCompassIcons()
-        {
-            iconMap.Remove(DefaultQuestMarkerIconId);
-            foreach (uint id in questMarkerIconIds)
-                iconMap.Remove(id);
-        }
 
         #endregion
     }

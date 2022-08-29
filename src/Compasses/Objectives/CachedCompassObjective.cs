@@ -1,8 +1,7 @@
 ﻿using AetherCompass.Common;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using static FFXIVClientStructs.FFXIV.Client.UI.UI3DModule;
-using System;
 using System.Numerics;
+using static FFXIVClientStructs.FFXIV.Client.UI.UI3DModule;
 
 namespace AetherCompass.Compasses.Objectives
 {

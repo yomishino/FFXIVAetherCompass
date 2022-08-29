@@ -1,7 +1,6 @@
 ﻿using AetherCompass.Common;
 using Dalamud.Configuration;
 using Newtonsoft.Json;
-using System;
 using System.Numerics;
 
 namespace AetherCompass.Configs

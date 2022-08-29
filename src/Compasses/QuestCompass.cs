@@ -1,17 +1,13 @@
 ﻿using AetherCompass.Common;
 using AetherCompass.Common.Attributes;
 using AetherCompass.Compasses.Objectives;
-using AetherCompass.Game.SeFunctions;
 using AetherCompass.Configs;
 using AetherCompass.Game;
+using AetherCompass.Game.SeFunctions;
 using AetherCompass.UI.GUI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using Lumina.Excel;
-using System.Collections.Generic;
-
-using Sheets = Lumina.Excel.GeneratedSheets;
-
 
 namespace AetherCompass.Compasses
 {
@@ -19,7 +15,8 @@ namespace AetherCompass.Compasses
     public class QuestCompass : Compass
     {
         public override string CompassName => "Quest Compass";
-        public override string Description => "Detecting NPC/objects nearby relevant to your in-progress quests.\n" +
+        public override string Description => 
+            "Detecting NPC/objects nearby relevant to your in-progress quests.\n" +
             "** Currently limited functionality: battle NPCs will not be detected, " +
             "and the compass sometimes gives inaccurate or, although more rarely, incorrect information.";
 
@@ -34,11 +31,22 @@ namespace AetherCompass.Compasses
         private static readonly int ScreenMarkerQuestNameMaxLength
             = Language.GetAdjustedTextMaxLength(16);
 
+        private const uint defaultQuestMarkerIconId = 71223;
 
-        public QuestCompass() : base() 
-        {
-            InitQuestSheetToDoChildLocationMap();
-        }
+        // NPC AnnounceIcon starts from 71200
+        // Refer to Excel sheet EventIconType, 
+        // For types whose IconRange is 6, the 3rd is in-progress and 5th is last seq (checkmark icon),
+        // because +0 is the dummy, so 1st icon in the range would start from +1.
+        // Each type has available and locked ver, but rn idk how to accurately tell if a quest is avail or locked
+        private static uint GetQuestMarkerIconId(
+            uint baseIconId, byte iconRange, bool questLastSeq = false)
+            => baseIconId + iconRange switch
+            {
+                6 => questLastSeq ? 5u : 3u,
+                1 => 0,
+                _ => 1,
+            };
+
 
         public override bool IsEnabledInCurrentTerritory()
         {
@@ -49,56 +57,23 @@ namespace AetherCompass.Compasses
                 ;
         }
 
-        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective objective)
-            => objective.Name + " (Quest)";
-
-        private protected override void DisposeCompassUsedIcons()
-            => Plugin.IconManager.DisposeQuestCompassIcons();
-
-        public override void ProcessOnLoopStart()
+        public override unsafe bool IsObjective(GameObject* o)
         {
-            objQuestMap.Clear();
-            ProcessQuestData();
-
-            base.ProcessOnLoopStart();
-
-            // TODO: may mark those location range in quest ToDOs if somehow we can know which ToDos are already done; 
-            // we can find those locations easily from Quest sheet but only if we can know which ToDo are done!
-            // (If we can know that, we can also detect relevant BNpcs as well..)
+            if (o == null) return false;
+            var kind = (ObjectKind)o->ObjectKind;
+            uint dataId = o->DataID;
+            if (dataId == 0) return false;
+            // NOTE: already considered hidden quests or those not revealed by Todos when filling up objQuestMap
+            // TODO: AreaObject???
+            if (kind == ObjectKind.EventNpc || kind == ObjectKind.EventObj || kind == ObjectKind.AreaObject)
+                return objQuestMap.ContainsKey(o->DataID);
+            return false;
         }
 
+        private protected override unsafe string
+            GetClosestObjectiveDescription(CachedCompassObjective objective)
+                => objective.Name + " (Quest)";
 
-        public override void DrawConfigUiExtra()
-        {
-            ImGui.BulletText("More options:");
-            ImGui.Indent();
-            ImGuiEx.Checkbox("Also enable this compass in solo instanced contents", ref QuestConfig.EnabledInSoloContents,
-                "By default, this compass will not work in any type of instanced contents.\n" +
-                "You can enable it in solo instanced contents if needed.");
-            //ImGuiEx.Checkbox("Also detect quest related enemies", ref QuestConfig.DetectEnemy,
-            //    "By default, this compass will only detect event NPCs or objects, that is, NPCs/Objects that don't fight.\n" +
-            //    "You can enable this option to have the compass detect also quest related enemies.");
-            ImGuiEx.Checkbox("Don't detect hidden quests", ref QuestConfig.HideHidden,
-                "Hidden quests are those that you've marked as ignored in Journal.\n" +
-                "If this option is enabled, will not detect NPC/Objects related to these hidden quests.");
-            ImGuiEx.Checkbox("Detect all NPCs and objects relevant to in-progress quests", ref QuestConfig.ShowAllRelated,
-                "By default, this compass only detects NPC/objects that are objectives of the quests " +
-                "as shown in the quest Todos and on the Minimap.\n\n" +
-                "If this option is enabled, NPC/objects that are spawned due to the quests will also " +
-                "be detected by this compass, even if they may not be the objectives of the quests.\n" +
-                "Additionally, for quests that require looking for NPC/objects in a certain area, " +
-                "enabling this option may reveal the objectives' locations.\n\n" +
-                "In either case, NPC/objects that are known to be quest objectives will have a \"★\" mark by their names.");
-            if (MarkScreen)
-            {
-                ImGui.Checkbox("Show quest name by screen marker", ref QuestConfig.ShowQuestName);
-                if (QuestConfig.ShowQuestName)
-                    ImGuiEx.Checkbox("Show screen marker text in one line", ref QuestConfig.MarkerTextInOneLine,
-                        "Display the whole label text in one line.\n" +
-                        "May only display part of the quest name to avoid the text being too long.");
-            }
-            ImGui.Unindent();
-        }
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
         {
@@ -132,10 +107,11 @@ namespace AetherCompass.Compasses
             if (objective.IsEmpty()) return null;
             if (!objQuestMap.TryGetValue(objective.DataId, out var mappedInfo)) return null;
             var qRow = GetQuestRow(mappedInfo.RelatedQuest.QuestID);
-            var icon = qRow == null || qRow.EventIconType.Value == null
-                ? Plugin.IconManager.DefaultQuestMarkerIcon
-                : Plugin.IconManager.GetQuestMarkerIcon(qRow.EventIconType.Value.NpcIconAvailable, 
-                    qRow.EventIconType.Value.IconRange, mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
+            var iconId = qRow == null || qRow.EventIconType.Value == null
+                ? defaultQuestMarkerIconId
+                : GetQuestMarkerIconId(qRow.EventIconType.Value.NpcIconAvailable,
+                    qRow.EventIconType.Value.IconRange, 
+                    mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
             var descr = (mappedInfo.TodoRevealed ? "★ " : "") + $"{objective.Name}";
             if (QuestConfig.ShowQuestName)
             {
@@ -150,23 +126,54 @@ namespace AetherCompass.Compasses
                         $"\n(Quest: {questName})";
             }
             else descr += $", {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
-            return GenerateDefaultScreenMarkerDrawAction(objective, icon, IconManager.MarkerIconSize,
-                .9f, descr, infoTextColour, infoTextShadowLightness, out _,
+            return GenerateDefaultScreenMarkerDrawAction(objective, iconId, 
+                DefaultMarkerIconSize, .9f, descr, infoTextColour, infoTextShadowLightness, out _,
                 important: objective.Distance3D < 55 || mappedInfo.RelatedQuest.IsPriority);
         }
 
-
-        public override unsafe bool IsObjective(GameObject* o)
+        public override void DrawConfigUiExtra()
         {
-            if (o == null) return false;
-            var kind = (ObjectKind)o->ObjectKind;
-            uint dataId = o->DataID;
-            if (dataId == 0) return false;
-            // NOTE: already considered hidden quests or those not revealed by Todos when filling up objQuestMap
-            // TODO: AreaObject???
-            if (kind == ObjectKind.EventNpc || kind == ObjectKind.EventObj || kind == ObjectKind.AreaObject)
-                return objQuestMap.ContainsKey(o->DataID);
-            return false;
+            ImGui.BulletText("More options:");
+            ImGui.Indent();
+            ImGuiEx.Checkbox("Also enable this compass in solo instanced contents", ref QuestConfig.EnabledInSoloContents,
+                "By default, this compass will not work in any type of instanced contents.\n" +
+                "You can enable it in solo instanced contents if needed.");
+            //ImGuiEx.Checkbox("Also detect quest related enemies", ref QuestConfig.DetectEnemy,
+            //    "By default, this compass will only detect event NPCs or objects, that is, NPCs/Objects that don't fight.\n" +
+            //    "You can enable this option to have the compass detect also quest related enemies.");
+            ImGuiEx.Checkbox("Don't detect hidden quests", ref QuestConfig.HideHidden,
+                "Hidden quests are those that you've marked as ignored in Journal.\n" +
+                "If this option is enabled, will not detect NPC/Objects related to these hidden quests.");
+            ImGuiEx.Checkbox("Detect all NPCs and objects relevant to in-progress quests", ref QuestConfig.ShowAllRelated,
+                "By default, this compass only detects NPC/objects that are objectives of the quests " +
+                "as shown in the quest Todos and on the Minimap.\n\n" +
+                "If this option is enabled, NPC/objects that are spawned due to the quests will also " +
+                "be detected by this compass, even if they may not be the objectives of the quests.\n" +
+                "Additionally, for quests that require looking for NPC/objects in a certain area, " +
+                "enabling this option may reveal the objectives' locations.\n\n" +
+                "In either case, NPC/objects that are known to be quest objectives will have a \"★\" mark by their names.");
+            if (MarkScreen)
+            {
+                ImGui.Checkbox("Show quest name by screen marker", ref QuestConfig.ShowQuestName);
+                if (QuestConfig.ShowQuestName)
+                    ImGuiEx.Checkbox("Show screen marker text in one line", ref QuestConfig.MarkerTextInOneLine,
+                        "Display the whole label text in one line.\n" +
+                        "May only display part of the quest name to avoid the text being too long.");
+            }
+            ImGui.Unindent();
+        }
+
+
+        public override void ProcessOnLoopStart()
+        {
+            objQuestMap.Clear();
+            ProcessQuestData();
+
+            base.ProcessOnLoopStart();
+
+            // TODO: may mark those location range in quest ToDOs if somehow we can know which ToDos are already done; 
+            // we can find those locations easily from Quest sheet but only if we can know which ToDo are done!
+            // (If we can know that, we can also detect relevant BNpcs as well..)
         }
 
 
@@ -206,7 +213,7 @@ namespace AetherCompass.Compasses
             var questlist = Quests.GetQuestListArray();
             if (questlist == null)
             {
-                Plugin.LogError("Failed to get QuestListArray");
+                LogError("Failed to get QuestListArray");
                 return;
             }
             
@@ -322,6 +329,12 @@ namespace AetherCompass.Compasses
                     }
                 }
             }
+        }
+
+
+        public QuestCompass() : base()
+        {
+            InitQuestSheetToDoChildLocationMap();
         }
     }
 }

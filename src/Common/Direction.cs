@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AetherCompass.Common
+﻿namespace AetherCompass.Common
 {
     [Flags]
     public enum Direction : byte
