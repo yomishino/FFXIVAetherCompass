@@ -2,9 +2,10 @@
 
   <PropertyGroup>
     <Authors>yomishino</Authors>
-    <Version>1.5.0.1</Version>
+    <Version>1.5.0.3</Version>
     <Description>An FFXIV Dalamud plugin providing a set of compasses that detect and mark certain nearby objects/NPCs.</Description>
     <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryUrl>https://github.com/yomishino/FFXIVAetherCompass</RepositoryUrl>
     <Configurations>Debug;Release;TestRelease</Configurations>
   </PropertyGroup>
 
@@ -22,7 +23,6 @@
 
   <PropertyGroup>
     <DalamudLibPath>$(AppData)\XIVLauncher\addon\Hooks\dev</DalamudLibPath>
-    <RepositoryUrl>https://github.com/yomishino/FFXIVAetherCompass</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestRelease|x64'">
@@ -66,7 +66,5 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
-
-  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>

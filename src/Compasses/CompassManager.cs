@@ -39,28 +39,31 @@ namespace AetherCompass.Compasses
 
         public bool AddCompass(Compass c)
         {
-            if (!allAddedCompasses.Add(c)) return false;
+            var added = false;
             switch (c.CompassType)
             {
                 case CompassType.Standard:
-                    standardCompasses.Add(c);
+                    added = standardCompasses.Add(c);
                     break;
                 case CompassType.Experimental:
-                    experimentalCompasses.Add(c);
+                    added = experimentalCompasses.Add(c);
                     break;
                 case CompassType.Debug:
 # if DEBUG
-                    debugCompasses.Add(c);
+                    added = debugCompasses.Add(c);
 #endif
                     break;
                 default:
                     LogError($"Failed to enable compass {c.GetType().Name}: no valid compass type");
-                    allAddedCompasses.Remove(c);
                     return false;
             }
-            Plugin.DetailsWindow.RegisterCompass(c);
-            if (c.IsEnabledInCurrentTerritory())
-                workingCompasses.Add(c);
+            if (added)
+            {
+                allAddedCompasses.Add(c);
+                Plugin.DetailsWindow.RegisterCompass(c);
+                if (c.IsEnabledInCurrentTerritory())
+                    workingCompasses.Add(c);
+            }
             return true;
         }
 
