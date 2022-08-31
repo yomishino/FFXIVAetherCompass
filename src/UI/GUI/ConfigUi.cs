@@ -8,9 +8,18 @@ namespace AetherCompass.UI.GUI
 {
     public static class ConfigUi
     {
+        internal static bool IsFocus;
+
         public static void Draw()
         {
-            if (ImGui.Begin("AetherCompass: Configuration"))
+            if (IsFocus)
+            {
+                ImGui.SetNextWindowCollapsed(false);
+                ImGui.SetNextWindowFocus();
+                IsFocus = false;
+            }
+
+            if (ImGui.Begin("AetherCompass: Configuration"))    // not collapsed
             {
                 ImGuiEx.Checkbox("Enable plugin", ref Plugin.Config.Enabled,
                     "Enable/Disable this plugin. \n" +
@@ -58,8 +67,8 @@ namespace AetherCompass.UI.GUI
                     Plugin.Config.Load(PluginConfig.GetSavedPluginConfig());
                     Plugin.Reload();
                 }
-                ImGui.End();
             }
+            ImGui.End();
 
             Plugin.Config.CheckValueValidity(ImGui.GetMainViewport().Size);
 
@@ -206,6 +215,5 @@ namespace AetherCompass.UI.GUI
                 viewport.X + vsize.X - Plugin.Config.ScreenMarkConstraint.Z, // R
                 viewport.Y + Plugin.Config.ScreenMarkConstraint.W); // U
         }
-
     }
 }

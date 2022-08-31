@@ -2,7 +2,6 @@
 using AetherCompass.Compasses;
 using AetherCompass.Game;
 using ImGuiNET;
-using System.Numerics;
 
 namespace AetherCompass.UI.GUI
 {
@@ -62,7 +61,7 @@ namespace AetherCompass.UI.GUI
                     ImGui.TableNextColumn();
                     if (ImGuiEx.IconButton(
                         Dalamud.Interface.FontAwesomeIcon.Cog, 0, "Open Config"))
-                        Plugin.InConfig = true;
+                        Plugin.OpenConfig(true);
                     ImGui.EndTable();
                 }
 
@@ -90,8 +89,8 @@ namespace AetherCompass.UI.GUI
                     }
                     ImGui.EndTabBar();
                 }
-                ImGui.End();
             }
+            ImGui.End();
         }
 
         public void Clear()
@@ -99,11 +98,5 @@ namespace AetherCompass.UI.GUI
             foreach (var q in drawActions.Values)
                 q.Clear();
         }
-
-        private void DrawMapInfo()
-        {
-
-        }
-
     }
 }

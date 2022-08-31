@@ -69,8 +69,9 @@ namespace AetherCompass
                 if (Config != null) Config.Enabled = value;
             }
         }
-        internal static bool InConfig;
 
+        internal static bool InConfig;
+        
         
         public Plugin()
         {
@@ -92,6 +93,12 @@ namespace AetherCompass
         {
             Chat.PrintErrorChat(chatMsg);
             LogError(logMsg);
+        }
+
+        public static void OpenConfig(bool setFocus = false)
+        {
+            InConfig = true;
+            if (setFocus) ConfigUi.IsFocus = true;
         }
 
         private void OnDrawUi()
@@ -132,8 +139,7 @@ namespace AetherCompass
             {
                 // for drawing the marker display area when in config
                 Overlay.Draw();
-            }
-
+            }            
         }
 
         public static void Reload()
@@ -164,10 +170,7 @@ namespace AetherCompass
             }
         }
 
-        private void OnOpenConfigUi()
-        {
-            InConfig = true;
-        }
+        private void OnOpenConfigUi() => OpenConfig(true);
 
         private void OnZoneChange(object? _, ushort terr)
         {

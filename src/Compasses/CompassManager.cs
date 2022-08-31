@@ -4,8 +4,6 @@ using AetherCompass.Game;
 using AetherCompass.UI;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
-using System.Linq;
-
 using ObjectInfo = FFXIVClientStructs.FFXIV.Client.UI.UI3DModule.ObjectInfo;
 
 
@@ -19,70 +17,74 @@ namespace AetherCompass.Compasses
         private readonly HashSet<Compass> debugCompasses = new();
 #endif
 
-        private readonly HashSet<Compass> workingCompasses = new();
-
+        private readonly SortedSet<Compass> allAddedCompasses 
+            = new(new CompassSortComp());
+        private readonly List<Compass> workingCompasses = new();
         
         private bool hasMapFlagToProcess;
         private System.Numerics.Vector2 mapFlagCoord;
 
 
-        public IEnumerable<Compass> AllAddedCompasses
-            => standardCompasses.Union(experimentalCompasses)
-#if DEBUG
-            .Union(debugCompasses)
-#endif
-            ;
-
-
         public void Init()
         {
-            System.Reflection.Assembly.GetExecutingAssembly().GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(Compass)) && !t.IsAbstract).ToList()
-                .ForEach(t =>
+            foreach (var t in System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (t.IsSubclassOf(typeof(Compass)) && !t.IsAbstract)
                 {
                     var ctor = t.GetConstructor(Type.EmptyTypes);
                     if (ctor != null) AddCompass((Compass)ctor.Invoke(null));
-                });
+                }
+            }
         }
 
         public bool AddCompass(Compass c)
         {
+            if (!allAddedCompasses.Add(c)) return false;
             switch (c.CompassType)
             {
                 case CompassType.Standard:
-                    if (!standardCompasses.Add(c)) return false;
+                    standardCompasses.Add(c);
                     break;
                 case CompassType.Experimental:
-                    if (!experimentalCompasses.Add(c)) return false;
+                    experimentalCompasses.Add(c);
                     break;
                 case CompassType.Debug:
 # if DEBUG
-                    if (!debugCompasses.Add(c)) return false;
+                    debugCompasses.Add(c);
 #endif
                     break;
                 default:
-                    throw new ArgumentException($"Compass {c.GetType().Name} has no valid compass type");
+                    LogError($"Failed to enable compass {c.GetType().Name}: no valid compass type");
+                    allAddedCompasses.Remove(c);
+                    return false;
             }
-            if (!Plugin.DetailsWindow.RegisterCompass(c)) return false;
+            Plugin.DetailsWindow.RegisterCompass(c);
             if (c.IsEnabledInCurrentTerritory())
                 workingCompasses.Add(c);
             return true;
         }
 
-        public bool RemoveCompass(Compass c)
+        public void RemoveCompass(Compass c)
         {
             c.Reset();
             Plugin.DetailsWindow.UnregisterCompass(c);
             workingCompasses.Remove(c);
-            return c.CompassType switch
+            switch (c.CompassType)
             {
-                CompassType.Standard => standardCompasses.Remove(c),
-                CompassType.Experimental => experimentalCompasses.Remove(c),
+                case CompassType.Standard:
+                    standardCompasses.Remove(c);
+                    break;
+                case CompassType.Experimental:
+                    experimentalCompasses.Remove(c);
+                    break;
 #if DEBUG
-                CompassType.Debug => debugCompasses.Remove(c),
+                case CompassType.Debug:
+                    debugCompasses.Remove(c);
+                    break;
 #endif
-                _ => false
+                default: break;
             };
+            allAddedCompasses.Remove(c);
         }
 
 
@@ -176,7 +178,7 @@ namespace AetherCompass.Compasses
             try
             {
                 workingCompasses.Clear();
-                foreach (var compass in AllAddedCompasses)
+                foreach (var compass in allAddedCompasses)
                 {
                     if (compass.IsEnabledInCurrentTerritory())
                         workingCompasses.Add(compass);
@@ -187,10 +189,24 @@ namespace AetherCompass.Compasses
 
         public void DrawCompassConfigUi()
         {
-            foreach (var compass in AllAddedCompasses)
+            foreach (var compass in allAddedCompasses)
             {
                 compass.DrawConfigUi();
                 ImGui.NewLine();
+            }
+        }
+
+
+        private class CompassSortComp : IComparer<Compass>
+        {
+            public int Compare(Compass? x, Compass? y)
+            {
+                if (x == null && y == null) return 0;
+                if (x == null) return int.MinValue;
+                if (y == null) return int.MaxValue;
+                var ret = x.CompassType.CompareTo(y.CompassType);
+                return ret != 0 ? ret
+                    : x.GetHashCode().CompareTo(y.GetHashCode());
             }
         }
     }

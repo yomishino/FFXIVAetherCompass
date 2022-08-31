@@ -32,7 +32,7 @@ namespace AetherCompass
                 Plugin.Enabled = !Plugin.Enabled;
                 return;
             }
-            var argList = args.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+            var argList = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             if (argList.Length == 0)
             {
                 Plugin.Enabled = !Plugin.Enabled;
@@ -53,7 +53,7 @@ namespace AetherCompass
                     Plugin.Config.ShowDetailWindow = !Plugin.Config.ShowDetailWindow;
                     return;
                 case "config":
-                    Plugin.InConfig = true;
+                    Plugin.OpenConfig(true);
                     return;
                 default:
                     Chat.PrintErrorChat($"{command}: Unknown command args: {args}");
