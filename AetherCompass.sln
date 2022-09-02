@@ -1,23 +1,26 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31729.503
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AetherCompass", "AetherCompass.csproj", "{E999447C-5E05-4992-84C2-E906A22C070D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AetherCompass", "AetherCompass.csproj", "{E999447C-5E05-4992-84C2-E906A22C070D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
+		PreRelease|x64 = PreRelease|x64
+		PreTest|x64 = PreTest|x64
 		Release|x64 = Release|x64
-		TestRelease|x64 = TestRelease|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{E999447C-5E05-4992-84C2-E906A22C070D}.Debug|x64.ActiveCfg = Debug|x64
 		{E999447C-5E05-4992-84C2-E906A22C070D}.Debug|x64.Build.0 = Debug|x64
+		{E999447C-5E05-4992-84C2-E906A22C070D}.PreRelease|x64.ActiveCfg = PreRelease|x64
+		{E999447C-5E05-4992-84C2-E906A22C070D}.PreRelease|x64.Build.0 = PreRelease|x64
+		{E999447C-5E05-4992-84C2-E906A22C070D}.PreTest|x64.ActiveCfg = PreTest|x64
+		{E999447C-5E05-4992-84C2-E906A22C070D}.PreTest|x64.Build.0 = PreTest|x64
 		{E999447C-5E05-4992-84C2-E906A22C070D}.Release|x64.ActiveCfg = Release|x64
 		{E999447C-5E05-4992-84C2-E906A22C070D}.Release|x64.Build.0 = Release|x64
-		{E999447C-5E05-4992-84C2-E906A22C070D}.TestRelease|x64.ActiveCfg = TestRelease|x64
-		{E999447C-5E05-4992-84C2-E906A22C070D}.TestRelease|x64.Build.0 = TestRelease|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

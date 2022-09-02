@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <Target Name="PackagePreviewBuild" AfterTargets="Build" Condition="'$(Configuration.StartsWith(`Pre`))' == 'true'">
+    <PropertyGroup>
+      <PkgPath>$(OutputPath)$(AssemblyName)</PkgPath>
+      <TempZipPath>$(OutputPath)\temp</TempZipPath>
+      <UpdatedManifestFile>$(OutputPath)\$(AssemblyName)Preview.json</UpdatedManifestFile>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <OutputFiles Include="$(OutputPath)\*.*"/>
+    </ItemGroup>
+    
+    <Message Text="Packaging preview build" Importance="high"/>
+    <MakeDir Directories="$(PkgPath)" />
+    <CallTarget Targets="UpdatePreviewManifest" />
+    
+    <Copy SourceFiles="$(UpdatedManifestFile)" DestinationFolder="$(PkgPath)"/>
+    <Copy SourceFiles="$(UpdatedManifestFile);@(OutputFiles)" DestinationFolder="$(TempZipPath)">
+      <Output TaskParameter="CopiedFiles" ItemName="CopiedTempFiles"/>
+    </Copy>
+    <Move 
+      SourceFiles="@(CopiedTempFiles)" 
+      DestinationFiles="@(CopiedTempFiles->Replace($(AssemblyName).,$(AssemblyName)Preview.))" />
+    <ZipDirectory
+      SourceDirectory="$(TempZipPath)"
+      DestinationFile="$(PkgPath)\latest.zip"
+      Overwrite="true" />
+    <RemoveDir Directories="$(TempZipPath)" />
+  </Target>
+
+  
+  <Target Name="UpdatePreviewManifest">
+    <PropertyGroup>
+      <OriginalManifestFile>custom\$(AssemblyName)Preview.json</OriginalManifestFile>
+      <ChangelogFile>custom\preview-changelog</ChangelogFile>
+      <LnAsmVer>"AssemblyVersion": "$(AssemblyVersion)",</LnAsmVer>
+      <LnTestExclF>"IsTestingExclusive": "False",</LnTestExclF>
+      <LnTestExclT>"IsTestingExclusive": "True",</LnTestExclT>
+      <LnTestAsmVer>"TestingAssemblyVersion": "$(AssemblyVersion)",</LnTestAsmVer>
+      <LnChangeLogPart>"Changelog": $(ChangelogVal)</LnChangeLogPart>
+      <LnDummy>"": null</LnDummy>
+    </PropertyGroup>
+
+    <ReadLinesFromFile File="$(ChangelogFile)">
+      <Output TaskParameter="Lines" ItemName="RawChangelogLines"/>
+    </ReadLinesFromFile>
+    <CreateProperty Value="@(RawChangelogLines, '\n')">
+      <Output TaskParameter="Value" PropertyName="ChangelogVal"/>
+    </CreateProperty>
+    <CreateProperty Value='"Changelog": "$(ChangelogVal)"'>
+      <Output TaskParameter="Value" PropertyName="LnChangelog"/>
+    </CreateProperty>
+    <ReadLinesFromFile File="$(OriginalManifestFile)">
+      <Output
+        TaskParameter="Lines"
+        ItemName="RawManifestLines"/>
+    </ReadLinesFromFile>
+    <CreateItem 
+      Include="@(RawManifestLines);$(LnAsmVer);$(LnTestExclF);$(LnChangelog)"
+      Exclude="{;};$(LnDummy)"
+      Condition="'$(Configuration.EndsWith(`Test`))' == 'false'">
+      <Output TaskParameter="Include" ItemName="UpdatedManifestLines"/>  
+    </CreateItem>
+    <CreateItem 
+      Include="@(RawManifestLines);$(LnAsmVer);$(LnTestExclT);$(LnTestAsmVer);$(LnChangelog)"
+      Exclude="{;};$(LnDummy)"
+      Condition="'$(Configuration.EndsWith(`Test`))' == 'true'">
+      <Output TaskParameter="Include" ItemName="UpdatedManifestLines"/>  
+    </CreateItem>
+    <WriteLinesToFile
+      File="$(OutputPath)\$(AssemblyName)Preview.json"
+      Lines="{;@(UpdatedmanifestLines->Insert(0,'    '));}"
+      Overwrite="true" />
+  </Target>
+
+</Project>

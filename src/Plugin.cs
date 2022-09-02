@@ -37,16 +37,18 @@ namespace AetherCompass
         internal static Dalamud.Game.Gui.ChatGui ChatGui { get; private set; } = null!;
         [PluginService]
         internal static Dalamud.Game.Gui.Toast.ToastGui ToastGui { get; private set; } = null!;
-        
 
-        public string Name =>
-#if DEBUG
-            "Aether Compass [DEV]";
-#elif TEST
-            "Aether Compass [TEST]";
-#else
-            "Aether Compass";
+
+        public string Name => "Aether Compass"
+#if PRE
+            + " [PREVIEW]"
 #endif
+#if DEBUG
+            + " [DEV]"
+#elif TEST
+            + " [TEST]"
+#endif
+            ;
 
         internal static readonly IconManager IconManager = new();
         internal static readonly CompassManager CompassManager = new();
