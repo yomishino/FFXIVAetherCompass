@@ -16,8 +16,7 @@ namespace AetherCompass.Compasses
     {
         public override string CompassName => "Island Sanctuary Compass";
         public override string Description => 
-            "Detecting nearby gathering objects and animals in Island Sanctuary\n" +
-            "** Warning: Be prepared to be overwhelmed by too many markers!";
+            "Detecting nearby gathering objects and animals in Island Sanctuary";
 
         private protected override CompassConfig CompassConfig => Plugin.Config.IslandConfig;
         private IslandSanctuaryCompassConfig IslandConfig => (IslandSanctuaryCompassConfig)CompassConfig;
