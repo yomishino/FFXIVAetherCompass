@@ -77,7 +77,8 @@ namespace AetherCompass
         
         public Plugin()
         {
-            Config = PluginInterface.GetPluginConfig() as PluginConfig ?? new();
+            Config = new();
+            Config.Load();
             CompassManager.Init();
 
             PluginCommands.AddCommands();

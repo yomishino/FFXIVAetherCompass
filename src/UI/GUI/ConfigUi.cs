@@ -64,7 +64,7 @@ namespace AetherCompass.UI.GUI
                 if (ImGui.Button("Close & Discard All Changes"))
                 {
                     Plugin.InConfig = false;
-                    Plugin.Config.Load(PluginConfig.GetSavedPluginConfig());
+                    Plugin.Config.Load();
                     Plugin.Reload();
                 }
             }
