@@ -209,7 +209,7 @@ namespace AetherCompass.Compasses
                 if (y == null) return int.MaxValue;
                 var ret = x.CompassType.CompareTo(y.CompassType);
                 return ret != 0 ? ret
-                    : x.GetHashCode().CompareTo(y.GetHashCode());
+                    : x.GetType().Name.CompareTo(y.GetType().Name);
             }
         }
     }
