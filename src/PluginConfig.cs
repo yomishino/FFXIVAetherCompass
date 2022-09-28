@@ -101,6 +101,8 @@ namespace AetherCompass
             NotifyChat = config.NotifyChat;
             NotifySe = config.NotifySe;
             NotifyToast = config.NotifyToast;
+            HideScreenMarkEnabledDistance = config.HideScreenMarkEnabledDistance;
+            HideScreenMarkIfNameplateInsideDisplayArea = config.HideScreenMarkIfNameplateInsideDisplayArea;
 
             AetherCurrentConfig.Load(config.AetherCurrentConfig);
             MobHuntConfig.Load(config.MobHuntConfig);
