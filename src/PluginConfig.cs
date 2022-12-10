@@ -47,6 +47,7 @@ namespace AetherCompass
         public GatheringPointCompassConfig GatheringConfig { get; private set; } = new();
         public IslandSanctuaryCompassConfig IslandConfig { get; private set; } = new();
         public QuestCompassConfig QuestConfig { get; private set; } = new();
+        public EurekanCompassConfig EurekanConfig { get; private set; } = new();
 
 #if DEBUG
         [JsonIgnore]
@@ -109,6 +110,7 @@ namespace AetherCompass
             GatheringConfig.Load(config.GatheringConfig);
             IslandConfig.Load(config.IslandConfig);
             QuestConfig.Load(config.QuestConfig);
+            EurekanConfig.Load(config.EurekanConfig);
         }
 
         public void Save()
