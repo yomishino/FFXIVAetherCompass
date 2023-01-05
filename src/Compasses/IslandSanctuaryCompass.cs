@@ -190,10 +190,9 @@ namespace AetherCompass.Compasses
                     if (ImGui.Button("Unselect all"))
                         IslandConfig.AnimalsToShow = uint.MinValue;
                     const int animalTableCols = 4;
-                    // TODO: Check icons; use table to put multiple on one row
                     if (ImGui.BeginTable("##DetectAnimalFilterTable", animalTableCols,
                         ImGuiTableFlags.NoHostExtendX | ImGuiTableFlags.NoSavedSettings 
-                        | ImGuiTableFlags.SizingFixedSame))
+                        | ImGuiTableFlags.SizingFixedSame | ImGuiTableFlags.BordersInnerV))
                     {
                         for (int i = 0; i < islandAnimalList.Count; i++)
                         {
@@ -202,13 +201,21 @@ namespace AetherCompass.Compasses
                             var data = islandAnimalList[i];
                             if (data.DataId == 0) continue;
                             var flagval = 1u << i;
-                            ImGui.CheckboxFlags($"##Animal#{i}",
-                                ref IslandConfig.AnimalsToShow, flagval);
                             var icon = Plugin.IconManager.GetIcon(data.IconId);
-                            ImGui.SameLine();
+                            ImGui.BeginGroup();
                             if (icon != null)
                                 ImGui.Image(icon.ImGuiHandle, animalSpecificMarkerIconSize);
                             else ImGui.Text($"Animal#{i}");
+                            ImGui.SameLine();
+                            ImGui.CheckboxFlags($"##Animal#{i}",
+                                ref IslandConfig.AnimalsToShow, flagval);
+                            ImGui.EndGroup();
+                            if (ImGui.IsItemHovered() && icon != null)
+                            {
+                                ImGui.BeginTooltip();
+                                ImGui.Image(icon.ImGuiHandle, animalSpecificMarkerIconSize * 1.5f);
+                                ImGui.EndTooltip();
+                            }
                         }
                         ImGui.EndTable();
                     }
@@ -273,18 +280,19 @@ namespace AetherCompass.Compasses
         private void BuildIslandAnimalDict()
         {
             islandAnimalDict.Clear();
-            var sheet = AnimalSheet;
-            if (sheet == null)
+            var animalSheet = AnimalSheet;
+            if (animalSheet == null)
             {
                 LogWarningExcelSheetNotLoaded(typeof(Sheets.MJIAnimals).Name);
                 return;
             }
-            foreach (var row in sheet)
+            foreach (var row in animalSheet)
             {
-                if (row.Unknown0 == 0) continue;
+                //if (row.Unknown0 == 0) continue;
+                var dataId = row.Unknown0;
                 var data = new IslandAnimalData(
-                    row.RowId, row.Unknown0, (uint)row.Unknown6);
-                islandAnimalDict.Add(row.Unknown0,data);
+                    row.RowId, dataId, (uint)row.Unknown6);
+                islandAnimalDict.Add(row.Unknown0, data);
                 islandAnimalList.Add(data);
             }
         }
@@ -319,7 +327,7 @@ namespace AetherCompass.Compasses
         public readonly uint SheetRowId;
         public readonly uint DataId;
         public readonly uint IconId;
-
+        
         public IslandAnimalData(uint rowId, uint dataId, uint iconId)
         {
             SheetRowId = rowId;
