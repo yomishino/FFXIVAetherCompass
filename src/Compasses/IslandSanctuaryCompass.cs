@@ -27,6 +27,8 @@ namespace AetherCompass.Compasses
             islandGatherList = new();   // ordered by row id
         private readonly Dictionary<uint, IslandAnimalData>
             islandAnimalDict = new();   // dataId => data
+        private readonly List<IslandAnimalData>
+            islandAnimalList = new();   // ordered by row id
 
         private static readonly System.Numerics.Vector4 infoTextColourGather 
             = new(.75f, .98f, .9f, 1);
@@ -50,7 +52,8 @@ namespace AetherCompass.Compasses
                 return islandGatherDict.TryGetValue(o->GetNpcID(), out var data)
                     && (IslandConfig.GatheringObjectsToShow & (1u << (int)data.SheetRowId)) != 0;
             if (IslandConfig.DetectAnimals && o->ObjectKind == (byte)ObjectKind.BattleNpc)
-                return islandAnimalDict.ContainsKey(o->DataID);
+                return islandAnimalDict.TryGetValue(o->DataID, out var data)
+                    && (IslandConfig.AnimalsToShow & (1u << (int)data.SheetRowId)) != 0;
             return false;
         }
 
@@ -178,6 +181,39 @@ namespace AetherCompass.Compasses
                     ref IslandConfig.HideMarkerWhenNotInScreenAnimals);
                 ImGui.Checkbox("Use different icons for different animals",
                     ref IslandConfig.UseAnimalSpecificIcons);
+                if (ImGui.CollapsingHeader("Detect only the following animals ..."))
+                {
+                    ImGui.TreePush();
+                    if (ImGui.Button("Select all"))
+                        IslandConfig.AnimalsToShow = uint.MaxValue;
+                    ImGui.SameLine();
+                    if (ImGui.Button("Unselect all"))
+                        IslandConfig.AnimalsToShow = uint.MinValue;
+                    const int animalTableCols = 4;
+                    // TODO: Check icons; use table to put multiple on one row
+                    if (ImGui.BeginTable("##DetectAnimalFilterTable", animalTableCols,
+                        ImGuiTableFlags.NoHostExtendX | ImGuiTableFlags.NoSavedSettings 
+                        | ImGuiTableFlags.SizingFixedSame))
+                    {
+                        for (int i = 0; i < islandAnimalList.Count; i++)
+                        {
+                            if (i % animalTableCols == 0) ImGui.TableNextRow();
+                            ImGui.TableNextColumn();
+                            var data = islandAnimalList[i];
+                            if (data.DataId == 0) continue;
+                            var flagval = 1u << i;
+                            ImGui.CheckboxFlags($"##Animal#{i}",
+                                ref IslandConfig.AnimalsToShow, flagval);
+                            var icon = Plugin.IconManager.GetIcon(data.IconId);
+                            ImGui.SameLine();
+                            if (icon != null)
+                                ImGui.Image(icon.ImGuiHandle, animalSpecificMarkerIconSize);
+                            else ImGui.Text($"Animal#{i}");
+                        }
+                        ImGui.EndTable();
+                    }
+                    ImGui.TreePop();
+                }
                 ImGui.TreePop();
             }
             ImGui.Unindent();
@@ -216,6 +252,7 @@ namespace AetherCompass.Compasses
             }
             foreach (var row in gatheringSheet)
             {
+                if (row.Unknown11 == 0) continue;
                 var name = eObjNameSheet?.GetRow(row.Unknown11)?.Singular.RawString
                     ?? string.Empty;
                 var data = new IslandGatheringObjectData(
@@ -244,8 +281,11 @@ namespace AetherCompass.Compasses
             }
             foreach (var row in sheet)
             {
-                islandAnimalDict.Add(row.Unknown0,
-                    new(row.RowId, row.Unknown0, (uint)row.Unknown6));
+                if (row.Unknown0 == 0) continue;
+                var data = new IslandAnimalData(
+                    row.RowId, row.Unknown0, (uint)row.Unknown6);
+                islandAnimalDict.Add(row.Unknown0,data);
+                islandAnimalList.Add(data);
             }
         }
 

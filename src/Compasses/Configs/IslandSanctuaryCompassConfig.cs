@@ -11,6 +11,7 @@
         public bool HideMarkerWhenNotInScreenAnimals = false;
         public bool UseAnimalSpecificIcons = false;
         public uint GatheringObjectsToShow = uint.MaxValue;
+        public uint AnimalsToShow = uint.MaxValue;
 
         public override void Load(CompassConfig config)
         {
@@ -24,6 +25,7 @@
             HideMarkerWhenNotInScreenAnimals = isc.HideMarkerWhenNotInScreenAnimals;
             UseAnimalSpecificIcons = isc.UseAnimalSpecificIcons;
             GatheringObjectsToShow = isc.GatheringObjectsToShow;
+            AnimalsToShow = isc.AnimalsToShow;
         }
     }
 }
