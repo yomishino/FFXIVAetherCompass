@@ -8,11 +8,11 @@ using ImGuiNET;
 
 namespace AetherCompass.Compasses
 {
-    [CompassType(CompassType.Standard)]
+    [CompassType(CompassType.Experimental)]
     public class EurekanCompass : Compass
     {
-        public override string CompassName => "Eurekan Compass";
-        public override string Description => "Detecting nearby Eurekan Elementals.";
+        public override string CompassName => "Eureka Elemental Compass";
+        public override string Description => "Detecting nearby Eureka Elementals. (By apetih.)";
 
         private protected override CompassConfig CompassConfig => Plugin.Config.EurekanConfig;
 
@@ -20,16 +20,19 @@ namespace AetherCompass.Compasses
         private const float infoTextShadowLightness = .1f;
 
         private const uint elementalMarkerIconId = 15835;
+        private static readonly System.Numerics.Vector2
+            elementalMarkerIconSize = new(25, 25);
 
         public override bool IsEnabledInCurrentTerritory()
             => ZoneWatcher.CurrentTerritoryType?.TerritoryIntendedUse == 41;
 
 
-        private protected override unsafe string GetClosestObjectiveDescription(CachedCompassObjective _)
-            => "Elemental";
+        private protected override unsafe string GetClosestObjectiveDescription(
+            CachedCompassObjective objective) => objective.Name;
 
-        public override unsafe bool IsObjective(GameObject* o) => o != null && (o->ObjectKind == (byte)ObjectKind.BattleNpc
-            ) && (IsEurekanElementalName(CompassUtil.GetName(o)));
+        public override unsafe bool IsObjective(GameObject* o) 
+            => o != null && (o->ObjectKind == (byte)ObjectKind.BattleNpc) 
+            && IsEurekanElementalName(CompassUtil.GetName(o));
 
         public override unsafe DrawAction? CreateDrawDetailsAction(CachedCompassObjective objective)
         {

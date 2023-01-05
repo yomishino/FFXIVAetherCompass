@@ -12,7 +12,7 @@ namespace AetherCompass
     public class PluginConfig : IPluginConfiguration
     {
         [JsonIgnore]
-        public const int ActiveVersion = 1; // !!
+        public const int ActiveVersion = 2; // !!
 
         public int Version { get; set; } = ActiveVersion;
 
@@ -82,6 +82,7 @@ namespace AetherCompass
             GatheringConfig.CheckValueValidity();
             IslandConfig.CheckValueValidity();
             QuestConfig.CheckValueValidity();
+            EurekanConfig.CheckValueValidity();
 #if DEBUG
             DebugConfig.CheckValueValidity();
 #endif
