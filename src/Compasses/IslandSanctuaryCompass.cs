@@ -259,9 +259,8 @@ namespace AetherCompass.Compasses
             }
             foreach (var row in gatheringSheet)
             {
-                if (row.Unknown11 == 0) continue;
-                var name = eObjNameSheet?.GetRow(row.Unknown11)?.Singular.RawString
-                    ?? string.Empty;
+                var name = Language.SanitizeText(
+                    eObjNameSheet?.GetRow(row.Unknown11)?.Singular.RawString ?? string.Empty);
                 var data = new IslandGatheringObjectData(
                         row.RowId, row.Unknown11, row.Unknown10, name);
                 islandGatherDict.Add(row.Unknown11, data);
@@ -288,7 +287,6 @@ namespace AetherCompass.Compasses
             }
             foreach (var row in animalSheet)
             {
-                //if (row.Unknown0 == 0) continue;
                 var dataId = row.Unknown0;
                 var data = new IslandAnimalData(
                     row.RowId, dataId, (uint)row.Unknown6);
