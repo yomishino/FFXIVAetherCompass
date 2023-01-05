@@ -15,6 +15,8 @@ Currently supports detecting:
 - Mob Hunt Elite Marks (Notorious Monsters)
 - Gathering Points
 - *\[Experimental\] Quest-related NPCs/Objects*
+- *\[Experimental\] Island Sanctuary Gathering Objects and Animals*
+- *\[Experimental\] Eureka Elementals* (by apetih)
 
 **NOTE:** Because most objects/NPCs are not loaded 
 when they are too faraway or when there are too many entities nearby (such as too many player characters), 
@@ -96,5 +98,7 @@ That being said, there should presumably be a better way to resolve this issue..
 
 ## Special Thanks
 
-[Lumas Arkfrost](https://github.com/ArkfrostLumas) - For the plugin icon
+- [apetih](https://github.com/apetih) - For making the Eureka Elementals compass
+- [Lumas Arkfrost](https://github.com/ArkfrostLumas) - For the plugin icon
+
 
