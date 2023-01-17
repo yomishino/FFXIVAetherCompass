@@ -236,10 +236,6 @@ namespace AetherCompass.Compasses
         private static ExcelSheet<Sheets.MJIGatheringObject>? GatheringObjectSheet
             => Plugin.DataManager.GetExcelSheet<Sheets.MJIGatheringObject>();
 
-        // ExcelSheet "MJIAnimal"
-        // Col#0 DataId
-        // Col#4, Col#5 Item RowId (飼育動物の〇〇 / Sanctuary xxx)
-        // Col#6 IconId for some UI icons
         private static ExcelSheet<Sheets.MJIAnimals>? AnimalSheet
             => Plugin.DataManager.GetExcelSheet<Sheets.MJIAnimals>();
 
@@ -260,10 +256,10 @@ namespace AetherCompass.Compasses
             foreach (var row in gatheringSheet)
             {
                 var name = Language.SanitizeText(
-                    eObjNameSheet?.GetRow(row.Unknown11)?.Singular.RawString ?? string.Empty);
+                    eObjNameSheet?.GetRow(row.Name.Row)?.Singular.RawString ?? string.Empty);
                 var data = new IslandGatheringObjectData(
-                        row.RowId, row.Unknown11, row.Unknown10, name);
-                islandGatherDict.Add(row.Unknown11, data);
+                        row.RowId, row.Name.Row, row.MapIcon, name);
+                islandGatherDict.Add(row.Name.Row, data);
                 islandGatherList.Add(data);
             }
         }
@@ -287,10 +283,10 @@ namespace AetherCompass.Compasses
             }
             foreach (var row in animalSheet)
             {
-                var dataId = row.Unknown0;
+                var dataId = row.BNpcBase.Row;
                 var data = new IslandAnimalData(
-                    row.RowId, dataId, (uint)row.Unknown6);
-                islandAnimalDict.Add(row.Unknown0, data);
+                    row.RowId, dataId, (uint)row.Icon);
+                islandAnimalDict.Add(row.BNpcBase.Row, data);
                 islandAnimalList.Add(data);
             }
         }

@@ -15,7 +15,7 @@ namespace AetherCompass.Compasses
     public class QuestCompass : Compass
     {
         public override string CompassName => "Quest Compass";
-        public override string Description => 
+        public override string Description =>
             "Detecting NPC/objects nearby relevant to your in-progress quests.\n" +
             "** Currently limited functionality: battle NPCs will not be detected, " +
             "and the compass sometimes gives inaccurate or, although more rarely, incorrect information.";
@@ -23,7 +23,8 @@ namespace AetherCompass.Compasses
         private protected override CompassConfig CompassConfig => Plugin.Config.QuestConfig;
         private QuestCompassConfig QuestConfig => (QuestCompassConfig)CompassConfig;
 
-        private static readonly System.Reflection.PropertyInfo?[,] cachedQuestSheetToDoChildLocationMap = new System.Reflection.PropertyInfo[24, 7];
+        private static readonly System.Reflection.PropertyInfo?[,] cachedQuestSheetToDoLocMap = new System.Reflection.PropertyInfo[24, 8];
+        //private static readonly System.Reflection.PropertyInfo?[,] cachedQuestSheetToDoChildLocationMap = new System.Reflection.PropertyInfo[24, 7];
         private readonly Dictionary<uint, (Quest RelatedQuest, bool TodoRevealed)> objQuestMap = new();
         private static readonly System.Numerics.Vector4 infoTextColour = new(.98f, .77f, .35f, 1);
         private static readonly float infoTextShadowLightness = .1f;
@@ -110,7 +111,7 @@ namespace AetherCompass.Compasses
             var iconId = qRow == null || qRow.EventIconType.Value == null
                 ? defaultQuestMarkerIconId
                 : GetQuestMarkerIconId(qRow.EventIconType.Value.NpcIconAvailable,
-                    qRow.EventIconType.Value.IconRange, 
+                    qRow.EventIconType.Value.IconRange,
                     mappedInfo.RelatedQuest.QuestSeq == questFinalSeqIdx);
             var descr = (mappedInfo.TodoRevealed ? "★ " : "") + $"{objective.Name}";
             if (QuestConfig.ShowQuestName)
@@ -126,7 +127,7 @@ namespace AetherCompass.Compasses
                         $"\n(Quest: {questName})";
             }
             else descr += $", {CompassUtil.DistanceToDescriptiveString(objective.Distance3D, true)}";
-            return GenerateDefaultScreenMarkerDrawAction(objective, iconId, 
+            return GenerateDefaultScreenMarkerDrawAction(objective, iconId,
                 DefaultMarkerIconSize, .9f, descr, infoTextColour, infoTextShadowLightness, out _,
                 important: objective.Distance3D < 55 || mappedInfo.RelatedQuest.IsPriority);
         }
@@ -187,9 +188,9 @@ namespace AetherCompass.Compasses
         }
 
 
-        private static readonly ExcelSheet<Sheets.Quest>? QuestSheet 
+        private static readonly ExcelSheet<Sheets.Quest>? QuestSheet
             = Plugin.DataManager.GetExcelSheet<Sheets.Quest>();
-        private static readonly ExcelSheet<Sheets.EObj>? EObjSheet 
+        private static readonly ExcelSheet<Sheets.EObj>? EObjSheet
             = Plugin.DataManager.GetExcelSheet<Sheets.EObj>();
         private static readonly ExcelSheet<Sheets.ENpcBase>? ENpcSheet
             = Plugin.DataManager.GetExcelSheet<Sheets.ENpcBase>();
@@ -216,7 +217,7 @@ namespace AetherCompass.Compasses
                 LogError("Failed to get QuestListArray");
                 return;
             }
-            
+
             static bool ShouldExitActorArrayLoop(Sheets.Quest q, int idx)
                 => (idx >= 0 && idx < questSheetActorArrayLength / 2 && q.QuestUInt8A[idx] == 0)
                 || (idx >= questSheetActorArrayLength / 2 && idx < questSheetActorArrayLength
@@ -238,17 +239,29 @@ namespace AetherCompass.Compasses
                     // because we cant tell if the ToDos are completed or not when there are multiple Todos
                     if (questRow.ToDoCompleteSeq[j] == quest.QuestSeq)
                     {
-                        var mainLoc = questRow.ToDoMainLocation[j].Value;
-                        if (mainLoc != null && mainLoc.Object != 0)
-                            todoRevealedObjs.Add(mainLoc.Object);
-                        for (int k = 0; k < questSheetToDoChildMaxCount; k++)
+                        //var mainLoc = questRow.ToDoMainLocation[j].Value;
+                        //if (mainLoc != null && mainLoc.Object != 0)
+                        //    todoRevealedObjs.Add(mainLoc.Object);
+                        //for (int k = 0; k < questSheetToDoChildMaxCount; k++)
+                        //{
+                        //    var childLocRowId = GetQuestToDoChildLocationRowId(questRow, j, k);
+                        //    if (childLocRowId != 0)
+                        //    {
+                        //        var childLoc = LevelSheet?.GetRow(childLocRowId);
+                        //        if (childLoc != null && childLoc.Object != 0)
+                        //            todoRevealedObjs.Add(childLoc.Object);
+                        //    }
+                        //}
+
+                        // Main + Child
+                        for (int k = 0; k < questSheetToDoChildMaxCount + 1; k++)
                         {
-                            var childLocRowId = GetQuestToDoChildLocationRowId(questRow, j, k);
-                            if (childLocRowId != 0)
+                            var todoLocRowId = GetQuestToDoLocRowId(questRow, j, k);
+                            if (todoLocRowId > 0)
                             {
-                                var childLoc = LevelSheet?.GetRow(childLocRowId);
-                                if (childLoc != null && childLoc.Object != 0)
-                                    todoRevealedObjs.Add(childLoc.Object);
+                                var todoLoc = LevelSheet?.GetRow(todoLocRowId);
+                                if (todoLoc != null && todoLoc.Object != 0)
+                                    todoRevealedObjs.Add(todoLoc.Object);
                             }
                         }
                     }
@@ -292,49 +305,90 @@ namespace AetherCompass.Compasses
             }
         }
 
-        // ToDoChildLocation is 24 * 7 array containing row id of corresponding Level
-        // In sheet first col of every row get listed first, then 2nd col and so on.
-        // (So together with ToDoMainLocation, we can have at most 24 ToDos for a quest and each ToDo can have at most 8 Levels.)
-        public static uint GetQuestToDoChildLocationRowId(Sheets.Quest? questRow, int row, int col)
+        // The uint stored in the cell is the corresponding row id in Level sheet
+        private static uint GetQuestToDoLocRowId(Sheets.Quest? questRow, int row, int col)
         {
-            if (row < 0 || row >= questSheetToDoArrayLength 
-                || col < 0 || col >= questSheetToDoChildMaxCount || questRow == null) return 0;
-            var val = cachedQuestSheetToDoChildLocationMap[row, col]?.GetValue(questRow);
+            if (row < 0 || row >= questSheetToDoArrayLength
+                || col < 0 || col >= questSheetToDoChildMaxCount + 1 
+                || questRow == null) return 0;
+            var val = cachedQuestSheetToDoLocMap[row, col]?.GetValue(questRow);
+            // First 7 cells (from col 1221) is put in an array accessed via Unknown1221
             if (val == null) return 0;
-            if (row <= 6 && col == 0) // covered by uint array at col 1245
+            if (row <= 7 && col == 0)
                 return (val as uint[])?[row] ?? 0;
             else return (uint)val;
         }
 
-        public static uint GetQuestToDoChildLocationRowId(uint questRowId, int row, int col)
-            => GetQuestToDoChildLocationRowId(QuestSheet?.GetRow(questRowId), row, col);
+        //// ToDoChildLocation is 24 * 7 array containing row id of corresponding Level
+        //// In sheet first col of every row get listed first, then 2nd col and so on.
+        //// (So together with ToDoMainLocation, we can have at most 24 ToDos for a quest and each ToDo can have at most 8 Levels.)
+        //public static uint GetQuestToDoChildLocationRowId(Sheets.Quest? questRow, int row, int col)
+        //{
+        //    if (row < 0 || row >= questSheetToDoArrayLength
+        //        || col < 0 || col >= questSheetToDoChildMaxCount || questRow == null) return 0;
+        //    var val = cachedQuestSheetToDoChildLocationMap[row, col]?.GetValue(questRow);
+        //    if (val == null) return 0;
+        //    if (row <= 6 && col == 0) // covered by uint array at col 1245
+        //        return (val as uint[])?[row] ?? 0;
+        //    else return (uint)val;
+        //}
 
-        // (0, 0) is at col 1245. Row first.
-        // Currently Lumina has at col 1245 a uint array span to col 1251 (incl.), which covers <row 0 ~ 6, col 0> of the ToDoChildLocation array;
-        private static void InitQuestSheetToDoChildLocationMap()
+        //public static uint GetQuestToDoChildLocationRowId(uint questRowId, int row, int col)
+        //    => GetQuestToDoChildLocationRowId(QuestSheet?.GetRow(questRowId), row, col);
+
+        // (0,0) is at col 1221. These first 24 cells used to be
+        //  represented as one array called ToDoMainlocation
+        // The rest used to be a 24x7 array of ToDoChildLocation;
+        //  still row first (traverse through every row of one column then the next)
+        //  
+        // Currently: Unknown1221 -> col 1221 ~ 1228
+        // From Unknown1229 single cell, until Unknown1412 (incl.)
+        private static void InitQuestSheetToDoLocMap()
         {
             var questSheetType = typeof(Sheets.Quest);
-            int propIdx0 = 1245;
+            int propIdx0 = 1221;
             for (int i = 0; i < questSheetToDoArrayLength; i++)
             {
+
+                // Main
+                cachedQuestSheetToDoLocMap[i, 0] = i <= 7 
+                    ? questSheetType.GetProperty($"Unknown{propIdx0}")
+                    : questSheetType.GetProperty($"Unknown{propIdx0 + i}");
+                // Child
                 for (int j = 0; j < questSheetToDoChildMaxCount; j++)
-                {
-                    if (i <= 6 && j == 0)
-                        // From uint array at col 1245
-                        cachedQuestSheetToDoChildLocationMap[i, j] = questSheetType.GetProperty($"Unknown{propIdx0}");
-                    else
-                    {
-                        int propIdx = propIdx0 + j * questSheetToDoArrayLength + i;
-                        cachedQuestSheetToDoChildLocationMap[i, j] = questSheetType.GetProperty($"Unknown{propIdx}");
-                    }
-                }
+                    cachedQuestSheetToDoLocMap[i, j] 
+                        = questSheetType.GetProperty($"Unknown{propIdx0 + j * 24 + i}");
             }
         }
+
+        //// (0, 1) is at col 1245. Row first --- col 1246 is (1,1) etc.
+        //// Used to be a 24x7 unit array in Lumina but now merged into one array with the previous ToDoMainLocation array
+        //// So the Child part starts from the second columns of this big array
+        //private static void InitQuestSheetToDoChildLocationMap()
+        //{
+        //    var questSheetType = typeof(Sheets.Quest);
+        //    int propIdx0 = 1245;
+        //    for (int i = 0; i < questSheetToDoArrayLength; i++)
+        //    {
+        //        for (int j = 0; j < questSheetToDoChildMaxCount; j++)
+        //        {
+        //            if (i <= 6 && j == 0)
+        //                // From uint array at col 1245
+        //                cachedQuestSheetToDoChildLocationMap[i, j] = questSheetType.GetProperty($"Unknown{propIdx0}");
+        //            else
+        //            {
+        //                int propIdx = propIdx0 + j * questSheetToDoArrayLength + i;
+        //                cachedQuestSheetToDoChildLocationMap[i, j] = questSheetType.GetProperty($"Unknown{propIdx}");
+        //            }
+        //        }
+        //    }
+        //}
 
 
         public QuestCompass() : base()
         {
-            InitQuestSheetToDoChildLocationMap();
+            InitQuestSheetToDoLocMap();
+            //InitQuestSheetToDoChildLocationMap();
         }
     }
 }
