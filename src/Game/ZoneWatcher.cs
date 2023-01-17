@@ -16,7 +16,7 @@ namespace AetherCompass.Game
         {
             get
             {
-                var altMapId = ZoneMap.GetCurrentTerritoryAltMapId();
+                var altMapId = ZoneMap.GetCurrentAltMapId();
                 if (altMapId > 0) return altMapId;
                 return CurrentTerritoryType?.Map.Row ?? 0;
             }
