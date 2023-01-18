@@ -149,7 +149,7 @@ namespace AetherCompass.Compasses
                     ref IslandConfig.HideMarkerWhenNotInScreenGathering);
                 if(ImGui.CollapsingHeader("Detect only the following objects ..."))
                 {
-                    ImGui.TreePush();
+                    ImGui.TreePush("DetectGatheringObjectFilterExpand");
                     if (ImGui.Button("Select all"))
                         IslandConfig.GatheringObjectsToShow = uint.MaxValue;
                     ImGui.SameLine();
@@ -174,7 +174,7 @@ namespace AetherCompass.Compasses
             ImGui.Checkbox("Detect Animals", ref IslandConfig.DetectAnimals);
             if (IslandConfig.DetectAnimals)
             {
-                ImGui.TreePush();
+                ImGui.TreePush("DetectAnimalFilterExpand");
                 ImGui.Checkbox("Show animal names on the markers", 
                     ref IslandConfig.ShowNameOnMarkerAnimals);
                 ImGui.Checkbox("Hide markers for animals that are out of screen",
