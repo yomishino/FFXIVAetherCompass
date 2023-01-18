@@ -1,20 +1,21 @@
 ﻿using Dalamud.Interface;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace AetherCompass.Game.SeFunctions
 {
-    internal static class Projection
+    internal unsafe static class Projection
     {
         private delegate IntPtr GetMatrixSingletonDelegate();
         private static readonly GetMatrixSingletonDelegate getMatrixSingleton;
+        private static readonly Device* device;
 
         static Projection()
         {
             IntPtr addr = Plugin.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??");
             getMatrixSingleton ??= Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(addr);
+            device = Device.Instance();
         }
 
         // Rewrite a bit of Dalamud's WorldToScreen because the result when object is off-screen is quite counter-intuitive for our purpose
@@ -32,11 +33,8 @@ namespace AetherCompass.Game.SeFunctions
             var windowPos = ImGuiHelpers.MainViewport.Pos;
 
             var viewProjectionMatrix = *(Matrix4x4*)(matrixSingleton + 0x1b4);
-            var device = Device.Instance();
             float width = device->Width;
             float height = device->Height;
-
-            var worldPosDx = worldPos.ToSharpDX();
 
             var pCoords = Vector3.Transform(worldPos, viewProjectionMatrix);
             pCoordsRaw = pCoords;
