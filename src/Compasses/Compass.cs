@@ -4,6 +4,7 @@ using AetherCompass.Compasses.Objectives;
 using AetherCompass.Game;
 using AetherCompass.UI;
 using AetherCompass.UI.GUI;
+using Dalamud.Interface.Internal;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using ImGuiScene;
@@ -437,7 +438,7 @@ namespace AetherCompass.Compasses
         }
 
         protected static DrawAction? GenerateScreenMarkerIconDrawAction(
-            ImGuiScene.TextureWrap? icon, Vector2 screenPosRaw, Vector2 iconSizeRaw, 
+            IDalamudTextureWrap? icon, Vector2 screenPosRaw, Vector2 iconSizeRaw, 
             float scale, float alpha, out Vector2 drawEndPos)
         {
             var iconSize = iconSizeRaw * scale;
@@ -453,7 +454,7 @@ namespace AetherCompass.Compasses
             Vector2 screenPosRaw, float scale, float alpha, out Vector2 drawEndPos)
         {
             drawEndPos = screenPosRaw;
-            ImGuiScene.TextureWrap? icon = null;
+            IDalamudTextureWrap? icon = null;
             if (altDiff > 5) icon = Plugin.IconManager.AltitudeHigherIcon;
             if (altDiff < -5) icon = Plugin.IconManager.AltitudeLowerIcon;
             if (icon == null) return null;
@@ -504,7 +505,7 @@ namespace AetherCompass.Compasses
             return drawPos;
         }
 
-        private TextureWrap? GetMarkerIcon(uint iconId)
+        private IDalamudTextureWrap? GetMarkerIcon(uint iconId)
         {
             compassUsedIconIds.Add(iconId);
             return Plugin.IconManager.GetIcon(iconId);
