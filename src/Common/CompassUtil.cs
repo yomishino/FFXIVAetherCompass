@@ -19,16 +19,18 @@ namespace AetherCompass.Common
         public static string ToTitleCase(string s)
             => System.Globalization.CultureInfo.InvariantCulture.TextInfo.ToTitleCase(s);
 
-        public unsafe static byte GetCharacterLevel(GameObject* o)
-            => o != null && o->IsCharacter() ? ((Character*)o)->CharacterData.Level : byte.MinValue;
+        public unsafe static bool IsCharacter(GameObject* o)
+            => o != null && o->IsCharacter();
 
-        // Character struct offset +0x197C byte flag: 0x2 is Dead
-        // Better than checking hp; hp>0 seems still true when bnpc dead but not removed 
+        public unsafe static byte GetCharacterLevel(GameObject* o)
+            => IsCharacter(o) ? ((Character*)o)->CharacterData.Level : byte.MinValue;
+
         public unsafe static bool IsCharacterAlive(GameObject* o)
-            => o != null && o->IsCharacter() && (Marshal.ReadByte((IntPtr)o + 0x197C) & 2) == 0;
+            //=> IsCharacter(o) && (Marshal.ReadByte((IntPtr)o + 0x197C) & 2) == 0;
+            => IsCharacter(o) && !o->IsDead();
 
         public unsafe static bool IsHostileCharacter(GameObject* o)
-            => o != null && o->IsCharacter() && ((Character*)o)->IsHostile;
+            => IsCharacter(o) && ((Character*)o)->IsHostile;
 
 
         public unsafe static float Get3DDistanceFromPlayer(GameObject* o)

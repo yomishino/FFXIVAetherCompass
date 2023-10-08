@@ -32,6 +32,7 @@ namespace AetherCompass.Compasses
             || o->ObjectKind == (byte)ObjectKind.Aetheryte
             || o->ObjectKind == (byte)ObjectKind.AreaObject
             || o->ObjectKind == (byte)ObjectKind.CardStand
+            || o->ObjectKind == (byte)ObjectKind.BattleNpc
             );
 
         protected override unsafe CachedCompassObjective CreateCompassObjective(GameObject* obj)
@@ -60,6 +61,16 @@ namespace AetherCompass.Compasses
                 ImGui.BulletText($"Position: {debugObjective.Position}");
                 ImGui.BulletText($"MapCoord: {CompassUtil.MapCoordToFormattedString(debugObjective.CurrentMapCoord)}");
                 ImGui.BulletText($"Normalised Nameplate Pos: {objective.NormalisedNameplatePos}");
+
+                var o = (GameObject*)objective.GameObject.ToPointer();
+                var ischar = CompassUtil.IsCharacter(o);
+                ImGui.BulletText($"Is character: {ischar}");
+                if (ischar)
+                {
+                    ImGui.BulletText($"Level: {CompassUtil.GetCharacterLevel(o)}");
+                    ImGui.BulletText($"Alive: {CompassUtil.IsCharacterAlive(o)}");
+                    ImGui.BulletText($"IsHostile: {CompassUtil.IsHostileCharacter(o)}");
+                }
 
                 DrawFlagButton(((long)debugObjective.GameObject).ToString(), debugObjective.CurrentMapCoord);
 

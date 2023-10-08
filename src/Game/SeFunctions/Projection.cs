@@ -19,9 +19,10 @@ namespace AetherCompass.Game.SeFunctions
             device = Device.Instance();
         }
 
-        // Rewrite a bit of Dalamud's WorldToScreen because the result when object is off-screen is quite counter-intuitive for our purpose
         public static bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos) => WorldToScreen(worldPos, out screenPos, out _);
 
+        // Used to be a rewrite version of Dalamud's WorldToScreen to fix an off-screen position issue,
+        // but since the Dalamud's version's been fixed in the same way, they are almost identical
         internal static unsafe bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos, out Vector3 pCoordsRaw)
         {
             if (getMatrixSingleton == null)
@@ -40,9 +41,6 @@ namespace AetherCompass.Game.SeFunctions
             var pCoords = Vector3.Transform(worldPos, viewProjectionMatrix);
             pCoordsRaw = pCoords;
 
-            // NOTE: Tweak the formula that was originally used in Dalamud
-            // Using abs to make the markers projected to hopefully a more intuitive position
-            //  when off-screen, esp. when it's right behind the camera.
             screenPos = new Vector2(pCoords.X / MathF.Abs(pCoords.Z), pCoords.Y / MathF.Abs(pCoords.Z));
 
             screenPos.X = (0.5f * width * (screenPos.X + 1f)) + windowPos.X;
