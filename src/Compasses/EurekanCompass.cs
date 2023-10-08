@@ -8,7 +8,7 @@ using ImGuiNET;
 
 namespace AetherCompass.Compasses
 {
-    [CompassType(CompassType.Experimental)]
+    [CompassType(CompassType.Standard)]
     public class EurekanCompass : Compass
     {
         public override string CompassName => "Eureka Elemental Compass";
