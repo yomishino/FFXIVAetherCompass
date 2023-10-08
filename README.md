@@ -1,5 +1,18 @@
 # Aether Compass
 
+> :warning: My apologise:
+> This plugin is not being actively worked on at the moment,
+> though it is not entirely dead at the moment either (and big thanks to community contributions!).
+>
+> For those who are looking for the latest version since Dalamud's API9 update,
+> there is a testing version available in my custom repo.
+> See [below](#installation) for the installation guide.
+>
+> There is no guarantee the plugin will function as expected as I am unable to test it extensively.
+> But any contribution (PRs or issues) is still welcome --- just don't expect prompt responses from me.
+
+---
+
 > <img src="./res/img/icon_by_arkfrostlumas.png" width="96"/>
 > Have you ever run into something when looking at your compass ... oooops!
 
@@ -27,6 +40,21 @@ they will not be detected in this case.
 
 [XIVLauncher](https://github.com/goatcorp/FFXIVQuickLauncher) is required to install and run the plugin.
 
+The plugin is currently only available in my custom repo.
+To access it, you can add my [Dalamud plugin repo](https://github.com/yomishino/MyDalamudPlugins) to Dalamud's Custom Plugin Repositories,
+and look for the plugin "Aether Compass [Preview]" in Plugin Installer's available plugins.
+
+If you cannot find a release version (i.e. not a testing version) of it,
+then the plugin is either only available as a testing plugin, or it is not updated at all.
+
+In the former case, you can find it by enabling the setting "Get plugin testing builds" in Dalamud.
+
+:warning: **Please be cautious in doing so, as testing plugins are expected to be unstable.
+There could be major bugs that may even crash your game client in some worse cases.**
+In addition, by enabling this setting you might also receive unstable test builds of other plugins.
+
+
+<!--
 There are two sources from which you can install the plugin:
 - the official repo (the "standard" version, but as a testing plugin), or
 - my custom repo (the "preview" version)
@@ -46,6 +74,7 @@ under the "Experimental" tab in Dalamud Settings.
 
 > :warning: However, please be cautious that by enabling this setting you will also be receiving testing builds of other plugins,
 > which, as the name suggests, are still in testing and may be unstable.
+
 
 ### Through My Custom Repo
 
@@ -96,9 +125,12 @@ And the current workaround (by providing a so-called "Preview" version) is very 
 That being said, there should presumably be a better way to resolve this issue... But another day, perhaps.
 </details>
 
+-->
+
 ## Special Thanks
 
 - [apetih](https://github.com/apetih) - For making the Eureka Elementals compass
 - [Lumas Arkfrost](https://github.com/ArkfrostLumas) - For the plugin icon
+- And thanks to all who have contributed to bug fixes
 
 
