@@ -39,6 +39,8 @@ namespace AetherCompass
         internal static IChatGui ChatGui { get; private set; } = null!;
         [PluginService]
         internal static IToastGui ToastGui { get; private set; } = null!;
+        [PluginService]
+        internal static IPluginLog PluginLog { get; private set; } = null!;
 
 
         public string Name => "Aether Compass"
