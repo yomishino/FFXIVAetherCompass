@@ -16,7 +16,7 @@ namespace AetherCompass.UI
         public static void PrintChat(SeString msg)
         {
             msg.Payloads.Insert(0, new TextPayload("[AetherCompass] "));
-            Plugin.ChatGui.PrintChat(new XivChatEntry()
+            Plugin.ChatGui.Print(new XivChatEntry()
             {
                 Message = msg,
             });

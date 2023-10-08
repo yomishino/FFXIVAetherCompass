@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Dalamud.Interface.Internal;
+using System.Collections.Concurrent;
 using System.Numerics;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace AetherCompass.UI.GUI
     {
         private readonly ConcurrentIconMap iconMap = new();
 
-        public TextureWrap? GetIcon(uint iconId) => iconMap[iconId];
+        public IDalamudTextureWrap? GetIcon(uint iconId) => iconMap[iconId];
 
         public void DisposeIcons(HashSet<uint> iconIds)
         {
@@ -25,19 +26,19 @@ namespace AetherCompass.UI.GUI
         #region Common Icons
 
         public const uint DefaultMarkerIconId = 25948;
-        internal TextureWrap? DefaultMarkerIcon => iconMap[DefaultMarkerIconId];
+        internal IDalamudTextureWrap? DefaultMarkerIcon => iconMap[DefaultMarkerIconId];
 
         public const uint AltitudeHigherIconId = 60954;
-        internal TextureWrap? AltitudeHigherIcon => iconMap[AltitudeHigherIconId];
+        internal IDalamudTextureWrap? AltitudeHigherIcon => iconMap[AltitudeHigherIconId];
         public const uint AltitudeLowerIconId = 60955;
-        internal TextureWrap? AltitudeLowerIcon => iconMap[AltitudeLowerIconId];
+        internal IDalamudTextureWrap? AltitudeLowerIcon => iconMap[AltitudeLowerIconId];
         public static readonly Vector2 AltitudeIconSize = new(45, 45);
 
         // NaviMap thing with those quests/fate etc. direction markers are in 10001400
         // but use something else for easier work:
         // 60541 up, 60545 down; there are also two sets that are smaller
         public const uint DirectionScreenIndicatorIconId = 60541;
-        internal TextureWrap? DirectionScreenIndicatorIcon => iconMap[DirectionScreenIndicatorIconId];
+        internal IDalamudTextureWrap? DirectionScreenIndicatorIcon => iconMap[DirectionScreenIndicatorIconId];
         public static readonly Vector2 DirectionScreenIndicatorIconSize = new(45, 45);
         public static readonly uint DirectionScreenIndicatorIconColour = ImGuiNET.ImGui.ColorConvertFloat4ToU32(new Vector4(1, 1, 0, 1));
 
@@ -45,7 +46,7 @@ namespace AetherCompass.UI.GUI
         public static readonly Vector2 MarkerIconSize = new(30, 30);
 
         public const uint ConfigDummyMarkerIconId = DefaultMarkerIconId;
-        internal TextureWrap? ConfigDummyMarkerIcon => iconMap[ConfigDummyMarkerIconId];
+        internal IDalamudTextureWrap? ConfigDummyMarkerIcon => iconMap[ConfigDummyMarkerIconId];
 
         //private static void DisposeCommonIcons()
         //{
@@ -62,9 +63,9 @@ namespace AetherCompass.UI.GUI
 
     class ConcurrentIconMap : IDisposable
     {
-        private readonly ConcurrentDictionary<uint, Lazy<TextureWrap?>> map = new();
+        private readonly ConcurrentDictionary<uint, Lazy<IDalamudTextureWrap?>> map = new();
 
-        public TextureWrap? this[uint iconId]
+        public IDalamudTextureWrap? this[uint iconId]
         {
             get
             {
@@ -92,7 +93,7 @@ namespace AetherCompass.UI.GUI
 
         private async void LoadIconAsync(uint iconId)
         {
-            var icon = await Task.Run(() => Plugin.DataManager.GetImGuiTextureIcon(iconId));
+            var icon = await Task.Run(() => Plugin.TextureProvider.GetIcon(iconId));
             if (icon == null) throw new IconLoadFailException(iconId);
             map.TryAdd(iconId, new(() => icon, 
                 System.Threading.LazyThreadSafetyMode.ExecutionAndPublication));

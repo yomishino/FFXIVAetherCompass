@@ -10,7 +10,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.IoC;
 using Dalamud.Plugin;
-
+using Dalamud.Plugin.Services;
 
 namespace AetherCompass
 {
@@ -20,23 +20,25 @@ namespace AetherCompass
         [PluginService]
         internal static DalamudPluginInterface PluginInterface { get; private set; } = null!;
         [PluginService]
-        internal static SigScanner SigScanner { get; private set; } = null!;
+        internal static ISigScanner SigScanner { get; private set; } = null!;
         [PluginService]
-        internal static Dalamud.Game.Command.CommandManager CommandManager { get; private set; } = null!;
+        internal static ICommandManager CommandManager { get; private set; } = null!;
         [PluginService]
-        internal static Dalamud.Data.DataManager DataManager { get; private set; } = null!;
+        internal static IDataManager DataManager { get; private set; } = null!;
         [PluginService]
-        internal static Framework Framework { get; private set; } = null!;
+        internal static ITextureProvider TextureProvider { get; private set; } = null!;
         [PluginService]
-        internal static Dalamud.Game.ClientState.ClientState ClientState { get; private set; } = null!;
+        internal static IFramework Framework { get; private set; } = null!;
         [PluginService]
-        internal static Condition ClientCondition { get; private set; } = null!;
+        internal static IClientState ClientState { get; private set; } = null!;
         [PluginService]
-        internal static Dalamud.Game.Gui.GameGui GameGui { get; private set; } = null!;
+        internal static ICondition ClientCondition { get; private set; } = null!;
         [PluginService]
-        internal static Dalamud.Game.Gui.ChatGui ChatGui { get; private set; } = null!;
+        internal static IGameGui GameGui { get; private set; } = null!;
         [PluginService]
-        internal static Dalamud.Game.Gui.Toast.ToastGui ToastGui { get; private set; } = null!;
+        internal static IChatGui ChatGui { get; private set; } = null!;
+        [PluginService]
+        internal static IToastGui ToastGui { get; private set; } = null!;
 
 
         public string Name => "Aether Compass"
@@ -89,7 +91,7 @@ namespace AetherCompass
             ClientState.TerritoryChanged += OnZoneChange;
 
             Reload();
-            OnZoneChange(null, ClientState.TerritoryType);  // update zone related stuff on init
+            OnZoneChange(ClientState.TerritoryType);  // update zone related stuff on init
         }
 
         public static void ShowError(string chatMsg, string logMsg)
@@ -157,7 +159,7 @@ namespace AetherCompass
                 Enabled = Config.Enabled;   // Clear&Reload iff Enabled changed
         }
 
-        private void OnFrameworkUpdate(Framework framework)
+        private void OnFrameworkUpdate(IFramework framework)
         {
             if (Enabled && ClientState.LocalContentId != 0 && ZoneWatcher.IsInCompassWorkZone)
             {
@@ -175,7 +177,7 @@ namespace AetherCompass
 
         private void OnOpenConfigUi() => OpenConfig(true);
 
-        private void OnZoneChange(object? _, ushort terr)
+        private void OnZoneChange( ushort terr)
         {
             ZoneWatcher.OnZoneChange();
             if (terr == 0) return;

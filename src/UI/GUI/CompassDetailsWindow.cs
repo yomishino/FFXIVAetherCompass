@@ -69,8 +69,8 @@ namespace AetherCompass.UI.GUI
                 ImGui.BulletText($"TerritoryType={ZoneWatcher.CurrentTerritoryType?.RowId ?? 0}");
                 ImGui.BulletText($"Map data: RowId={map.RowId}, SizeFactor={map.SizeFactor}, " +
                     $"OffsetX={map.OffsetX}, OffsetY={map.OffsetY}, OffsetZ={CompassUtil.GetCurrentTerritoryZOffset()}");
-                ImGui.BulletText($"Main Viewport: pos={Dalamud.Interface.ImGuiHelpers.MainViewport.Pos}, " +
-                    $"size={Dalamud.Interface.ImGuiHelpers.MainViewport.Size}, dpi={Dalamud.Interface.ImGuiHelpers.MainViewport.DpiScale}");
+                ImGui.BulletText($"Main Viewport: pos={Dalamud.Interface.Utility.ImGuiHelpers.MainViewport.Pos}, " +
+                    $"size={Dalamud.Interface.Utility.ImGuiHelpers.MainViewport.Size}, dpi={Dalamud.Interface.Utility.ImGuiHelpers.MainViewport.DpiScale}");
 #endif
                 if (ImGui.BeginTabBar("CompassesTabBar", ImGuiTabBarFlags.Reorderable))
                 {
