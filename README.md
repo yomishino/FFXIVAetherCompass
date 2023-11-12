@@ -1,6 +1,7 @@
 # Aether Compass
 
-> :warning: My apologise:
+<!--
+> :warning: Apologies:
 > This plugin is not being actively worked on at the moment,
 > though it is not entirely dead at the moment either (and big thanks to community contributions!).
 >
@@ -12,6 +13,7 @@
 > But any contribution (PRs or issues) is still welcome --- just don't expect prompt responses from me.
 
 ---
+-->
 
 > <img src="./res/img/icon_by_arkfrostlumas.png" width="96"/>
 > Have you ever run into something when looking at your compass ... oooops!
