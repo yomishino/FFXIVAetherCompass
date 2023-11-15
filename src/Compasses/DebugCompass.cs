@@ -25,13 +25,18 @@ namespace AetherCompass.Compasses
             => ZoneWatcher.CurrentTerritoryType?.RowId != 0;
 
         public override unsafe bool IsObjective(GameObject* o)
-            => o != null && (o->ObjectID == Plugin.ClientState.LocalPlayer?.ObjectId
+            => o != null && (
+#if DEBUG
+            Plugin.Config.DebugTestAllGameObjects ||
+#endif
+            o->ObjectID == Plugin.ClientState.LocalPlayer?.ObjectId
             || o->ObjectKind == (byte)ObjectKind.EventObj 
             //|| o->ObjectKind == (byte)ObjectKind.EventNpc
             || o->ObjectKind == (byte)ObjectKind.GatheringPoint
             || o->ObjectKind == (byte)ObjectKind.Aetheryte
             || o->ObjectKind == (byte)ObjectKind.AreaObject
             || o->ObjectKind == (byte)ObjectKind.CardStand
+            || o->ObjectKind == (byte)ObjectKind.MjiObject
             || o->ObjectKind == (byte)ObjectKind.BattleNpc
             );
 

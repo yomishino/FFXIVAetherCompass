@@ -48,7 +48,7 @@ namespace AetherCompass.Compasses
         public override unsafe bool IsObjective(GameObject* o)
         {
             if (o == null) return false;
-            if (IslandConfig.DetectGathering && o->ObjectKind == (byte)ObjectKind.CardStand)
+            if (IslandConfig.DetectGathering && o->ObjectKind == (byte)ObjectKind.MjiObject)
                 return islandGatherDict.TryGetValue(o->GetNpcID(), out var data)
                     && (IslandConfig.GatheringObjectsToShow & (1u << (int)data.SheetRowId)) != 0;
             if (IslandConfig.DetectAnimals && o->ObjectKind == (byte)ObjectKind.BattleNpc)
@@ -64,7 +64,7 @@ namespace AetherCompass.Compasses
                 return new IslandCachedCompassObjective(obj, 0);
             return obj->ObjectKind switch
             {
-                (byte)ObjectKind.CardStand => 
+                (byte)ObjectKind.MjiObject => 
                     new IslandCachedCompassObjective(obj, IslandObjectType.Gathering),
                 (byte)ObjectKind.BattleNpc => 
                     new IslandCachedCompassObjective(obj, IslandObjectType.Animal),
@@ -72,20 +72,21 @@ namespace AetherCompass.Compasses
             };
         }
 
-        protected override unsafe CachedCompassObjective 
+        protected override unsafe CachedCompassObjective
             CreateCompassObjective(UI3DModule.ObjectInfo* info)
-        {
-            var obj = info != null ? info->GameObject : null;
-            if (obj == null) return new IslandCachedCompassObjective(obj, 0);
-            return obj->ObjectKind switch
-            {
-                (byte)ObjectKind.CardStand =>
-                    new IslandCachedCompassObjective(info, IslandObjectType.Gathering),
-                (byte)ObjectKind.BattleNpc =>
-                    new IslandCachedCompassObjective(info, IslandObjectType.Animal),
-                _ => new IslandCachedCompassObjective(info, 0),
-            };
-        }
+            => CreateCompassObjective(info != null ? info->GameObject : null);
+        //{
+        //    var obj = info != null ? info->GameObject : null;
+        //    if (obj == null) return new IslandCachedCompassObjective(obj, 0);
+        //    return obj->ObjectKind switch
+        //    {
+        //        (byte)ObjectKind.MjiObject =>
+        //            new IslandCachedCompassObjective(info, IslandObjectType.Gathering),
+        //        (byte)ObjectKind.BattleNpc =>
+        //            new IslandCachedCompassObjective(info, IslandObjectType.Animal),
+        //        _ => new IslandCachedCompassObjective(info, 0),
+        //    };
+        //}
 
         private protected override unsafe string 
             GetClosestObjectiveDescription(CachedCompassObjective objective)
